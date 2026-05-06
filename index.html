@@ -128,26 +128,42 @@ alert("Results saved");
 // ================= SEARCH =================
 
 async function search(){
-let student = await db.collection("students").doc(name.value).get();
 
-if(!student.exists || student.data().dob !== dob.value){
-alert("Not found");
+let inputName = name.value.trim().toLowerCase();
+let inputDob = dob.value.trim();
+
+let snapshot = await db.collection("students").get();
+
+let found = null;
+
+// loop through students
+snapshot.forEach(doc => {
+let dbName = doc.id.toLowerCase().trim();
+let dbDob = doc.data().dob.trim();
+
+if(dbName === inputName && dbDob === inputDob){
+found = doc.id;
+}
+});
+
+if(!found){
+alert("Student not found");
 return;
 }
 
-let result = await db.collection("results").doc(name.value).get();
+// get results
+let result = await db.collection("results").doc(found).get();
 
 if(!result.exists){
-alert("No results yet");
+alert("Results not found");
 return;
 }
 
 public.classList.add("hidden");
 results.classList.remove("hidden");
 
-loadResults(name.value, result.data());
+loadResults(found, result.data());
 }
-
 async function loadResults(name,data){
 
 rname.innerText=name;
