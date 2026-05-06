@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Bandawe Results Portal</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<style>
+body { font-family: Arial; padding:20px; background:#f4f4f4; }
+.hidden { display:none; }
+input, button { padding:10px; margin:5px; width:100%; }
+table { width:100%; border-collapse:collapse; }
+td, th { border:1px solid #ccc; padding:8px; }
+th { background:#003366; color:white; }
+</style>
+</head>
+
+<body>
+
+<h2>Bandawe School Results Portal</h2>
+
+<!-- SEARCH -->
+<div id="public">
+<input id="name" placeholder="Full Name">
+<input id="dob" placeholder="DOB dd/mm/yyyy">
+<button onclick="search()">View Results</button>
+<button onclick="showAdmin()">Admin</button>
+</div>
+
+<!-- RESULTS -->
+<div id="results" class="hidden">
+<h3 id="rname"></h3>
+<p>Total: <span id="total"></span></p>
+<p>Position: <span id="position"></span></p>
+<table id="table"></table>
+<button onclick="download()">Download PDF</button>
+</div>
+
+<!-- ADMIN -->
+<div id="adminLogin" class="hidden">
+<input id="user">
+<input id="pass" type="password">
+<button onclick="login()">Login</button>
+</div>
+
+<div id="adminPanel" class="hidden">
+<button onclick="addStudent()">Add Student</button>
+<button onclick="enterResults()">Enter Results</button>
+<div id="adminArea"></div>
+</div>
+
+<script>
+
+// 🔥 PASTE YOUR FIREBASE CONFIG HERE
+const firebaseConfig = {
+  apiKey: "AlzaSyDUny1WaUaMeUgLLsUrFckhQAloCwDHX-c",
+  authDomain: "bandawe-results-portal.firebaseapp.com",
+  projectId: "bandawe-results-portal"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const subjects = ["Math","English","Science","Chichewa"];
+
+// ================= ADMIN =================
+
+function showAdmin(){
+public.classList.add("hidden");
+adminLogin.classList.remove("hidden");
+}
+
+function login(){
+if(user.value==="admin" && pass.value==="1234"){
+adminLogin.classList.add("hidden");
+adminPanel.classList.remove("hidden");
+}
+}
+
+function addStudent(){
+adminArea.innerHTML=`
+<input id="sname" placeholder="Name">
+<input id="sdob" placeholder="DOB">
+<button onclick="saveStudent()">Save</button>
+`;
+}
+
+async function saveStudent(){
+await db.collection("students").doc(sname.value).set({
+dob: sdob.value
+});
+alert("Saved");
+}
+
+function enterResults(){
+let inputs='';
+subjects.forEach(s=>{
+inputs+=`<label>${s}</label><input class="score" data-subject="${s}">`;
+});
+
+adminArea.innerHTML=`
+<input id="rstudent" placeholder="Student Name">
+${inputs}
+<button onclick="saveResults()">Save Results</button>
+`;
+}
+
+async function saveResults(){
+let scores={};
+let total=0;
+
+document.querySelectorAll(".score").forEach(i=>{
+let val=parseInt(i.value)||0;
+scores[i.dataset.subject]=val;
+total+=val;
+});
+
+await db.collection("results").doc(rstudent.value).set({
+scores: scores,
+total: total
+});
+
+alert("Results saved");
+}
+
+// ================= SEARCH =================
+
+async function search(){
+let student = await db.collection("students").doc(name.value).get();
+
+if(!student.exists || student.data().dob !== dob.value){
+alert("Not found");
+return;
+}
+
+let result = await db.collection("results").doc(name.value).get();
+
+if(!result.exists){
+alert("No results yet");
+return;
+}
+
+public.classList.add("hidden");
+results.classList.remove("hidden");
+
+loadResults(name.value, result.data());
+}
+
+async function loadResults(name,data){
+
+rname.innerText=name;
+total.innerText=data.total;
+
+// calculate position
+let snapshot = await db.collection("results").get();
+let arr=[];
+
+snapshot.forEach(doc=>{
+arr.push({name:doc.id,total:doc.data().total});
+});
+
+arr.sort((a,b)=>b.total-a.total);
+
+let pos = arr.findIndex(s=>s.name===name)+1;
+position.innerText=pos;
+
+let html="<tr><th>Subject</th><th>Score</th></tr>";
+
+for(let s in data.scores){
+html+=`<tr><td>${s}</td><td>${data.scores[s]}</td></tr>`;
+}
+
+table.innerHTML=html;
+}
+
+// ================= PDF =================
+
+function download(){
+window.print();
+}
+
+</script>
+
+</body>
+</html>
