@@ -68,14 +68,14 @@ const subjects = ["Math","English","Science","Chichewa"];
 // ================= ADMIN =================
 
 function showAdmin(){
-public.classList.add("hidden");
-adminLogin.classList.remove("hidden");
+document.getElementById("public").classList.add("hidden");
+document.getElementById("adminLogin").classList.remove("hidden");
 }
 
 function login(){
 if(user.value==="admin" && pass.value==="1234"){
-adminLogin.classList.add("hidden");
-adminPanel.classList.remove("hidden");
+document.getElementById("adminLogin").classList.add("hidden");
+document.getElementById("adminPanel").classList.remove("hidden");
 }
 }
 
@@ -181,8 +181,8 @@ alert("Error occurred. Check console.");
 }
 async function loadResults(name,data){
 
-rname.innerText=name;
-total.innerText=data.total;
+document.getElementById("rname.innerText=name");
+document.getElementById("total.innerText=data.total");
 
 // calculate position
 let snapshot = await db.collection("results").get();
