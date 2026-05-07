@@ -3,46 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>Bandawe Results Portal</title>
+    
+    <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.min.js"></script> 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.min.js"></script>
 
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            padding: 20px; 
-            background: #f4f4f4; 
-            max-width: 900px;
-            margin: 0 auto;
-        }
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; max-width: 900px; margin: 0 auto; }
         .hidden { display: none; }
-        input, button { 
-            padding: 10px; 
-            margin: 8px 0; 
-            width: 100%; 
-            box-sizing: border-box;
-        }
-        button {
-            background: #003366;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
+        input, button { padding: 10px; margin: 8px 0; width: 100%; box-sizing: border-box; }
+        button { background: #003366; color: white; border: none; cursor: pointer; }
         button:hover { background: #002244; }
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin: 15px 0;
-        }
-        td, th { 
-            border: 1px solid #ccc; 
-            padding: 10px; 
-            text-align: left;
-        }
-        th { 
-            background: #003366; 
-            color: white; 
-        }
-        .error { color: red; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        td, th { border: 1px solid #ccc; padding: 10px; text-align: left; }
+        th { background: #003366; color: white; }
+        .error { color: red; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -63,7 +38,7 @@
         <p><strong>Total Score:</strong> <span id="total"></span></p>
         <p><strong>Position:</strong> <span id="position"></span></p>
         <table id="table"></table>
-        <button onclick="download()">Print / Download PDF</button>
+        <button onclick="download()">Print / Download</button>
         <button onclick="backToSearch()">Back</button>
     </div>
 
@@ -84,7 +59,8 @@
     </div>
 
     <script>
-        // ================= FIREBASE CONFIG =================
+        let db = null;
+
         const firebaseConfig = {
             apiKey: "AIzaSyDUny1WaUaMeUgLLsUrFckhQAloCwDHX-c",
             authDomain: "bandawe-results-portal.firebaseapp.com",
@@ -94,13 +70,29 @@
             appId: "1:558408212445:web:f93a5d74b74010ebdee034"
         };
 
-        // Initialize Firebase FIRST
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
         const subjects = ["Math", "English", "Science", "Chichewa"];
 
-        // ================= ADMIN =================
+        // Initialize Firebase safely after scripts load
+        function initializeFirebase() {
+            try {
+                if (typeof firebase === "undefined") {
+                    console.error("Firebase script not loaded yet");
+                    alert("Firebase is not loaded. Please refresh the page.");
+                    return false;
+                }
+
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                console.log("✅ Firebase initialized successfully");
+                return true;
+            } catch (e) {
+                console.error("Firebase init error:", e);
+                alert("Failed to initialize Firebase: " + e.message);
+                return false;
+            }
+        }
+
+        // ================= ADMIN FUNCTIONS =================
         function showAdmin() {
             document.getElementById("public").classList.add("hidden");
             document.getElementById("adminLogin").classList.remove("hidden");
@@ -114,7 +106,7 @@
                 document.getElementById("adminLogin").classList.add("hidden");
                 document.getElementById("adminPanel").classList.remove("hidden");
             } else {
-                alert("Incorrect username or password!");
+                alert("Incorrect credentials!");
             }
         }
 
@@ -128,103 +120,80 @@
         }
 
         async function saveStudent() {
+            if (!db) { alert("Database not initialized"); return; }
             const sname = document.getElementById("sname").value.trim();
             const sdob = document.getElementById("sdob").value.trim();
 
             if (!sname || !sdob) {
-                alert("Please fill in both name and date of birth");
+                alert("Please fill both fields");
                 return;
             }
 
             try {
                 await db.collection("students").doc(sname).set({ dob: sdob });
                 alert("Student saved successfully!");
-                document.getElementById("sname").value = "";
-                document.getElementById("sdob").value = "";
             } catch (e) {
-                alert("Error saving student: " + e.message);
+                alert("Error: " + e.message);
             }
         }
 
         function enterResults() {
             let html = `<h3>Enter Results</h3><input id="rstudent" placeholder="Student Name">`;
-
             subjects.forEach(sub => {
-                html += `
-                    <label>${sub}:</label>
-                    <input class="score" data-subject="${sub}" type="number" min="0" max="100">
-                `;
+                html += `<label>\( {sub}:</label><input class="score" data-subject=" \){sub}" type="number" min="0" max="100">`;
             });
-
             html += `<button onclick="saveResults()">Save Results</button>`;
             document.getElementById("adminArea").innerHTML = html;
         }
 
         async function saveResults() {
+            if (!db) { alert("Database not initialized"); return; }
             const rstudent = document.getElementById("rstudent").value.trim();
-            if (!rstudent) {
-                alert("Please enter student name");
-                return;
-            }
+            if (!rstudent) return alert("Enter student name");
 
-            let scores = {};
-            let total = 0;
-
-            document.querySelectorAll(".score").forEach(input => {
-                const val = parseInt(input.value) || 0;
-                scores[input.dataset.subject] = val;
+            let scores = {}, total = 0;
+            document.querySelectorAll(".score").forEach(i => {
+                const val = parseInt(i.value) || 0;
+                scores[i.dataset.subject] = val;
                 total += val;
             });
 
             try {
-                await db.collection("results").doc(rstudent).set({
-                    scores: scores,
-                    total: total
-                });
-                alert("Results saved successfully!");
+                await db.collection("results").doc(rstudent).set({ scores, total });
+                alert("Results saved!");
             } catch (e) {
-                alert("Error saving results: " + e.message);
+                alert("Error: " + e.message);
             }
         }
 
-        // ================= PUBLIC SEARCH =================
+        // ================= SEARCH =================
         async function search() {
+            if (!db) { alert("Database not ready. Please refresh."); return; }
+
             try {
                 const inputName = document.getElementById("name").value.trim();
                 const inputDob = document.getElementById("dob").value.trim();
 
-                if (!inputName || !inputDob) {
-                    alert("Please enter both name and date of birth");
-                    return;
-                }
+                if (!inputName || !inputDob) return alert("Enter name and DOB");
 
                 const snapshot = await db.collection("students").get();
                 let found = null;
 
                 snapshot.docs.forEach(doc => {
-                    if (doc.id.trim().toLowerCase() === inputName.toLowerCase() &&
+                    if (doc.id.trim().toLowerCase() === inputName.toLowerCase() && 
                         doc.data().dob.trim() === inputDob) {
                         found = doc.id;
                     }
                 });
 
-                if (!found) {
-                    alert("Student not found. Check name and DOB.");
-                    return;
-                }
+                if (!found) return alert("Student not found");
 
                 const resultSnap = await db.collection("results").doc(found).get();
-
-                if (!resultSnap.exists) {
-                    alert("Results not yet entered for this student.");
-                    return;
-                }
+                if (!resultSnap.exists) return alert("Results not entered yet");
 
                 document.getElementById("public").classList.add("hidden");
                 document.getElementById("results").classList.remove("hidden");
-
                 loadResults(found, resultSnap.data());
-
             } catch (e) {
                 console.error(e);
                 alert("Error: " + e.message);
@@ -235,57 +204,39 @@
             document.getElementById("rname").innerText = name;
             document.getElementById("total").innerText = data.total;
 
-            // Calculate position
             const snapshot = await db.collection("results").get();
             let arr = [];
-
             snapshot.docs.forEach(doc => {
-                arr.push({
-                    name: doc.id,
-                    total: doc.data().total || 0
-                });
+                arr.push({ name: doc.id, total: doc.data().total || 0 });
             });
 
             arr.sort((a, b) => b.total - a.total);
-
             const pos = arr.findIndex(s => s.name === name) + 1;
             document.getElementById("position").innerText = `${pos} out of ${arr.length}`;
 
-            // Build table
-            let tableHtml = `
-                <tr>
-                    <th>Subject</th>
-                    <th>Score</th>
-                </tr>
-            `;
-
+            let tableHtml = `<tr><th>Subject</th><th>Score</th></tr>`;
             for (let sub in data.scores) {
-                tableHtml += `
-                    <tr>
-                        <td>${sub}</td>
-                        <td>${data.scores[sub]}</td>
-                    </tr>
-                `;
+                tableHtml += `<tr><td>\( {sub}</td><td> \){data.scores[sub]}</td></tr>`;
             }
-
             document.getElementById("table").innerHTML = tableHtml;
         }
 
-        function download() {
-            window.print();
-        }
+        function download() { window.print(); }
 
         function backToSearch() {
-            // Hide all sections
             document.getElementById("results").classList.add("hidden");
             document.getElementById("adminPanel").classList.add("hidden");
             document.getElementById("adminLogin").classList.add("hidden");
-            // Show public search
             document.getElementById("public").classList.remove("hidden");
-            
-            // Clear admin area
             document.getElementById("adminArea").innerHTML = "";
         }
+
+        // ================= STARTUP =================
+        window.onload = function() {
+            if (initializeFirebase()) {
+                console.log("Portal ready");
+            }
+        };
     </script>
 </body>
 </html>
