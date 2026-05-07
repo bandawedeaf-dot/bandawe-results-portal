@@ -127,16 +127,26 @@ alert("Results saved");
 
 // ================= SEARCH =================
 
+
 async function search(){
 
-let inputName = name.value.trim().toLowerCase();
-let inputDob = dob.value.trim();
+try {
+
+let nameInput = document.getElementById("name");
+let dobInput = document.getElementById("dob");
+
+if(!nameInput || !dobInput){
+alert("Input fields not found");
+return;
+}
+
+let inputName = nameInput.value.trim().toLowerCase();
+let inputDob = dobInput.value.trim();
 
 let snapshot = await db.collection("students").get();
 
 let found = null;
 
-// loop through students
 snapshot.forEach(doc => {
 let dbName = doc.id.toLowerCase().trim();
 let dbDob = doc.data().dob.trim();
@@ -151,7 +161,6 @@ alert("Student not found");
 return;
 }
 
-// get results
 let result = await db.collection("results").doc(found).get();
 
 if(!result.exists){
@@ -159,10 +168,16 @@ alert("Results not found");
 return;
 }
 
-public.classList.add("hidden");
-results.classList.remove("hidden");
+document.getElementById("public").classList.add("hidden");
+document.getElementById("results").classList.remove("hidden");
 
 loadResults(found, result.data());
+
+} catch(e){
+console.error(e);
+alert("Error occurred. Check console.");
+}
+
 }
 async function loadResults(name,data){
 
