@@ -171,7 +171,7 @@ return;
 document.getElementById("public").classList.add("hidden");
 document.getElementById("results").classList.remove("hidden");
 
-loadResults(found, result.data());
+await loadResults(found, result.data());
 
 } catch(e){
 console.error(e);
