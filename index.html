@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Bandawe Results Portal</title>
+    <title>Bandawe School Results Portal</title>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -176,7 +176,7 @@
             }
         };
 
-        async function loadResults(name, data) {
+        function loadResults(name, data) {
             document.getElementById("rname").innerText = name;
             document.getElementById("total").innerText = data.total || 0;
 
@@ -188,35 +188,12 @@
             const avgScore = Math.round(data.total / subjects.length);
             const overall = getGradeAndRemark(avgScore);
 
-            // === POSITION RANKING LOGIC ===
-            let position = "N/A";
-            try {
-                const allResults = await getDocs(collection(db, "results"));
-                let classArr = [];
-                
-                allResults.forEach(docSnap => {
-                    const res = docSnap.data();
-                    if (res.class === data.class) {
-                        classArr.push({
-                            name: docSnap.id,
-                            total: res.total || 0
-                        });
-                    }
-                });
-
-                classArr.sort((a, b) => b.total - a.total);
-                const rank = classArr.findIndex(s => s.name === name) + 1;
-                position = rank;
-            } catch (e) {
-                console.error("Position calculation error:", e);
-            }
-
             // Summary Section
             document.getElementById("summary").innerHTML = `
                 <p><strong>Name of Learner:</strong> ${name}</p>
                 <p><strong>Class:</strong> ${data.class || 'N/A'}</p>
                 <p><strong>Marks Scored:</strong> ${data.total} / 900</p>
-                <p><strong>Position:</strong> ${position} out of ${data.classSize || 'N/A'}</p>
+                <p><strong>Position:</strong> ${/* Position logic later */ '1'} out of ${data.classSize || 'N/A'} in ${data.class}</p>
                 <p><strong>Status:</strong> <span style="color:\( {passed ? 'green' : 'red'}"> \){statusText}</span></p>
             `;
 
@@ -281,11 +258,11 @@
     <!-- RESULTS -->
     <div id="results" class="hidden">
         <div class="report-header">
-            <h2 id="reportTerm">Term 3 Report Card</h2>
+            <h2>Term 3 Report Card</h2>
             <h3 id="rname"></h3>
         </div>
         
-        <div id="summary" style="background:#f0f0f0; padding:15px; border-radius:8px; margin-bottom:15px;"></div>
+        <div id="summary" style="background:#f0f0f0; padding:15px; border-radius:8px;"></div>
         
         <table id="table"></table>
         
