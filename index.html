@@ -1,293 +1,291 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Bandawe Results Portal</title>
+    <meta charset="UTF-8">
+    <title>Bandawe Results Portal</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.min.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.min.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.min.js"></script> 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.min.js"></script>
-
-<script>
-
-  <style>
-body { font-family: Arial; padding:20px; background:#f4f4f4; }
-.hidden { display:none; }
-input, button { padding:10px; margin:5px; width:100%; }
-table { width:100%; border-collapse:collapse; }
-td, th { border:1px solid #ccc; padding:8px; }
-th { background:#003366; color:white; }
-</style>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #f4f4f4; 
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .hidden { display: none; }
+        input, button { 
+            padding: 10px; 
+            margin: 8px 0; 
+            width: 100%; 
+            box-sizing: border-box;
+        }
+        button {
+            background: #003366;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover { background: #002244; }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 15px 0;
+        }
+        td, th { 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            text-align: left;
+        }
+        th { 
+            background: #003366; 
+            color: white; 
+        }
+        .error { color: red; }
+    </style>
 </head>
-
 <body>
 
-<h2>Bandawe School Results Portal</h2>
-
-<!-- SEARCH -->
-<div id="public">
-<input id="name" placeholder="Full Name">
-<input id="dob" placeholder="DOB dd/mm/yyyy">
-<button onclick="search()">View Results</button>
-<button onclick="showAdmin()">Admin</button>
-</div>
-
-<!-- RESULTS -->
-<div id="results" class="hidden">
-<h3 id="rname"></h3>
-<p>Total: <span id="total"></span></p>
-<p>Position: <span id="position"></span></p>
-<table id="table"></table>
-<button onclick="download()">Download PDF</button>
-</div>
-
-<!-- ADMIN -->
-<div id="adminLogin" class="hidden">
-<input id="user">
-<input id="pass" type="password">
-<button onclick="login()">Login</button>
-</div>
-
-<div id="adminPanel" class="hidden">
-<button onclick="addStudent()">Add Student</button>
-<button onclick="enterResults()">Enter Results</button>
-<div id="adminArea"></div>
-</div>
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDUny1WaUaMeUgLLsUrFckhQAloCwDHX-c",
-  authDomain: "bandawe-results-portal.firebaseapp.com",
-  projectId: "bandawe-results-portal",
-  storageBucket: "bandawe-results-portal.firebasestorage.app",
-  messagingSenderId: "558408212445",
-  appId: "1:558408212445:web:f93a5d74b74010ebdee034"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-const subjects = ["Math","English","Science","Chichewa"];
-
-
-// ================= ADMIN =================
-
-function showAdmin(){
-
-document.getElementById("public").classList.add("hidden");
-document.getElementById("adminLogin").classList.remove("hidden");
-
-}
-
-function login(){
-
-const username = document.getElementById("user").value;
-const password = document.getElementById("pass").value;
-
-if(username === "admin" && password === "1234"){
-
-document.getElementById("adminLogin").classList.add("hidden");
-document.getElementById("adminPanel").classList.remove("hidden");
-
-}else{
-
-alert("Wrong credentials");
-
-}
-
-}
-
-function addStudent(){
-
-document.getElementById("adminArea").innerHTML = `
-<input id="sname" placeholder="Student Name">
-<input id="sdob" placeholder="DOB dd/mm/yyyy">
-<button onclick="saveStudent()">Save Student</button>
-`;
-
-}
-
-async function saveStudent(){
-
-const sname = document.getElementById("sname").value.trim();
-const sdob = document.getElementById("sdob").value.trim();
-
-await db.collection("students").doc(sname).set({
-dob: sdob
-});
-
-alert("Student saved");
-
-}
-
-function enterResults(){
-
-let html = `
-<input id="rstudent" placeholder="Student Name">
-`;
-
-subjects.forEach(function(sub){
-
-html += `
-<label>${sub}</label>
-<input class="score" data-subject="${sub}" type="number">
-`;
-
-});
-
-html += `
-<button onclick="saveResults()">Save Results</button>
-`;
-
-document.getElementById("adminArea").innerHTML = html;
-
-}
-
-async function saveResults(){
-
-const rstudent = document.getElementById("rstudent").value.trim();
-
-let scores = {};
-let total = 0;
-
-document.querySelectorAll(".score").forEach(function(i){
-
-let val = parseInt(i.value) || 0;
-
-scores[i.dataset.subject] = val;
-
-total += val;
-
-});
-
-await db.collection("results").doc(rstudent).set({
-
-scores: scores,
-total: total
-
-});
-
-alert("Results saved");
-
-}
-
-// ================= SEARCH =================
-
-async function search(){
-
-try{
-
-const inputName = document.getElementById("name").value.trim().toLowerCase();
-
-const inputDob = document.getElementById("dob").value.trim();
-
-const snapshot = await db.collection("students").get();
-
-let found = null;
-
-snapshot.docs.forEach(function(doc){
-
-const dbName = doc.id.trim().toLowerCase();
-
-const dbDob = doc.data().dob.trim();
-
-if(dbName === inputName && dbDob === inputDob){
-
-found = doc.id;
-
-}
-
-});
-
-if(!found){
-
-alert("Student not found");
-return;
-
-}
-
-const result = await db.collection("results").doc(found).get();
-
-if(!result.exists){
-
-alert("Results not found");
-return;
-
-}
-
-document.getElementById("public").classList.add("hidden");
-
-document.getElementById("results").classList.remove("hidden");
-
-loadResults(found, result.data());
-
-}catch(e){
-
-alert(e.message);
-
-}
-
-}
-
-async function loadResults(name, data){
-
-document.getElementById("rname").innerText = name;
-
-document.getElementById("total").innerText = data.total;
-
-const snapshot = await db.collection("results").get();
-
-let arr = [];
-
-snapshot.docs.forEach(function(doc){
-
-arr.push({
-name: doc.id,
-total: doc.data().total
-});
-
-});
-
-arr.sort(function(a,b){
-
-return b.total - a.total;
-
-});
-
-const pos = arr.findIndex(function(s){
-
-return s.name === name;
-
-}) + 1;
-
-document.getElementById("position").innerText = pos;
-
-let tableHtml = `
-<tr>
-<th>Subject</th>
-<th>Score</th>
-</tr>
-`;
-
-for(let s in data.scores){
-
-tableHtml += `
-<tr>
-<td>${s}</td>
-<td>${data.scores[s]}</td>
-</tr>
-`;
-
-}
-
-document.getElementById("table").innerHTML = tableHtml;
-
-}
-
-function download(){
-
-window.print();
-
-}
-
-</script>
+    <h2>Bandawe School Results Portal</h2>
+
+    <!-- PUBLIC SEARCH -->
+    <div id="public">
+        <input id="name" placeholder="Full Name (e.g. John Banda)">
+        <input id="dob" placeholder="Date of Birth (dd/mm/yyyy)">
+        <button onclick="search()">View Results</button>
+        <button onclick="showAdmin()">Admin Login</button>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="results" class="hidden">
+        <h3 id="rname"></h3>
+        <p><strong>Total Score:</strong> <span id="total"></span></p>
+        <p><strong>Position:</strong> <span id="position"></span></p>
+        <table id="table"></table>
+        <button onclick="download()">Print / Download PDF</button>
+        <button onclick="backToSearch()">Back</button>
+    </div>
+
+    <!-- ADMIN LOGIN -->
+    <div id="adminLogin" class="hidden">
+        <input id="user" placeholder="Username">
+        <input id="pass" type="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <button onclick="backToSearch()">Back</button>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div id="adminPanel" class="hidden">
+        <button onclick="addStudent()">Add Student</button>
+        <button onclick="enterResults()">Enter Results</button>
+        <button onclick="backToSearch()">Logout</button>
+        <div id="adminArea" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        // ================= FIREBASE CONFIG =================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDUny1WaUaMeUgLLsUrFckhQAloCwDHX-c",
+            authDomain: "bandawe-results-portal.firebaseapp.com",
+            projectId: "bandawe-results-portal",
+            storageBucket: "bandawe-results-portal.firebasestorage.app",
+            messagingSenderId: "558408212445",
+            appId: "1:558408212445:web:f93a5d74b74010ebdee034"
+        };
+
+        // Initialize Firebase FIRST
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const subjects = ["Math", "English", "Science", "Chichewa"];
+
+        // ================= ADMIN =================
+        function showAdmin() {
+            document.getElementById("public").classList.add("hidden");
+            document.getElementById("adminLogin").classList.remove("hidden");
+        }
+
+        function login() {
+            const username = document.getElementById("user").value.trim();
+            const password = document.getElementById("pass").value.trim();
+
+            if (username === "admin" && password === "1234") {
+                document.getElementById("adminLogin").classList.add("hidden");
+                document.getElementById("adminPanel").classList.remove("hidden");
+            } else {
+                alert("Incorrect username or password!");
+            }
+        }
+
+        function addStudent() {
+            document.getElementById("adminArea").innerHTML = `
+                <h3>Add New Student</h3>
+                <input id="sname" placeholder="Full Name">
+                <input id="sdob" placeholder="DOB dd/mm/yyyy">
+                <button onclick="saveStudent()">Save Student</button>
+            `;
+        }
+
+        async function saveStudent() {
+            const sname = document.getElementById("sname").value.trim();
+            const sdob = document.getElementById("sdob").value.trim();
+
+            if (!sname || !sdob) {
+                alert("Please fill in both name and date of birth");
+                return;
+            }
+
+            try {
+                await db.collection("students").doc(sname).set({ dob: sdob });
+                alert("Student saved successfully!");
+                document.getElementById("sname").value = "";
+                document.getElementById("sdob").value = "";
+            } catch (e) {
+                alert("Error saving student: " + e.message);
+            }
+        }
+
+        function enterResults() {
+            let html = `<h3>Enter Results</h3><input id="rstudent" placeholder="Student Name">`;
+
+            subjects.forEach(sub => {
+                html += `
+                    <label>${sub}:</label>
+                    <input class="score" data-subject="${sub}" type="number" min="0" max="100">
+                `;
+            });
+
+            html += `<button onclick="saveResults()">Save Results</button>`;
+            document.getElementById("adminArea").innerHTML = html;
+        }
+
+        async function saveResults() {
+            const rstudent = document.getElementById("rstudent").value.trim();
+            if (!rstudent) {
+                alert("Please enter student name");
+                return;
+            }
+
+            let scores = {};
+            let total = 0;
+
+            document.querySelectorAll(".score").forEach(input => {
+                const val = parseInt(input.value) || 0;
+                scores[input.dataset.subject] = val;
+                total += val;
+            });
+
+            try {
+                await db.collection("results").doc(rstudent).set({
+                    scores: scores,
+                    total: total
+                });
+                alert("Results saved successfully!");
+            } catch (e) {
+                alert("Error saving results: " + e.message);
+            }
+        }
+
+        // ================= PUBLIC SEARCH =================
+        async function search() {
+            try {
+                const inputName = document.getElementById("name").value.trim();
+                const inputDob = document.getElementById("dob").value.trim();
+
+                if (!inputName || !inputDob) {
+                    alert("Please enter both name and date of birth");
+                    return;
+                }
+
+                const snapshot = await db.collection("students").get();
+                let found = null;
+
+                snapshot.docs.forEach(doc => {
+                    if (doc.id.trim().toLowerCase() === inputName.toLowerCase() &&
+                        doc.data().dob.trim() === inputDob) {
+                        found = doc.id;
+                    }
+                });
+
+                if (!found) {
+                    alert("Student not found. Check name and DOB.");
+                    return;
+                }
+
+                const resultSnap = await db.collection("results").doc(found).get();
+
+                if (!resultSnap.exists) {
+                    alert("Results not yet entered for this student.");
+                    return;
+                }
+
+                document.getElementById("public").classList.add("hidden");
+                document.getElementById("results").classList.remove("hidden");
+
+                loadResults(found, resultSnap.data());
+
+            } catch (e) {
+                console.error(e);
+                alert("Error: " + e.message);
+            }
+        }
+
+        async function loadResults(name, data) {
+            document.getElementById("rname").innerText = name;
+            document.getElementById("total").innerText = data.total;
+
+            // Calculate position
+            const snapshot = await db.collection("results").get();
+            let arr = [];
+
+            snapshot.docs.forEach(doc => {
+                arr.push({
+                    name: doc.id,
+                    total: doc.data().total || 0
+                });
+            });
+
+            arr.sort((a, b) => b.total - a.total);
+
+            const pos = arr.findIndex(s => s.name === name) + 1;
+            document.getElementById("position").innerText = `${pos} out of ${arr.length}`;
+
+            // Build table
+            let tableHtml = `
+                <tr>
+                    <th>Subject</th>
+                    <th>Score</th>
+                </tr>
+            `;
+
+            for (let sub in data.scores) {
+                tableHtml += `
+                    <tr>
+                        <td>${sub}</td>
+                        <td>${data.scores[sub]}</td>
+                    </tr>
+                `;
+            }
+
+            document.getElementById("table").innerHTML = tableHtml;
+        }
+
+        function download() {
+            window.print();
+        }
+
+        function backToSearch() {
+            // Hide all sections
+            document.getElementById("results").classList.add("hidden");
+            document.getElementById("adminPanel").classList.add("hidden");
+            document.getElementById("adminLogin").classList.add("hidden");
+            // Show public search
+            document.getElementById("public").classList.remove("hidden");
+            
+            // Clear admin area
+            document.getElementById("adminArea").innerHTML = "";
+        }
+    </script>
 </body>
 </html>
