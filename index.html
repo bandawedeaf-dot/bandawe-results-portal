@@ -147,7 +147,7 @@
             }
         };
 
-        // ================= SEARCH & RESULTS =================
+        // ================= SEARCH =================
         window.search = async function() {
             try {
                 const inputName = document.getElementById("name").value.trim();
@@ -176,7 +176,7 @@
             }
         };
 
-        function loadResults(name, data) {
+        async function loadResults(name, data) {
             document.getElementById("rname").innerText = name;
             document.getElementById("total").innerText = data.total || 0;
 
@@ -185,19 +185,33 @@
             const passed = percentage >= 40;
             const statusText = passed ? "PASSED" : "FAILED";
 
-            const avgScore = Math.round(data.total / subjects.length);
-            const overall = getGradeAndRemark(avgScore);
+            // Position Ranking
+            let position = "N/A";
+            try {
+                const allResultsSnap = await getDocs(collection(db, "results"));
+                let classArr = [];
+                allResultsSnap.forEach(docSnap => {
+                    const res = docSnap.data();
+                    if (res.class === data.class) {
+                        classArr.push({ name: docSnap.id, total: res.total || 0 });
+                    }
+                });
+                classArr.sort((a, b) => b.total - a.total);
+                position = classArr.findIndex(s => s.name === name) + 1;
+            } catch (e) {
+                console.error(e);
+            }
 
             // Summary Section
             document.getElementById("summary").innerHTML = `
                 <p><strong>Name of Learner:</strong> ${name}</p>
                 <p><strong>Class:</strong> ${data.class || 'N/A'}</p>
-                <p><strong>Marks Scored:</strong> ${data.total} / 900</p>
-                <p><strong>Position:</strong> ${/* Position logic later */ '1'} out of ${data.classSize || 'N/A'} in ${data.class}</p>
+                <p><strong>Marks Scored:</strong> ${data.total || 0} / 900</p>
+                <p><strong>Position:</strong> ${position} out of ${data.classSize || 'N/A'}</p>
                 <p><strong>Status:</strong> <span style="color:\( {passed ? 'green' : 'red'}"> \){statusText}</span></p>
             `;
 
-            // Table
+            // Detailed Table
             let tableHtml = `<tr><th>Subject</th><th>Score</th><th>Grade</th><th>Remark</th></tr>`;
             subjects.forEach(sub => {
                 const score = data.scores?.[sub] ?? 0;
@@ -247,7 +261,7 @@
 
     <h2>Bandawe School Results Portal</h2>
 
-    <!-- PUBLIC -->
+    <!-- PUBLIC SEARCH -->
     <div id="public">
         <input id="name" placeholder="Full Name">
         <input id="dob" placeholder="Date of Birth (dd/mm/yyyy)">
@@ -255,14 +269,14 @@
         <button onclick="showAdmin()">Admin Login</button>
     </div>
 
-    <!-- RESULTS -->
+    <!-- RESULTS REPORT -->
     <div id="results" class="hidden">
         <div class="report-header">
             <h2>Term 3 Report Card</h2>
             <h3 id="rname"></h3>
         </div>
         
-        <div id="summary" style="background:#f0f0f0; padding:15px; border-radius:8px;"></div>
+        <div id="summary" style="background:#f0f0f0; padding:15px; border-radius:8px; margin-bottom:15px;"></div>
         
         <table id="table"></table>
         
