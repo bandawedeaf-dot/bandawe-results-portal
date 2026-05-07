@@ -8,22 +8,8 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.min.js"></script>
 
 <script>
-// ================= ADMIN =================
-const firebaseConfig = {
-  apiKey: "AIzaSyDUny1WaUaMeUgLLsUrFckhQAloCwDHX-c",
-  authDomain: "bandawe-results-portal.firebaseapp.com",
-  projectId: "bandawe-results-portal",
-  storageBucket: "bandawe-results-portal.firebasestorage.app",
-  messagingSenderId: "558408212445",
-  appId: "1:558408212445:web:f93a5d74b74010ebdee034"
-};
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-const subjects = ["Math","English","Science","Chichewa"];
-
-<style>
+  <style>
 body { font-family: Arial; padding:20px; background:#f4f4f4; }
 .hidden { display:none; }
 input, button { padding:10px; margin:5px; width:100%; }
@@ -67,6 +53,22 @@ th { background:#003366; color:white; }
 <div id="adminArea"></div>
 </div>
 
+const firebaseConfig = {
+  apiKey: "AIzaSyDUny1WaUaMeUgLLsUrFckhQAloCwDHX-c",
+  authDomain: "bandawe-results-portal.firebaseapp.com",
+  projectId: "bandawe-results-portal",
+  storageBucket: "bandawe-results-portal.firebasestorage.app",
+  messagingSenderId: "558408212445",
+  appId: "1:558408212445:web:f93a5d74b74010ebdee034"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const subjects = ["Math","English","Science","Chichewa"];
+
+
+// ================= ADMIN =================
 
 function showAdmin(){
 
