@@ -79,14 +79,25 @@ document.getElementById("adminLogin").classList.remove("hidden");
 }
 
 function login(){
-if(user.value==="admin" && pass.value==="1234"){
+
+const username = document.getElementById("user").value;
+const password = document.getElementById("pass").value;
+
+if(username === "admin" && password === "1234"){
+
 document.getElementById("adminLogin").classList.add("hidden");
 document.getElementById("adminPanel").classList.remove("hidden");
+
+} else {
+
+alert("Wrong credentials");
+
 }
+
 }
 
 function addStudent(){
-adminArea.innerHTML=`
+document.getElementById("adminArea").innerHTML=
 <input id="sname" placeholder="Name">
 <input id="sdob" placeholder="DOB">
 <button onclick="saveStudent()">Save</button>
@@ -94,10 +105,16 @@ adminArea.innerHTML=`
 }
 
 async function saveStudent(){
-await db.collection("students").doc(sname.value).set({
-dob: sdob.value
+
+const sname = document.getElementById("sname").value.trim();
+const sdob = document.getElementById("sdob").value.trim();
+
+await db.collection("students").doc(sname).set({
+dob: sdob
 });
+
 alert("Saved");
+
 }
 
 function enterResults(){
@@ -106,7 +123,7 @@ subjects.forEach(s=>{
 inputs+=`<label>${s}</label><input class="score" data-subject="${s}">`;
 });
 
-adminArea.innerHTML=`
+document.getElementById("adminArea").innerHTML=
 <input id="rstudent" placeholder="Student Name">
 ${inputs}
 <button onclick="saveResults()">Save Results</button>
@@ -114,21 +131,31 @@ ${inputs}
 }
 
 async function saveResults(){
-let scores={};
-let total=0;
 
-document.querySelectorAll(".score").forEach(i=>{
-let val=parseInt(i.value)||0;
-scores[i.dataset.subject]=val;
-total+=val;
+const rstudent = document.getElementById("rstudent").value.trim();
+
+let scores = {};
+let total = 0;
+
+document.querySelectorAll(".score").forEach(i => {
+
+let val = parseInt(i.value) || 0;
+
+scores[i.dataset.subject] = val;
+
+total += val;
+
 });
 
-await db.collection("results").doc(rstudent.value).set({
+await db.collection("results").doc(rstudent).set({
+
 scores: scores,
 total: total
+
 });
 
 alert("Results saved");
+
 }
 
 // ================= SEARCH =================
