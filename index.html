@@ -131,42 +131,37 @@ alert("Results saved");
 // ================= SEARCH =================
 
 
-async function search(){
+async function search() {
 
 try {
 
-let nameInput = document.getElementById("name");
-let dobInput = document.getElementById("dob");
+const inputName = document.getElementById("name").value.trim().toLowerCase();
+const inputDob = document.getElementById("dob").value.trim();
 
-if(!nameInput || !dobInput){
-alert("Input fields not found");
-return;
-}
-
-let inputName = nameInput.value.trim().toLowerCase();
-let inputDob = dobInput.value.trim();
-
-let snapshot = await db.collection("students").get();
+const snapshot = await db.collection("students").get();
 
 let found = null;
 
-snapshot.forEach(doc => {
-let dbName = doc.id.toLowerCase().trim();
-let dbDob = doc.data().dob.trim();
+for (const doc of snapshot.docs) {
 
-if(dbName === inputName && dbDob === inputDob){
+const dbName = doc.id.trim().toLowerCase();
+const dbDob = doc.data().dob.trim();
+
+if (dbName === inputName && dbDob === inputDob) {
 found = doc.id;
+break;
 }
-});
 
-if(!found){
+}
+
+if (!found) {
 alert("Student not found");
 return;
 }
 
-let result = await db.collection("results").doc(found).get();
+const result = await db.collection("results").doc(found).get();
 
-if(!result.exists){
+if (!result.exists) {
 alert("Results not found");
 return;
 }
@@ -176,12 +171,15 @@ document.getElementById("results").classList.remove("hidden");
 
 await loadResults(found, result.data());
 
-} catch(e){
-alert(e.message);
+} catch (e) {
+
+alert("ERROR: " + e.message);
 console.error(e);
+
 }
 
 }
+
 async function loadResults(name,data){
 
 document.getElementById("rname").innerText=name;
