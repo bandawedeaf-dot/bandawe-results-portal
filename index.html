@@ -174,8 +174,8 @@ document.getElementById("results").classList.remove("hidden");
 await loadResults(found, result.data());
 
 } catch(e){
+alert(e.message);
 console.error(e);
-alert("Error occurred. Check console.");
 }
 
 }
