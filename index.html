@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Bandawe School Results Portal</title>
+    <title>Bandawe Results Portal</title>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -100,7 +100,14 @@
                             <option value="">—— Select Class ——</option>
                             ${classOptions}
                         </select>
-                        <input id="classSize" type="number" placeholder="Number of Learners in Class" min="1">`;
+                        <input id="classSize" type="number" placeholder="Number of Learners in Class" min="1">
+                        <select id="term">
+                            <option value="">—— Select Term ——</option>
+                            <option value="Term 1">Term 1</option>
+                            <option value="Term 2">Term 2</option>
+                            <option value="Term 3" selected>Term 3</option>
+                        </select>
+                        <input id="year" type="number" value="2026" placeholder="Year">`;
 
             subjects.forEach(sub => {
                 html += `
@@ -117,8 +124,11 @@
             const rstudent = document.getElementById("rstudent").value.trim();
             const rclass = document.getElementById("rclass").value;
             const classSize = parseInt(document.getElementById("classSize").value);
+            const term = document.getElementById("term").value;
+            const year = document.getElementById("year").value;
 
-            if (!rstudent || !rclass || !classSize) return alert("All fields are required!");
+            if (!rstudent || !rclass || !classSize || !term || !year) 
+                return alert("All fields are required!");
 
             let scores = {}, total = 0;
             document.querySelectorAll(".score").forEach(i => {
@@ -129,7 +139,7 @@
 
             try {
                 await setDoc(doc(db, "results", rstudent), { 
-                    scores, total, class: rclass, classSize 
+                    scores, total, class: rclass, classSize, term, year 
                 });
                 alert("Results saved successfully!");
             } catch (e) {
@@ -166,7 +176,7 @@
             }
         };
 
-        function loadResults(name, data) {
+        async function loadResults(name, data) {
             document.getElementById("rname").innerText = name;
             document.getElementById("total").innerText = data.total || 0;
 
@@ -177,32 +187,50 @@
 
             const avgScore = Math.round(data.total / subjects.length);
             const overall = getGradeAndRemark(avgScore);
-            document.getElementById("overallGrade").innerHTML = `<strong>Overall Grade: ${overall.grade}</strong>`;
-            document.getElementById("resultStatus").innerHTML = `<strong>Result: <span style="color:\( {passed ? 'green' : 'red'}"> \){statusText}</span></strong>`;
 
-            // Position
-            const classSize = data.classSize || "N/A";
-            document.getElementById("position").innerText = `${data.class || ''} — Position: ${/* temporary */ 1} out of ${classSize}`;
+            // === POSITION RANKING LOGIC ===
+            let position = "N/A";
+            try {
+                const allResults = await getDocs(collection(db, "results"));
+                let classArr = [];
+                
+                allResults.forEach(docSnap => {
+                    const res = docSnap.data();
+                    if (res.class === data.class) {
+                        classArr.push({
+                            name: docSnap.id,
+                            total: res.total || 0
+                        });
+                    }
+                });
 
-            // Fixed Table
-            let tableHtml = `
-                <tr>
-                    <th>Subject</th>
-                    <th>Score</th>
-                    <th>Grade</th>
-                    <th>Remark</th>
-                </tr>`;
-            
+                classArr.sort((a, b) => b.total - a.total);
+                const rank = classArr.findIndex(s => s.name === name) + 1;
+                position = rank;
+            } catch (e) {
+                console.error("Position calculation error:", e);
+            }
+
+            // Summary Section
+            document.getElementById("summary").innerHTML = `
+                <p><strong>Name of Learner:</strong> ${name}</p>
+                <p><strong>Class:</strong> ${data.class || 'N/A'}</p>
+                <p><strong>Marks Scored:</strong> ${data.total} / 900</p>
+                <p><strong>Position:</strong> ${position} out of ${data.classSize || 'N/A'}</p>
+                <p><strong>Status:</strong> <span style="color:\( {passed ? 'green' : 'red'}"> \){statusText}</span></p>
+            `;
+
+            // Table
+            let tableHtml = `<tr><th>Subject</th><th>Score</th><th>Grade</th><th>Remark</th></tr>`;
             subjects.forEach(sub => {
                 const score = data.scores?.[sub] ?? 0;
                 const gr = getGradeAndRemark(score);
-                tableHtml += `
-                    <tr>
-                        <td><strong>${sub}</strong></td>
-                        <td>${score}</td>
-                        <td>${gr.grade}</td>
-                        <td>${gr.remark}</td>
-                    </tr>`;
+                tableHtml += `<tr>
+                    <td><strong>${sub}</strong></td>
+                    <td>${score}</td>
+                    <td>${gr.grade}</td>
+                    <td>${gr.remark}</td>
+                </tr>`;
             });
             document.getElementById("table").innerHTML = tableHtml;
 
@@ -231,6 +259,7 @@
         td, th { border: 1px solid #666; padding: 10px; text-align: left; }
         th { background: #003366; color: white; }
         .report-header { text-align: center; margin-bottom: 20px; }
+        #summary p { margin: 8px 0; font-size: 16px; }
         @media print {
             body { background: white; padding: 20px; }
             button, #public, #adminPanel, #adminLogin { display: none !important; }
@@ -252,14 +281,11 @@
     <!-- RESULTS -->
     <div id="results" class="hidden">
         <div class="report-header">
-            <h2>Term 3 Report Card</h2>
+            <h2 id="reportTerm">Term 3 Report Card</h2>
             <h3 id="rname"></h3>
         </div>
         
-        <p><strong>Total Score:</strong> <span id="total"></span> / 900</p>
-        <p id="overallGrade"></p>
-        <p id="resultStatus"></p>
-        <p><strong>Position:</strong> <span id="position"></span></p>
+        <div id="summary" style="background:#f0f0f0; padding:15px; border-radius:8px; margin-bottom:15px;"></div>
         
         <table id="table"></table>
         
