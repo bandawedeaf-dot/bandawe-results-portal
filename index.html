@@ -158,92 +158,244 @@ alert("Results saved");
 
 }
 
+
+<script>
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDUny1WaUaMeUgLLsUrFckhQAloCwDHX-c",
+  authDomain: "bandawe-results-portal.firebaseapp.com",
+  projectId: "bandawe-results-portal",
+  storageBucket: "bandawe-results-portal.firebasestorage.app",
+  messagingSenderId: "558408212445",
+  appId: "1:558408212445:web:f93a5d74b74010ebdee034"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
+
+const subjects = ["Math","English","Science","Chichewa"];
+
+// ================= ADMIN =================
+
+function showAdmin(){
+
+document.getElementById("public").classList.add("hidden");
+document.getElementById("adminLogin").classList.remove("hidden");
+
+}
+
+function login(){
+
+const username = document.getElementById("user").value;
+const password = document.getElementById("pass").value;
+
+if(username === "admin" && password === "1234"){
+
+document.getElementById("adminLogin").classList.add("hidden");
+document.getElementById("adminPanel").classList.remove("hidden");
+
+}else{
+
+alert("Wrong credentials");
+
+}
+
+}
+
+function addStudent(){
+
+document.getElementById("adminArea").innerHTML = `
+<input id="sname" placeholder="Student Name">
+<input id="sdob" placeholder="DOB dd/mm/yyyy">
+<button onclick="saveStudent()">Save Student</button>
+`;
+
+}
+
+async function saveStudent(){
+
+const sname = document.getElementById("sname").value.trim();
+const sdob = document.getElementById("sdob").value.trim();
+
+await db.collection("students").doc(sname).set({
+dob: sdob
+});
+
+alert("Student saved");
+
+}
+
+function enterResults(){
+
+let html = `
+<input id="rstudent" placeholder="Student Name">
+`;
+
+subjects.forEach(function(sub){
+
+html += `
+<label>${sub}</label>
+<input class="score" data-subject="${sub}" type="number">
+`;
+
+});
+
+html += `
+<button onclick="saveResults()">Save Results</button>
+`;
+
+document.getElementById("adminArea").innerHTML = html;
+
+}
+
+async function saveResults(){
+
+const rstudent = document.getElementById("rstudent").value.trim();
+
+let scores = {};
+let total = 0;
+
+document.querySelectorAll(".score").forEach(function(i){
+
+let val = parseInt(i.value) || 0;
+
+scores[i.dataset.subject] = val;
+
+total += val;
+
+});
+
+await db.collection("results").doc(rstudent).set({
+
+scores: scores,
+total: total
+
+});
+
+alert("Results saved");
+
+}
+
 // ================= SEARCH =================
 
+async function search(){
 
-async function search() {
-
-try {
+try{
 
 const inputName = document.getElementById("name").value.trim().toLowerCase();
+
 const inputDob = document.getElementById("dob").value.trim();
 
 const snapshot = await db.collection("students").get();
 
 let found = null;
 
-for (const doc of snapshot.docs) {
+snapshot.docs.forEach(function(doc){
 
 const dbName = doc.id.trim().toLowerCase();
+
 const dbDob = doc.data().dob.trim();
 
-if (dbName === inputName && dbDob === inputDob) {
+if(dbName === inputName && dbDob === inputDob){
+
 found = doc.id;
-break;
-}
 
 }
 
-if (!found) {
+});
+
+if(!found){
+
 alert("Student not found");
 return;
+
 }
 
 const result = await db.collection("results").doc(found).get();
 
-if (!result.exists) {
+if(!result.exists){
+
 alert("Results not found");
 return;
+
 }
 
 document.getElementById("public").classList.add("hidden");
+
 document.getElementById("results").classList.remove("hidden");
 
-await loadResults(found, result.data());
+loadResults(found, result.data());
 
-} catch (e) {
+}catch(e){
 
-alert("ERROR: " + e.message);
-console.error(e);
-
-}
+alert(e.message);
 
 }
 
-async function loadResults(name,data){
+}
 
-document.getElementById("rname").innerText=name;
-document.getElementById("total").innerText=data.total;
+async function loadResults(name, data){
 
-// calculate position
-let snapshot = await db.collection("results").get();
-let arr=[];
+document.getElementById("rname").innerText = name;
 
-snapshot.forEach(doc=>{
-arr.push({name:doc.id,total:doc.data().total});
+document.getElementById("total").innerText = data.total;
+
+const snapshot = await db.collection("results").get();
+
+let arr = [];
+
+snapshot.docs.forEach(function(doc){
+
+arr.push({
+name: doc.id,
+total: doc.data().total
 });
 
-arr.sort((a,b)=>b.total-a.total);
+});
 
-let pos = arr.findIndex(s=>s.name===name)+1;
+arr.sort(function(a,b){
+
+return b.total - a.total;
+
+});
+
+const pos = arr.findIndex(function(s){
+
+return s.name === name;
+
+}) + 1;
+
 document.getElementById("position").innerText = pos;
 
-let html="<tr><th>Subject</th><th>Score</th></tr>";
+let tableHtml = `
+<tr>
+<th>Subject</th>
+<th>Score</th>
+</tr>
+`;
 
 for(let s in data.scores){
-html+=`<tr><td>${s}</td><td>${data.scores[s]}</td></tr>`;
+
+tableHtml += `
+<tr>
+<td>${s}</td>
+<td>${data.scores[s]}</td>
+</tr>
+`;
+
 }
 
-document.getElementById("table").innerHTML = html;
-}
+document.getElementById("table").innerHTML = tableHtml;
 
-// ================= PDF =================
+}
 
 function download(){
+
 window.print();
+
 }
 
 </script>
-
 </body>
 </html>
