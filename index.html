@@ -56,8 +56,9 @@
         };
 
         window.login = function() {
-            if (document.getElementById("user").value.trim() === "admin" && 
-                document.getElementById("pass").value.trim() === "1234") {
+            const username = document.getElementById("user").value.trim();
+            const password = document.getElementById("pass").value.trim();
+            if (username === "admin" && password === "1234") {
                 document.getElementById("adminLogin").classList.add("hidden");
                 document.getElementById("adminPanel").classList.remove("hidden");
             } else {
@@ -83,10 +84,12 @@
             const sname = document.getElementById("sname").value.trim();
             const sclass = document.getElementById("sclass").value;
             const sdob = document.getElementById("sdob").value.trim();
-            if (!sname || !sclass || !sdob) return alert("All fields required!");
-
-            await setDoc(doc(db, "students", sname), { class: sclass, dob: sdob });
-            alert("Student saved!");
+            if (!sname || !sclass || !sdob) return alert("All fields are required!");
+            
+            try {
+                await setDoc(doc(db, "students", sname), { class: sclass, dob: sdob });
+                alert("Student saved successfully!");
+            } catch (e) { alert("Error: " + e.message); }
         };
 
         window.enterResults = function() {
@@ -100,10 +103,12 @@
                         <input id="classSize" type="number" placeholder="Number of Learners in Class" min="1">`;
 
             subjects.forEach(sub => {
-                html += `<div style="margin:12px 0"><label><strong>${sub}:</strong></label><br>
-                         <input class="score" data-subject="${sub}" type="number" min="0" max="100"></div>`;
+                html += `
+                    <div style="margin:12px 0">
+                        <label><strong>${sub}:</strong></label><br>
+                        <input class="score" data-subject="${sub}" type="number" min="0" max="100" style="width:100%">
+                    </div>`;
             });
-
             html += `<button onclick="saveResults()">Save Results</button>`;
             document.getElementById("adminArea").innerHTML = html;
         };
@@ -113,7 +118,7 @@
             const rclass = document.getElementById("rclass").value;
             const classSize = parseInt(document.getElementById("classSize").value);
 
-            if (!rstudent || !rclass || !classSize) return alert("All fields required!");
+            if (!rstudent || !rclass || !classSize) return alert("All fields are required!");
 
             let scores = {}, total = 0;
             document.querySelectorAll(".score").forEach(i => {
@@ -122,33 +127,43 @@
                 total += val;
             });
 
-            await setDoc(doc(db, "results", rstudent), { 
-                scores, total, class: rclass, classSize 
-            });
-            alert("Results saved successfully!");
+            try {
+                await setDoc(doc(db, "results", rstudent), { 
+                    scores, total, class: rclass, classSize 
+                });
+                alert("Results saved successfully!");
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
         };
 
-        // ================= VIEW RESULTS =================
+        // ================= SEARCH & RESULTS =================
         window.search = async function() {
-            const inputName = document.getElementById("name").value.trim();
-            const inputDob = document.getElementById("dob").value.trim();
-            if (!inputName || !inputDob) return alert("Enter Name and DOB");
+            try {
+                const inputName = document.getElementById("name").value.trim();
+                const inputDob = document.getElementById("dob").value.trim();
+                if (!inputName || !inputDob) return alert("Enter Name and DOB");
 
-            const snapshot = await getDocs(collection(db, "students"));
-            let found = null;
-            snapshot.forEach(doc => {
-                if (doc.id.trim().toLowerCase() === inputName.toLowerCase() && 
-                    doc.data().dob.trim() === inputDob) found = doc.id;
-            });
+                const snapshot = await getDocs(collection(db, "students"));
+                let found = null;
+                snapshot.forEach(docSnap => {
+                    if (docSnap.id.trim().toLowerCase() === inputName.toLowerCase() && 
+                        docSnap.data().dob.trim() === inputDob) {
+                        found = docSnap.id;
+                    }
+                });
 
-            if (!found) return alert("Student not found");
+                if (!found) return alert("Student not found");
 
-            const result = await getDoc(doc(db, "results", found));
-            if (!result.exists()) return alert("Results not entered yet");
+                const resultSnap = await getDoc(doc(db, "results", found));
+                if (!resultSnap.exists()) return alert("Results not entered yet");
 
-            document.getElementById("public").classList.add("hidden");
-            document.getElementById("results").classList.remove("hidden");
-            loadResults(found, result.data());
+                document.getElementById("public").classList.add("hidden");
+                document.getElementById("results").classList.remove("hidden");
+                loadResults(found, resultSnap.data());
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
         };
 
         function loadResults(name, data) {
@@ -160,37 +175,48 @@
             const passed = percentage >= 40;
             const statusText = passed ? "PASSED" : "FAILED";
 
-            // Overall Grade
-            const avg = Math.round(data.total / subjects.length);
-            const overall = getGradeAndRemark(avg);
+            const avgScore = Math.round(data.total / subjects.length);
+            const overall = getGradeAndRemark(avgScore);
             document.getElementById("overallGrade").innerHTML = `<strong>Overall Grade: ${overall.grade}</strong>`;
             document.getElementById("resultStatus").innerHTML = `<strong>Result: <span style="color:\( {passed ? 'green' : 'red'}"> \){statusText}</span></strong>`;
 
             // Position
             const classSize = data.classSize || "N/A";
-            document.getElementById("position").innerText = `${data.class || ''} - Position ${/* Will improve later */ '1'} out of ${classSize}`;
+            document.getElementById("position").innerText = `${data.class || ''} — Position: ${/* temporary */ 1} out of ${classSize}`;
 
-            // Table - FIXED
-            let html = `<tr><th>Subject</th><th>Score</th><th>Grade</th><th>Remark</th></tr>`;
+            // Fixed Table
+            let tableHtml = `
+                <tr>
+                    <th>Subject</th>
+                    <th>Score</th>
+                    <th>Grade</th>
+                    <th>Remark</th>
+                </tr>`;
+            
             subjects.forEach(sub => {
                 const score = data.scores?.[sub] ?? 0;
                 const gr = getGradeAndRemark(score);
-                html += `<tr>
-                    <td><strong>${sub}</strong></td>
-                    <td>${score}</td>
-                    <td>${gr.grade}</td>
-                    <td>${gr.remark}</td>
-                </tr>`;
+                tableHtml += `
+                    <tr>
+                        <td><strong>${sub}</strong></td>
+                        <td>${score}</td>
+                        <td>${gr.grade}</td>
+                        <td>${gr.remark}</td>
+                    </tr>`;
             });
-            document.getElementById("table").innerHTML = html;
+            document.getElementById("table").innerHTML = tableHtml;
 
             document.getElementById("remark").innerHTML = `<strong>Teacher's Remark:</strong> ${getOverallRemark(data.total, maxTotal)}`;
         }
 
-        window.download = () => window.print();
-        window.backToSearch = () => {
+        window.download = function() { window.print(); };
+
+        window.backToSearch = function() {
             document.getElementById("results").classList.add("hidden");
+            document.getElementById("adminPanel").classList.add("hidden");
+            document.getElementById("adminLogin").classList.add("hidden");
             document.getElementById("public").classList.remove("hidden");
+            document.getElementById("adminArea").innerHTML = "";
         };
     </script>
 
@@ -198,14 +224,15 @@
         body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; max-width: 1000px; margin: 0 auto; }
         h2 { text-align: center; color: #003366; }
         .hidden { display: none; }
-        input, select, button { padding: 12px; margin: 8px 0; width: 100%; box-sizing: border-box; }
-        button { background: #003366; color: white; border: none; cursor: pointer; font-size: 16px; }
+        input, select, button { padding: 12px; margin: 8px 0; width: 100%; box-sizing: border-box; font-size: 16px; }
+        button { background: #003366; color: white; border: none; cursor: pointer; }
+        button:hover { background: #002244; }
         table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-        td, th { border: 1px solid #444; padding: 10px; }
+        td, th { border: 1px solid #666; padding: 10px; text-align: left; }
         th { background: #003366; color: white; }
-        .report-header { text-align: center; margin: 20px 0; }
+        .report-header { text-align: center; margin-bottom: 20px; }
         @media print {
-            body { background: white; }
+            body { background: white; padding: 20px; }
             button, #public, #adminPanel, #adminLogin { display: none !important; }
         }
     </style>
@@ -214,6 +241,7 @@
 
     <h2>Bandawe School Results Portal</h2>
 
+    <!-- PUBLIC -->
     <div id="public">
         <input id="name" placeholder="Full Name">
         <input id="dob" placeholder="Date of Birth (dd/mm/yyyy)">
@@ -221,6 +249,7 @@
         <button onclick="showAdmin()">Admin Login</button>
     </div>
 
+    <!-- RESULTS -->
     <div id="results" class="hidden">
         <div class="report-header">
             <h2>Term 3 Report Card</h2>
@@ -234,15 +263,27 @@
         
         <table id="table"></table>
         
-        <p id="remark" style="margin:20px 0; padding:15px; background:#f9f9f9; border-left:5px solid #003366;"></p>
+        <p id="remark" style="margin-top:20px; padding:15px; background:#f9f9f9; border-left:5px solid #003366; font-style:italic;"></p>
         
         <button onclick="download()">Download Report Card</button>
         <button onclick="backToSearch()">Back</button>
     </div>
 
-    <!-- Admin sections remain the same -->
-    <div id="adminLogin" class="hidden"> ... </div>
-    <div id="adminPanel" class="hidden"> ... </div>
+    <!-- ADMIN LOGIN -->
+    <div id="adminLogin" class="hidden">
+        <input id="user" placeholder="Username">
+        <input id="pass" type="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <button onclick="backToSearch()">Back</button>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div id="adminPanel" class="hidden">
+        <button onclick="addStudent()">Add Student</button>
+        <button onclick="enterResults()">Enter Results</button>
+        <button onclick="backToSearch()">Logout</button>
+        <div id="adminArea" style="margin-top:20px;"></div>
+    </div>
 
 </body>
-            </html>
+</html>
