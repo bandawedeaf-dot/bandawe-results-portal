@@ -181,8 +181,8 @@ alert("Error occurred. Check console.");
 }
 async function loadResults(name,data){
 
-document.getElementById("rname.innerText=name");
-document.getElementById("total.innerText=data.total");
+document.getElementById("rname").innerText=name;
+document.getElementById("total").innerText=data.total;
 
 // calculate position
 let snapshot = await db.collection("results").get();
@@ -195,7 +195,7 @@ arr.push({name:doc.id,total:doc.data().total});
 arr.sort((a,b)=>b.total-a.total);
 
 let pos = arr.findIndex(s=>s.name===name)+1;
-position.innerText=pos;
+document.getElementById("position").innerText = pos;
 
 let html="<tr><th>Subject</th><th>Score</th></tr>";
 
@@ -203,7 +203,7 @@ for(let s in data.scores){
 html+=`<tr><td>${s}</td><td>${data.scores[s]}</td></tr>`;
 }
 
-table.innerHTML=html;
+document.getElementById("table").innerHTML = html;
 }
 
 // ================= PDF =================
