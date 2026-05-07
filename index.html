@@ -49,193 +49,153 @@
             return "Needs significant improvement. Extra support recommended.";
         }
 
-        // ================= ADMIN =================
-        window.showAdmin = function() {
+        // ADMIN FUNCTIONS
+        window.showAdmin = () => {
             document.getElementById("public").classList.add("hidden");
             document.getElementById("adminLogin").classList.remove("hidden");
         };
 
-        window.login = function() {
-            const username = document.getElementById("user").value.trim();
-            const password = document.getElementById("pass").value.trim();
-            if (username === "admin" && password === "1234") {
+        window.login = () => {
+            const user = document.getElementById("user").value.trim();
+            const pass = document.getElementById("pass").value.trim();
+            if (user === "admin" && pass === "1234") {
                 document.getElementById("adminLogin").classList.add("hidden");
                 document.getElementById("adminPanel").classList.remove("hidden");
-            } else {
-                alert("Incorrect credentials!");
-            }
+            } else alert("Incorrect credentials!");
         };
 
-        window.addStudent = function() {
-            let classOptions = classes.map(cls => `<option value="\( {cls}"> \){cls}</option>`).join('');
+        window.addStudent = () => {
+            let opts = classes.map(c => `<option value="\( {c}"> \){c}</option>`).join('');
             document.getElementById("adminArea").innerHTML = `
                 <h3>Add New Student</h3>
                 <input id="sname" placeholder="Full Name">
-                <select id="sclass">
-                    <option value="">—— Select Class ——</option>
-                    ${classOptions}
-                </select>
+                <select id="sclass"><option value="">—— Select Class ——</option>${opts}</select>
                 <input id="sdob" placeholder="DOB dd/mm/yyyy">
                 <button onclick="saveStudent()">Save Student</button>
             `;
         };
 
-        window.saveStudent = async function() {
+        window.saveStudent = async () => {
             const sname = document.getElementById("sname").value.trim();
             const sclass = document.getElementById("sclass").value;
             const sdob = document.getElementById("sdob").value.trim();
-            if (!sname || !sclass || !sdob) return alert("All fields are required!");
-            
-            try {
-                await setDoc(doc(db, "students", sname), { class: sclass, dob: sdob });
-                alert("Student saved successfully!");
-            } catch (e) { alert("Error: " + e.message); }
+            if (!sname || !sclass || !sdob) return alert("All fields required!");
+            await setDoc(doc(db, "students", sname), {class: sclass, dob: sdob});
+            alert("Student saved!");
         };
 
-        window.enterResults = function() {
-            let classOptions = classes.map(cls => `<option value="\( {cls}"> \){cls}</option>`).join('');
+        window.enterResults = () => {
+            let opts = classes.map(c => `<option value="\( {c}"> \){c}</option>`).join('');
             let html = `<h3>Enter Results</h3>
-                        <input id="rstudent" placeholder="Student Name">
-                        <select id="rclass">
-                            <option value="">—— Select Class ——</option>
-                            ${classOptions}
-                        </select>
-                        <input id="classSize" type="number" placeholder="Number of Learners in Class" min="1">
-                        <select id="term">
-                            <option value="">—— Select Term ——</option>
-                            <option value="Term 1">Term 1</option>
-                            <option value="Term 2">Term 2</option>
-                            <option value="Term 3" selected>Term 3</option>
-                        </select>
-                        <input id="year" type="number" value="2026" placeholder="Year">`;
-
-            subjects.forEach(sub => {
-                html += `
-                    <div style="margin:12px 0">
-                        <label><strong>${sub}:</strong></label><br>
-                        <input class="score" data-subject="${sub}" type="number" min="0" max="100" style="width:100%">
-                    </div>`;
+                <input id="rstudent" placeholder="Student Name">
+                <select id="rclass"><option value="">—— Select Class ——</option>${opts}</select>
+                <input id="classSize" type="number" placeholder="Number of Learners in Class" min="1">
+                <select id="term"><option value="Term 3" selected>Term 3</option></select>
+                <input id="year" type="number" value="2026">
+            `;
+            subjects.forEach(s => {
+                html += `<div style="margin:12px 0"><label><strong>\( {s}:</strong></label><br><input class="score" data-subject=" \){s}" type="number" min="0" max="100"></div>`;
             });
             html += `<button onclick="saveResults()">Save Results</button>`;
             document.getElementById("adminArea").innerHTML = html;
         };
 
-        window.saveResults = async function() {
+        window.saveResults = async () => {
             const rstudent = document.getElementById("rstudent").value.trim();
             const rclass = document.getElementById("rclass").value;
             const classSize = parseInt(document.getElementById("classSize").value);
-            const term = document.getElementById("term").value;
-            const year = document.getElementById("year").value;
 
-            if (!rstudent || !rclass || !classSize || !term || !year) 
-                return alert("All fields are required!");
+            if (!rstudent || !rclass || !classSize) return alert("All fields required!");
 
             let scores = {}, total = 0;
-            document.querySelectorAll(".score").forEach(i => {
-                const val = parseInt(i.value) || 0;
-                scores[i.dataset.subject] = val;
-                total += val;
+            document.querySelectorAll(".score").forEach(inp => {
+                let v = parseInt(inp.value) || 0;
+                scores[inp.dataset.subject] = v;
+                total += v;
             });
 
-            try {
-                await setDoc(doc(db, "results", rstudent), { 
-                    scores, total, class: rclass, classSize, term, year 
-                });
-                alert("Results saved successfully!");
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
+            await setDoc(doc(db, "results", rstudent), {
+                scores, total, class: rclass, classSize, term: "Term 3", year: 2026
+            });
+            alert("Results saved!");
         };
 
-        // ================= SEARCH =================
-        window.search = async function() {
+        // SEARCH & DISPLAY
+        window.search = async () => {
             try {
-                const inputName = document.getElementById("name").value.trim();
-                const inputDob = document.getElementById("dob").value.trim();
-                if (!inputName || !inputDob) return alert("Enter Name and DOB");
+                const name = document.getElementById("name").value.trim();
+                const dob = document.getElementById("dob").value.trim();
+                if (!name || !dob) return alert("Enter name and DOB");
 
-                const snapshot = await getDocs(collection(db, "students"));
-                let found = null;
-                snapshot.forEach(docSnap => {
-                    if (docSnap.id.trim().toLowerCase() === inputName.toLowerCase() && 
-                        docSnap.data().dob.trim() === inputDob) {
-                        found = docSnap.id;
+                const studentsSnap = await getDocs(collection(db, "students"));
+                let studentId = null;
+                studentsSnap.forEach(doc => {
+                    if (doc.id.toLowerCase() === name.toLowerCase() && doc.data().dob === dob) {
+                        studentId = doc.id;
                     }
                 });
 
-                if (!found) return alert("Student not found");
+                if (!studentId) return alert("Student not found");
 
-                const resultSnap = await getDoc(doc(db, "results", found));
-                if (!resultSnap.exists()) return alert("Results not entered yet");
+                const resultSnap = await getDoc(doc(db, "results", studentId));
+                if (!resultSnap.exists()) return alert("Results not found for this student");
 
                 document.getElementById("public").classList.add("hidden");
                 document.getElementById("results").classList.remove("hidden");
-                loadResults(found, resultSnap.data());
-            } catch (e) {
-                alert("Error: " + e.message);
+                loadResults(studentId, resultSnap.data());
+            } catch(e) {
+                console.error(e);
+                alert("Error loading results");
             }
         };
 
         async function loadResults(name, data) {
+            console.log("Loading results for:", name, data); // Debug
+
             document.getElementById("rname").innerText = name;
             document.getElementById("total").innerText = data.total || 0;
 
             const maxTotal = subjects.length * 100;
-            const percentage = (data.total / maxTotal) * 100;
+            const percentage = Math.round((data.total / maxTotal) * 100);
             const passed = percentage >= 40;
-            const statusText = passed ? "PASSED" : "FAILED";
 
-            // Position Ranking
+            // Position
             let position = "N/A";
             try {
-                const allResultsSnap = await getDocs(collection(db, "results"));
-                let classArr = [];
-                allResultsSnap.forEach(docSnap => {
-                    const res = docSnap.data();
-                    if (res.class === data.class) {
-                        classArr.push({ name: docSnap.id, total: res.total || 0 });
-                    }
+                const allSnap = await getDocs(collection(db, "results"));
+                let list = [];
+                allSnap.forEach(d => {
+                    if (d.data().class === data.class) list.push({name: d.id, total: d.data().total || 0});
                 });
-                classArr.sort((a, b) => b.total - a.total);
-                position = classArr.findIndex(s => s.name === name) + 1;
-            } catch (e) {
-                console.error(e);
-            }
+                list.sort((a,b) => b.total - a.total);
+                position = list.findIndex(item => item.name === name) + 1;
+            } catch(e){}
 
-            // Summary Section
+            // Summary
             document.getElementById("summary").innerHTML = `
                 <p><strong>Name of Learner:</strong> ${name}</p>
                 <p><strong>Class:</strong> ${data.class || 'N/A'}</p>
                 <p><strong>Marks Scored:</strong> ${data.total || 0} / 900</p>
                 <p><strong>Position:</strong> ${position} out of ${data.classSize || 'N/A'}</p>
-                <p><strong>Status:</strong> <span style="color:\( {passed ? 'green' : 'red'}"> \){statusText}</span></p>
+                <p><strong>Status:</strong> <span style="color:\( {passed?'green':'red'}"> \){passed ? "PASSED" : "FAILED"}</span></p>
             `;
 
-            // Detailed Table
-            let tableHtml = `<tr><th>Subject</th><th>Score</th><th>Grade</th><th>Remark</th></tr>`;
+            // Table
+            let html = `<tr><th>Subject</th><th>Score</th><th>Grade</th><th>Remark</th></tr>`;
             subjects.forEach(sub => {
                 const score = data.scores?.[sub] ?? 0;
-                const gr = getGradeAndRemark(score);
-                tableHtml += `<tr>
-                    <td><strong>${sub}</strong></td>
-                    <td>${score}</td>
-                    <td>${gr.grade}</td>
-                    <td>${gr.remark}</td>
-                </tr>`;
+                const g = getGradeAndRemark(score);
+                html += `<tr><td><strong>\( {sub}</strong></td><td> \){score}</td><td>\( {g.grade}</td><td> \){g.remark}</td></tr>`;
             });
-            document.getElementById("table").innerHTML = tableHtml;
+            document.getElementById("table").innerHTML = html;
 
             document.getElementById("remark").innerHTML = `<strong>Teacher's Remark:</strong> ${getOverallRemark(data.total, maxTotal)}`;
         }
 
-        window.download = function() { window.print(); };
-
-        window.backToSearch = function() {
+        window.download = () => window.print();
+        window.backToSearch = () => {
             document.getElementById("results").classList.add("hidden");
-            document.getElementById("adminPanel").classList.add("hidden");
-            document.getElementById("adminLogin").classList.add("hidden");
             document.getElementById("public").classList.remove("hidden");
-            document.getElementById("adminArea").innerHTML = "";
         };
     </script>
 
@@ -249,11 +209,10 @@
         table { width: 100%; border-collapse: collapse; margin: 15px 0; }
         td, th { border: 1px solid #666; padding: 10px; text-align: left; }
         th { background: #003366; color: white; }
-        .report-header { text-align: center; margin-bottom: 20px; }
-        #summary p { margin: 8px 0; font-size: 16px; }
+        #summary p { margin: 8px 0; }
         @media print {
-            body { background: white; padding: 20px; }
-            button, #public, #adminPanel, #adminLogin { display: none !important; }
+            body { background: white; }
+            button, #public, #adminPanel, #adminLogin { display: none; }
         }
     </style>
 </head>
@@ -261,7 +220,6 @@
 
     <h2>Bandawe School Results Portal</h2>
 
-    <!-- PUBLIC SEARCH -->
     <div id="public">
         <input id="name" placeholder="Full Name">
         <input id="dob" placeholder="Date of Birth (dd/mm/yyyy)">
@@ -269,9 +227,8 @@
         <button onclick="showAdmin()">Admin Login</button>
     </div>
 
-    <!-- RESULTS REPORT -->
     <div id="results" class="hidden">
-        <div class="report-header">
+        <div style="text-align:center; margin-bottom:20px;">
             <h2>Term 3 Report Card</h2>
             <h3 id="rname"></h3>
         </div>
@@ -280,13 +237,13 @@
         
         <table id="table"></table>
         
-        <p id="remark" style="margin-top:20px; padding:15px; background:#f9f9f9; border-left:5px solid #003366; font-style:italic;"></p>
+        <p id="remark" style="margin:20px 0; padding:15px; background:#f9f9f9; border-left:5px solid #003366;"></p>
         
         <button onclick="download()">Download Report Card</button>
         <button onclick="backToSearch()">Back</button>
     </div>
 
-    <!-- ADMIN LOGIN -->
+    <!-- Admin Sections -->
     <div id="adminLogin" class="hidden">
         <input id="user" placeholder="Username">
         <input id="pass" type="password" placeholder="Password">
@@ -294,7 +251,6 @@
         <button onclick="backToSearch()">Back</button>
     </div>
 
-    <!-- ADMIN PANEL -->
     <div id="adminPanel" class="hidden">
         <button onclick="addStudent()">Add Student</button>
         <button onclick="enterResults()">Enter Results</button>
@@ -303,4 +259,4 @@
     </div>
 
 </body>
-</html>
+    </html>
