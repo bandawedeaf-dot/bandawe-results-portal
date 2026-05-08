@@ -189,12 +189,39 @@
             const avgScore = Math.round(data.total / subjects.length);
             const overall = getGradeAndRemark(avgScore);
             document.getElementById("overallGrade").innerHTML = `<strong>Overall Grade: ${overall.grade}</strong>`;
-            document.getElementById("resultStatus").innerHTML = `<strong>Result: <span style="color:\( {passed ? 'green' : 'red'}"> \){statusText}</span></strong>`;
+            document.getElementById("resultStatus").innerHTML = `<strong>Result: <span style="color:${passed ? 'green' : 'red'}">${statusText}</span></strong>`;
 
-            // Position
-            const classSize = data.classSize || "N/A";
-            document.getElementById("position").innerText = `${data.class || ''} — Position: 1 out of ${classSize}`;
+            // REAL POSITION CALCULATION
+            getDocs(collection(db, "results")).then(snapshot => {
+                let classResults = [];
+                snapshot.forEach(docSnap => {
+                    
+                    const d = docSnap.data();
+                        
+                    // only same class
+                        if(d.class === data.class){
 
+                        classResults.push({
+                            name: docSnap.id,
+                            total: d.total || 0
+                        });
+
+                    }
+
+            });
+
+            // sort highest first
+            classResults. sort((a,b) => b.total - a.total);
+
+            //determine actual position
+            const position =
+                classResults.findIndex(s => s.name === name) + 1;
+
+            document.getElementById("position").innerText =
+                `Position: ${position} out of ${classResults.length}`;
+
+            });
+                
             // Fixed Table
             let tableHtml = `
                 <tr>
