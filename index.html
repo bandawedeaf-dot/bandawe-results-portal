@@ -179,6 +179,8 @@
 
         function loadResults(name, data) {
             document.getElementById("rname").innerText = name;
+            document.getElementById("studentClass").innerText = data.class || "N/A";
+            document.getElementById("studentYear").innerText = data.year || "N/A";
             document.getElementById("total").innerText = data.total || 0;
 
             const maxTotal = subjects.length * 100;
@@ -293,7 +295,9 @@
             <h2>Term 3 Report Card</h2>
             <h3 id="rname"></h3>
         </div>
-        
+
+        <p><strong>Class:</strong> <span id="studentClass"></span></p>
+        <p><strong>Year:</strong> <span> id="studentYear"></span></p>
         <p><strong>Total Score:</strong> <span id="total"></span> / 900</p>
         <p id="overallGrade"></p>
         <p id="resultStatus"></p>
