@@ -198,6 +198,8 @@
         };
 
         function loadResults(name, data) {
+            document.getElementById("reportTitle").innerText =
+            `${data.term} ${data.year} Report Card`;
             document.getElementById("rname").innerText = name;
             document.getElementById("studentClass").innerText = data.class || "N/A";
             document.getElementById("studentYear").innerText = data.year || "N/A";
@@ -214,17 +216,33 @@
             document.getElementById("resultStatus").innerHTML = `<strong>Result: <span style="color:${passed ? 'green' : 'red'}">${statusText}</span></strong>`;
 
             // REAL POSITION CALCULATION
-            getDocs(collection(db, "results")).then(snapshot => {
+            getDocs(collection(db, "results")).then(async studentsSnapshot => {
+                
                 let classResults = [];
-                snapshot.forEach(docSnap => {
+                
+                for (const studentDoc of studentsSnapshot.docs) {    
+                   
+                    const termId = `${data.term}-${data.year}`; 
                     
-                    const d = docSnap.data();
+                    const resultRef = doc(
+                        db,
+                        "results",
+                        studentDoc.id,
+                        "terms",
+                        termId
+                    );
+
+                    const resultSnap = await getDoc(resultRef);
+
+                    if(resultSnap.exists()) {
+
+                        const d = resultSnap.data();
                         
-                    // only same class
+                    // same class only
                         if(d.class === data.class){
 
                         classResults.push({
-                            name: docSnap.id,
+                            name: studentDoc.id.trim().toLowerCase(),
                             total: d.total || 0
                         });
 
@@ -232,12 +250,15 @@
 
             });
 
-            // sort highest first
+            // sort descending
             classResults. sort((a,b) => b.total - a.total);
 
-            //determine actual position
+            //find position
+            const currentStudent =
+                name.trim().toLowerCase();
+
             const position =
-                classResults.findIndex(s => s.name === name) + 1;
+                classResults.findIndex(s => s.name === currentStudent) + 1;
 
             document.getElementById("position").innerText =
                 `${position} out of ${classResults.length}`; 
@@ -319,7 +340,7 @@
     <!-- RESULTS -->
     <div id="results" class="hidden">
         <div class="report-header">
-            <h2>Term 3 Report Card</h2>
+            <h2 id="reportTitle"></h2>
             <h3 id="rname"></h3>
         </div>
 
