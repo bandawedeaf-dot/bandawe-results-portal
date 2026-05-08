@@ -238,17 +238,19 @@
 
                         const d = resultSnap.data();
                         
-                    // same class only
+                        // same class only
                         if(d.class === data.class){
 
-                        classResults.push({
-                            name: studentDoc.id.trim().toLowerCase(),
-                            total: d.total || 0
-                        });
+                            classResults.push({
+                                name: studentDoc.id.trim().toLowerCase(),
+                                total: d.total || 0
+                            });
 
-                    }
+                      }
 
-            });
+                 }
+
+            }
 
             // sort descending
             classResults. sort((a,b) => b.total - a.total);
@@ -258,12 +260,14 @@
                 name.trim().toLowerCase();
 
             const position =
-                classResults.findIndex(s => s.name === currentStudent) + 1;
+                classResults.findIndex(
+                    s => s.name === currentStudent
+                ) + 1;
 
             document.getElementById("position").innerText =
                 `${position} out of ${classResults.length}`; 
 
-            });
+        });
                 
             // Fixed Table
             let tableHtml = `
