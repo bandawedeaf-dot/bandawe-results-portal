@@ -7,6 +7,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
         const firebaseConfig = {
             apiKey: "AIzaSyDUny1WaUaMeUgLLsUrFckhQAloCwDHX-c",
@@ -294,7 +296,31 @@
             document.getElementById("remark").innerHTML = `<strong>Teacher's Remark:</strong> ${getOverallRemark(data.total, maxTotal)}`;
         }
 
-        window.download = function() { window.print(); };
+        window.downloadPDF = function() { 
+
+            const element = document.getElementById("reportCard");
+
+            const studentName =
+                document.getElementById("rname").innerText.replace(/\s+/g, '_');
+
+            const opt = {
+                margin:0.4,
+                filename: `${studentName}_Report_Card.pdf`,
+                image: { type: 'jpeg', quality 1 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true
+                },
+                jsPDF: {
+                    unit: 'in',
+                    format: 'a4',
+                    orientation: 'portrait'
+                }
+            };
+            html2pdf().set(opt).from(element).save();
+
+        };
+                
 
         window.backToSearch = function() {
             document.getElementById("results").classList.add("hidden");
@@ -313,8 +339,12 @@
         button { background: #003366; color: white; border: none; cursor: pointer; }
         button:hover { background: #002244; }
         table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        #reportCard table { width: 100%; border-collapse: collapse; } 
         td, th { border: 1px solid #666; padding: 10px; text-align: left; }
+        #reportCard td, 
+        #reportCard th { border: 1px solid #666; padding: 10px; }
         th { background: #003366; color: white; }
+        #reportCard th { background: #003366; color: white; }
         .report-header { text-align: center; margin-bottom: 20px; }
         @media print {
             body { background: white; padding: 20px; }
@@ -343,23 +373,67 @@
 
     <!-- RESULTS -->
     <div id="results" class="hidden">
-        <div class="report-header">
-            <h2 id="reportTitle"></h2>
-            <h3 id="rname"></h3>
-        </div>
+        
+        <div id="reportCard" style="background:white; padding:30px; border:3px solid #003366; border-radius:10px;">
+            
+            <div style="text-align:center; margin-bottom:25px;">
+                <h1 style="margin:0; color:#003366;">BANDAWE SCHOOL FOR THE DEAF"</h1>
+                <p style="margin:5px 0;">P.O. Box 4, Chintheche, Nkhata Bay</p>
+                <p style="margin:5px 0;">Phone: 0999191279 / 0993819599</p>
+                <h2 id="reportTitle" style="margin-top:15px;"></h2>
+            </div>
 
-        <p><strong>Class:</strong> <span id="studentClass"></span></p>
-        <p><strong>Year:</strong> <span id="studentYear"></span></p>
-        <p><strong>Total Score:</strong> <span id="total"></span> / 900</p>
-        <p id="overallGrade"></p>
-        <p id="resultStatus"></p>
-        <p><strong>Position:</strong> <span id="position"></span></p>
+            <table style="width:100%; margin-bottom:20px; border-collapse:collapse;">
+                 <tr>
+                     <td><strong>Student Name:</strong> <span id="rname"></span></td>
+                     <td><strong>Class:</strong> <span id="studentClass"></span></td>
+                </tr>
+                <tr>
+                     <td><strong>Year:</strong> <span id="studentYear"></span></td>
+                     <td><strong>Position:</strong> <span id="position"></span></td>
         
-        <table id="table"></table>
+                </tr>
+                <tr>
+                    <td><strong>Total Score:</strong> <span id="total"></span> / 900</td>
+                    <td><strong>Overall Grade:</strong> <span id="overallGrade"></span></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><strong>Result:</strong> <span id="resultStatus"></span></td>
+                </tr>
+            </table>
         
-        <p id="remark" style="margin-top:20px; padding:15px; background:#f9f9f9; border-left:5px solid #003366; font-style:italic;"></p>
+            <table id="table"></table>
         
-        <button onclick="download()">Download Report Card</button>
+            <div style="margin-top:20px; padding:15px; background:#f8f8f8; border-left:5px solid #003366;">
+                <p id="remark"></p>
+            </div>
+
+            <div style="margin-top:40px; border-top:2px solid #003366; padding-top:15px;">
+                <h3 style="color:#003366; margin-bottom:10px;">Requirements</h3>
+
+                <p><strong>Boarding Support Fee:</strong> MK70,000.00</p>
+                <P><strong>Maize Contribution:</strong> 20kg</P>
+            </div>
+
+            <div style="margin-top:25px; padding:15px background:#eef5ff; 
+            border-left:5px solid #003366; border-radius:6px;">
+                <h3 style="margin-top:0; color:#003366;">Next Term Information</h3>
+              
+                <p>
+                    <strong>Next Term Opening Date:</strong> <span id="openingDate">14 September 2026</span></p>
+                <p>
+                    Students are expected to report on the day before the stated date with all required school materials
+                </p>
+            </div>
+
+            <div style="margin-top:30px; text-align:center; color:#666; font-size:14px;">
+                © 2026 Bandawe School for the Deaf
+            </div>
+
+        </div>
+        
+        <button onclick="downloadPDF()" style='margin-top:20px;">
+            Download PDF</button>
         <button onclick="backToSearch()">Back</button>
     </div>
 
