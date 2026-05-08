@@ -139,9 +139,19 @@
             });
 
             try {
-                await setDoc(doc(db, "results", rstudent), { 
-                    scores, total, class: rclass, classSize, term, year 
-                });
+                const resultId = `${term}-${year}`;
+
+                await setDoc(
+                    doc(db, "results", rstudent, "terms", resultId),
+                    {
+                        scores,
+                        total,
+                        class: rclass,
+                        classSize,
+                        term,
+                        year
+                    }
+                );
                 alert("Results saved successfully!");
             } catch (e) {
                 alert("Error: " + e.message);
@@ -166,7 +176,17 @@
 
                 if (!found) return alert("Student not found");
 
-                const resultSnap = await getDoc(doc(db, "results", found));
+                const searchTerm =
+                document.getElementById("searchTerm").value;
+
+                const searchYear =
+                document.getElementById("searchYear").value;
+
+                const resultId = `${searchTerm}-${searchYear}`;
+
+                const resultSnap = await getDoc(
+                    doc(db, "results", found, "terms", resultId)
+                );
                 if (!resultSnap.exists()) return alert("Results not entered yet");
 
                 document.getElementById("public").classList.add("hidden");
@@ -285,6 +305,13 @@
     <div id="public">
         <input id="name" placeholder="Full Name">
         <input id="dob" placeholder="Date of Birth (dd/mm/yyyy)">
+        <select id="searchTerm">
+            <option value="Term 1">Term 1</option>
+            <option value="Term 2">Term 2</option>
+            <option value="Term 3" selected>Term 3</option>
+        </select>
+
+        <input id="searchYear" type="number" value="2026" placeholder="Year">
         <button onclick="search()">View Results</button>
         <button onclick="showAdmin()">Admin Login</button>
     </div>
