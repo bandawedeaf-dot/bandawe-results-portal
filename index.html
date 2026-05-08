@@ -68,7 +68,7 @@
         };
 
         window.addStudent = function() {
-            let classOptions = classes.map(cls => `<option value="\( {cls}"> \){cls}</option>`).join('');
+            let classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
             document.getElementById("adminArea").innerHTML = `
                 <h3>Add New Student</h3>
                 <input id="sname" placeholder="Full Name">
@@ -94,7 +94,7 @@
         };
 
         window.enterResults = function() {
-            let classOptions = classes.map(cls => `<option value="\( {cls}"> \){cls}</option>`).join('');
+            let classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
             let html = `<h3>Enter Results</h3>
                         <input id="rstudent" placeholder="Student Name">
                         <select id="rclass">
