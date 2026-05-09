@@ -479,6 +479,7 @@
         </button>
         
         <button onclick="backToSearch()">
+            ,<i class="fa-solid fa-arrow-left"></i>
             Back
         </button>
     </div>
@@ -487,15 +488,30 @@
     <div id="adminLogin" class="hidden">
         <input id="user" placeholder="Username">
         <input id="pass" type="password" placeholder="Password">
-        <button onclick="login()">Login</button>
-        <button onclick="backToSearch()">Back</button>
+        <button onclick="login()">
+            <i class="fa-solid fa-right-to-bracket"></i>
+            Login
+        </button>
+        <button onclick="backToSearch()">
+            <i class="fa-solid fa-arrow-left"></i>
+            Back
+        </button>
     </div>
 
     <!-- ADMIN PANEL -->
     <div id="adminPanel" class="hidden">
-        <button onclick="addStudent()">Add Student</button>
-        <button onclick="enterResults()">Enter Results</button>
-        <button onclick="backToSearch()">Logout</button>
+        <button onclick="addStudent()">
+            <i class="fa-solid fa-user-plus"></i>
+            Add Student
+        </button>
+        <button onclick="enterResults()">
+            <i class="fa-solid fa-pen-to-square"></i>
+            Enter Results
+        </button>
+        <button onclick="backToSearch()">
+            <i class="fa-solid fa-left-to-bracket"></i>
+            Logout
+        </button>
         <div id="adminArea" style="margin-top:20px;"></div>
     </div>
 
