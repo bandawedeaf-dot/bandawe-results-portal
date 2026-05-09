@@ -299,12 +299,13 @@
             const element = document.getElementById("reportCard");
 
             const studentName =
-                document.getElementById("rname").innerText.replace(/\s+/g, '_');
+                document.getElementById("rname").innerText
+                    .replace(/\s+/g, '_');
 
             const opt = {
                 margin:0.4,
                 filename: `${studentName}_Report_Card.pdf`,
-                image: { type: 'jpeg', quality 1 },
+                image: { type: 'jpeg', quality: 1 },
                 html2canvas: {
                     scale: 2,
                     useCORS: true
@@ -328,7 +329,9 @@
             document.getElementById("adminArea").innerHTML = "";
         };
     </script>
-    
+     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
         body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; max-width: 1000px; margin: 0 auto; }
         h2 { text-align: center; color: #003366; }
@@ -349,8 +352,7 @@
         }
     </style>
 </head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
+   
 <body>
 
     <h2>Bandawe School Results Portal</h2>
