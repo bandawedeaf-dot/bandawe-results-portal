@@ -212,8 +212,8 @@
 
             const avgScore = Math.round(data.total / subjects.length);
             const overall = getGradeAndRemark(avgScore);
-            document.getElementById("overallGrade").innerHTML = `<strong>Overall Grade: ${overall.grade}</strong>`;
-            document.getElementById("resultStatus").innerHTML = `<strong>Result: <span style="color:${passed ? 'green' : 'red'}">${statusText}</span></strong>`;
+            document.getElementById("overallGrade").innerText = overall.grade;
+            document.getElementById("resultStatus").innerHTML = `<span style="color:${passed ? 'green' : 'red'}">${statusText}</span>`;
 
             // REAL POSITION CALCULATION
             getDocs(collection(db, "results")).then(async studentsSnapshot => {
