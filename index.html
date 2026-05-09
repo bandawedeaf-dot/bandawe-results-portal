@@ -337,16 +337,40 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        body { font-family: Arial, sans-serif; background: linear-gradient(to bottom right, #eef4ff, #ffffff); max-width: 1000px; margin: auto; padding: 15px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(to bottom right, #eef4ff, #ffffff); 
+            max-width: 1000px; 
+            margin: auto; 
+            padding: 15px; 
+        }
         h2 { text-align: center; color: #003366; }
         .hidden { display: none; }
-        input, select, button { padding: 12px; margin: 8px 0; width: 100%; box-sizing: border-box; font-size: 16px; }
-        bottom { border-radius: 10px; transition: 0.3s; font-weight: bold; }
-        botton:hover { transform: scale(1.02); }
-        input, select { border-radius: 10px; border: 1px solid #ccc; }
-        #reportCard { box-shadow: 0 4px 18px rgba(0,0,0,0.15); }
-        button { background: #003366; color: white; border: none; cursor: pointer; }
+        input, select, button { 
+            padding: 12px; 
+            margin: 8px 0; 
+            width: 100%; 
+            box-sizing: border-box; 
+            font-size: 16px; 
+        }
+        input, select { 
+            border-radius: 10px; 
+            border: 1px solid #ccc; 
+        }
+        button { 
+            background: #003366; 
+            color: white; 
+            border: none; 
+            cursor: pointer;
+            border-radius: 10px;
+            transition: 0.3s; 
+            font-weight: bold;
+        }
         button:hover { background: #002244; }
+        #reportCard { 
+            box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+            padding: 30px;
+        }
         table { width: 100%; border-collapse: collapse; margin: 15px 0; }
         td, th { border: 1px solid #666; padding: 10px; text-align: left; }
         th { background: #003366; color: white; }
