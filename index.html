@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <title>Bandawe School Results Portal</title>
 
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" 
+    href="https://cdjns.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
@@ -337,6 +341,11 @@
         h2 { text-align: center; color: #003366; }
         .hidden { display: none; }
         input, select, button { padding: 12px; margin: 8px 0; width: 100%; box-sizing: border-box; font-size: 16px; }
+        body {font-family: Arial, sans-serif; background: linear-gradient(to bottom right, #eef4ff, #ffffff); max-width: 1000px; margin: auto; padding: 15px }
+        bottom { border-radius: 10px; transition: 0.3s; font-weight: bold; }
+        botton:hover { transform: scale(1.02); }
+        input, select { border-radius: 10px; border: 1px solid #ccc; }
+        #reportCard { box-shadow: 0 4px 18px rgba(0,0,0,0.15); }
         button { background: #003366; color: white; border: none; cursor: pointer; }
         button:hover { background: #002244; }
         table { width: 100%; border-collapse: collapse; margin: 15px 0; }
@@ -352,11 +361,13 @@
         }
     </style>
 </head>
-   
 <body>
 
-    <h2>Bandawe School Results Portal</h2>
-
+   <h2>
+       <i class="fa-solid fa-school"></i>
+       Bandawe School Results Portal
+   </h2>
+   
     <!-- PUBLIC -->
     <div id="public">
         <input id="name" placeholder="Full Name">
@@ -368,8 +379,14 @@
         </select>
 
         <input id="searchYear" type="number" value="2026" placeholder="Year">
-        <button onclick="search()">View Results</button>
-        <button onclick="showAdmin()">Admin Login</button>
+        <button onclick="search()">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            View Results
+        </button>
+        <button onclick="showAdmin()">
+            <i class="fa-solid fa-user-shield"></i>
+            Admin Login
+        </button>
     </div>
 
     <!-- RESULTS -->
@@ -433,7 +450,8 @@
 
         </div>
         
-        <button onclick="downloadPDF()" style="margin-top:20px;">
+        <button onclick="downloadPDF()"> 
+            <i class="fa-solid fa-file-pdf"></i>
             Download Professional PDF
         </button>
         
