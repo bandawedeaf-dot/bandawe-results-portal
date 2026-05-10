@@ -209,6 +209,11 @@
             document.getElementById("reportTitle").innerText =
             `${data.term} ${data.year} Report Card`;
             document.getElementById("rname").innerText = name;
+            document.getElementById("studentClass").innerHTML =
+            "<strong>Class:</strong> " + data.class;
+            document.getElementById("studentYear").innerHTML =
+            "<strong>Term:</strong> " + data.term +
+            " | <strong>Year:</strong> " + data.year;
             document.getElementById("studentClass").innerText = data.class || "N/A";
             document.getElementById("studentYear").innerText = data.year || "N/A";
             document.getElementById("total").innerText = data.total || 0;
@@ -221,7 +226,10 @@
             const avgScore = Math.round(data.total / subjects.length);
             const overall = getGradeAndRemark(avgScore);
             document.getElementById("overallGrade").innerText = overall.grade;
-            document.getElementById("resultStatus").innerHTML = `<span style="color:${passed ? 'green' : 'red'}">${statusText}</span>`;
+            document.getElementById("resultStatus").innerHTML =
+            passed
+            ? '<span class="pass-badge">PASSED</span>'
+            : '<span class="fail-badge">FAILED</span>';
 
             // REAL POSITION CALCULATION
             getDocs(collection(db, "results")).then(async studentsSnapshot => {
@@ -539,6 +547,99 @@
         .school-footer p {
             margin: 8px 0;
         }
+              
+        .report-card {
+            background: white;
+            border-radius: 22px;
+            padding: 25px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            margin-top: 20px;
+        }
+        
+        .student-header {
+            background: linear-gradient(to right, #003366, #0055aa);
+            color: white;
+            padding: 25px;
+            border-radius: 18px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .student-header h2 {
+            color: white;
+            margin: 10px 0;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .summary-box {
+            background: #f5f8ff;
+            padding: 18px;
+            border-radius: 16px;
+            text-align: center;
+            border-left: 6px solid #003366;
+        }
+        
+        .summary-box h3 {
+            margin: 0;
+            color: #003366;
+            font-size: 16px;
+        }
+        
+        .summary-box p {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .pass-badge {
+            background: #28a745;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 30px;
+            display: inline-block;
+            font-weight: bold;
+        }
+        
+        .fail-badge {
+            background: #dc3545;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 30px;
+            display: inline-block;
+            font-weight: bold;
+        }
+        
+        #table {
+            margin-top: 20px;
+        }
+        
+        #table th {
+            background: #003366;
+            color: white;
+            padding: 14px;
+        }
+        
+        #table td {
+            padding: 12px;
+        }
+        
+        #table tr:nth-child(even) {
+            background: #f8f9fc;
+        }
+        
+        .teacher-remark {
+            margin-top: 25px;
+            background: #eef4ff;
+            padding: 20px;
+            border-radius: 16px;
+            border-left: 6px solid #003366;
+        }
     </style>
 </head>
 <body>
@@ -720,74 +821,73 @@
 
     <!-- RESULTS -->
     <div id="results" class="hidden">
-        
-        <div id="reportCard" style="background:white; padding:30px; border:3px solid #003366; border-radius:10px;">
-            
-            <div style="text-align:center; margin-bottom:25px;">
-                <h1 style="margin:0; color:#003366;">BANDAWE SCHOOL FOR THE DEAF</h1>
-                <p style="margin:5px 0;">P.O. Box 4, Chintheche, Nkhata Bay</p>
-                <p style="margin:5px 0;">Phone: 0999191279 / 0993819599</p>
-                <h2 id="reportTitle" style="margin-top:15px;"></h2>
+
+    <div class="report-card">
+
+        <div class="student-header">
+
+            <i class="fa-solid fa-user-graduate"
+               style="font-size:70px;"></i>
+
+            <h2 id="rname"></h2>
+
+            <p id="studentClass"></p>
+
+            <p id="studentYear"></p>
+
+        </div>
+
+        <div class="summary-grid">
+
+            <div class="summary-box">
+                <h3>Total Score</h3>
+                <p id="total"></p>
             </div>
 
-            <table style="width:100%; margin-bottom:20px; border-collapse:collapse;">
-                 <tr>
-                     <td><strong>Student Name:</strong> <span id="rname"></span></td>
-                     <td><strong>Class:</strong> <span id="studentClass"></span></td>
-                </tr>
-                <tr>
-                     <td><strong>Year:</strong> <span id="studentYear"></span></td>
-                     <td><strong>Position:</strong> <span id="position"></span></td>
-        
-                </tr>
-                <tr>
-                    <td><strong>Total Score:</strong> <span id="total"></span> / 900</td>
-                    <td><strong>Overall Grade:</strong> <span id="overallGrade"></span></td>
-                </tr>
-                <tr>
-                    <td colspan="2"><strong>Result:</strong> <span id="resultStatus"></span></td>
-                </tr>
-            </table>
-        
-            <table id="table"></table>
-        
-            <div style="margin-top:20px; padding:15px; background:#f8f8f8; border-left:5px solid #003366;">
-                <p id="remark"></p>
+            <div class="summary-box">
+                <h3>Overall Grade</h3>
+                <p id="overallGrade"></p>
             </div>
 
-            <div style="margin-top:40px; border-top:2px solid #003366; padding-top:15px;">
-                <h3 style="color:#003366; margin-bottom:10px;">Requirements</h3>
-
-                <p><strong>Boarding Support Fee:</strong> MK70,000.00</p>
-                <P><strong>Maize Contribution:</strong> 20kg</P>
+            <div class="summary-box">
+                <h3>Position</h3>
+                <p id="position"></p>
             </div>
 
-            <div style="margin-top:25px; padding:15px background:#eef5ff; 
-            border-left:5px solid #003366; border-radius:6px;">
-                <h3 style="margin-top:0; color:#003366;">Next Term Information</h3>
-              
-                <p>
-                    <strong>Next Term Opening Date:</strong> <span id="openingDate">14 September 2026</span></p>
-                <p>
-                    Students are expected to report on the day before the stated date with all required school materials.
-                </p>
-            </div>
-
-            <div style="margin-top:30px; text-align:center; color:#666; font-size:14px;">
-                © 2026 Bandawe School for the Deaf
+            <div class="summary-box">
+                <h3>Result</h3>
+                <p id="resultStatus"></p>
             </div>
 
         </div>
-        
-        <button onclick="downloadPDF()"> 
-            <i class="fa-solid fa-file-pdf"></i>
-            Download Professional PDF
-        </button>
-        
-        <button onclick="backToSearch()">
-            <i class="fa-solid fa-arrow-left"></i>
-            Back
-        </button>
+
+        <table id="table"></table>
+
+        <div class="teacher-remark">
+            <h3>
+                <i class="fa-solid fa-comments"></i>
+                Teacher's Remark
+            </h3>
+
+            <p id="remark"></p>
+        </div>
+
+        <div style="margin-top:25px; text-align:center;">
+
+            <button onclick="downloadPDF()">
+                <i class="fa-solid fa-file-pdf"></i>
+                Download Professional PDF
+            </button>
+
+            <button onclick="backToSearch()">
+                <i class="fa-solid fa-arrow-left"></i>
+                Back
+            </button>
+
+        </div>
+
+    </div>
+
     </div>
 
     <!-- ADMIN LOGIN -->
