@@ -295,7 +295,7 @@
                                       ) + 1;
             
             document.getElementById("position").innerText =
-                `Position: ${position} out of ${classResults.length}`;
+                `${position} out of ${classResults.length}`
         
         });
                 
@@ -357,7 +357,15 @@
             }
         
         };
+            
+            const buttons =
+                element.querySelectorAll("button");
+            
+            buttons.forEach(btn => btn.style.display = "none");
+           
             html2pdf().set(opt).from(element).save();
+            
+            buttons.forEach(btn => btn.style.display = "inline-block");
 
         };
         
@@ -581,7 +589,7 @@
         .student-header {
             background: linear-gradient(to right, #003366, #0055aa);
             color: white;
-            padding: 18px;
+            padding: 15px;
             border-radius: 18px;
             text-align: center;
             margin-bottom: 25px;
@@ -595,13 +603,13 @@
         .summary-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
-            gap: 15px;
+            gap: 10px;
             margin-bottom: 25px;
         }
         
         .summary-box {
             background: #f5f8ff;
-            padding: 18px;
+            padding: 10px;
             border-radius: 16px;
             text-align: center;
             border-left: 6px solid #003366;
@@ -614,7 +622,7 @@
         }
         
         .summary-box p {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: bold;
             margin-top: 10px;
         }
@@ -656,11 +664,15 @@
         }
         
         .teacher-remark {
-            margin-top: 25px;
+            margin-top: 12px;
             background: #eef4ff;
             padding: 20px;
             border-radius: 16px;
             border-left: 6px solid #003366;
+        }
+
+        .teacher-remark p {
+            margin: 5px 0;
         }
        
         #reportCard {
