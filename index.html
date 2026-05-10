@@ -130,38 +130,59 @@
         };
 
         window.saveResults = async function() {
-            const rstudent = document.getElementById("rstudent").value.trim();
-            const rclass = document.getElementById("rclass").value;
-            const classSize = parseInt(document.getElementById("classSize").value);
-            const term = document.getElementById("term").value;
-            const year = document.getElementById("year").value;
-
-            if (!rstudent || !rclass || !classSize || !term || !year) 
+            
+            const rstudent =
+                document.getElementById("rstudent").value.trim();
+            
+            const rclass =
+                document.getElementById("rclass").value;
+            
+            const classSize =
+        parseInt(document.getElementById("classSize").value);
+            
+            const term =
+                document.getElementById("term").value;
+            
+            const year =
+                document.getElementById("year").value;
+            
+            if (!rstudent || !rclass || !classSize || !term || !year) {
                 return alert("All fields are required!");
-
-            let scores = {}, total = 0;
+            }
+            
+            let scores = {};
+            let total = 0;
+            
             document.querySelectorAll(".score").forEach(i => {
                 const val = parseInt(i.value) || 0;
                 scores[i.dataset.subject] = val;
                 total += val;
+            
             });
-
+            
             try {
+                
                 const resultId =
                     `${rstudent}_${term}_${year}`;
-                await setDoc(doc(db, "results", resultId),
-                        scores,
-                        total,
+                
+                await setDoc(
+                    doc(db, "results", resultId),
+                    {
+                        scores: scores,
+                        total: total,
                         class: rclass,
-                        classSize,
-                        term,
-                        year
+                        classSize: classSize,
+                        term: term,
+                        year: year
                     }
                 );
+                
                 alert("Results saved successfully!");
             } catch (e) {
+                
                 alert("Error: " + e.message);
             }
+        
         };
 
         // ================= SEARCH & RESULTS =================
