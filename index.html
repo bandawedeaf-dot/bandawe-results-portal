@@ -344,7 +344,7 @@
     <style>
         body { 
             font-family: Arial, sans-serif; 
-            background: linear-gradient(to bottom right, #eef4ff, #ffffff); 
+            background: linear-gradient(to bottom right, #eef4ff, #ffffff);
             max-width: 1000px; 
             margin: auto; 
             padding: 15px; 
@@ -418,27 +418,56 @@
         }
         
         .dashboard-card {
-            background: white;
-            padding: 25px 15px;
-            border-radius: 18px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-            transition: 0.3s;
+            padding: 30px 20px;
+            border-radius: 22px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+            transition: 0.35s;
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
         
-        .dashboard-card:hover {
-            transform: translateY(-5px) 
-        }
+         .dashboard-card:hover {
+             transform: translateY(-8px) scale(1.02);
+        } 
         
         .dashboard-card i {
-            font-size: 40px;
-            margin-bottom: 15px;
-            color: #003366;
+            font-size: 45px;
+            margin-bottom: 18px;
+            color: white;
         }
         
         .dashboard-card h3 {
             margin: 10px 0;
             color: #003366;
+        }
+        .card-results {
+            background: linear-gradient(135deg, #005bea, #00c6fb);
+        }
+        
+        .card-notices {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+        }
+        
+        .card-dates {
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+        }
+        
+        .card-admin {
+            background: linear-gradient(135deg, #7b2ff7, #f107a3);
+        }
+        
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 50%;
+            top: -30px;
+            right: -30px;
         }
         
         .notice-board {
@@ -536,25 +565,25 @@
 
     <div class="dashboard-grid">
 
-        <div class="dashboard-card" onclick="showSearchPortal()">
+        <div class="dashboard-card card-results" onclick="showSearchPortal()">
             <i class="fa-solid fa-file-lines"></i>
             <h3>View Results</h3>
             <p>Check examination results and report cards</p>
         </div>
 
-        <div class="dashboard-card">
+        <div class="dashboard-card card-notices">
             <i class="fa-solid fa-bullhorn"></i>
             <h3>School Notices</h3>
             <p>Latest announcements and updates</p>
         </div>
 
-        <div class="dashboard-card">
+        <div class="dashboard-card card-dates">
             <i class="fa-solid fa-calendar-days"></i>
             <h3>Opening Dates</h3>
             <p>Academic calendar and reopening dates</p>
         </div>
-
-        <div class="dashboard-card" onclick="showAdmin()">
+        
+        <div class="dashboard-card card-admin" onclick="showAdmin()">
             <i class="fa-solid fa-user-shield"></i>
             <h3>Admin Portal</h3>
             <p>School administration access</p>
