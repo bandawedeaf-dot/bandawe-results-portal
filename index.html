@@ -54,6 +54,11 @@
         }
 
         // ================= ADMIN =================
+        window.showSearchPortal = function() {
+            document.getElementById("public").classList.add("hidden");
+            document.getElementById("searchPortal").classList.remove("hidden");
+        };
+        
         window.showAdmin = function() {
             document.getElementById("public").classList.add("hidden");
             document.getElementById("adminLogin").classList.remove("hidden");
@@ -328,6 +333,7 @@
             document.getElementById("results").classList.add("hidden");
             document.getElementById("adminPanel").classList.add("hidden");
             document.getElementById("adminLogin").classList.add("hidden");
+            document.getElementById("searchPortal").classList.add("hidden");
             document.getElementById("public").classList.remove("hidden");
             document.getElementById("adminArea").innerHTML = "";
         };
@@ -381,6 +387,81 @@
             body { background: white; padding: 20px; }
             button, #public, #adminPanel, #adminLogin { display: none !important; }
         }
+        .dashboard {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hero {
+            background: linear-gradient(to right, #003366, #0055aa);
+            color: white;
+            padding: 30px 20px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 {
+            margin: 10px 0;
+            font-size: 32px;
+        }
+        
+        .hero p {
+            opacity: 0.95;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .dashboard-card {
+            background: white;
+            padding: 25px 15px;
+            border-radius: 18px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px) 
+        }
+        
+        .dashboard-card i {
+            font-size: 40px;
+            margin-bottom: 15px;
+            color: #003366;
+        }
+        
+        .dashboard-card h3 {
+            margin: 10px 0;
+            color: #003366;
+        }
+        
+        .notice-board {
+            background: white;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 18px;
+            text-align: left;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+        
+        .notice-board h3 {
+            color: #003366;
+        }
+
+        .notice-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .notice-item:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body>
@@ -391,24 +472,95 @@
    </h2>
    
     <!-- PUBLIC -->
-    <div id="public">
-        <input id="name" placeholder="Full Name">
-        <input id="dob" placeholder="Date of Birth (dd/mm/yyyy)">
-        <select id="searchTerm">
-            <option value="Term 1">Term 1</option>
-            <option value="Term 2">Term 2</option>
-            <option value="Term 3" selected>Term 3</option>
-        </select>
+    <div id="public" class="dashboard">
 
-        <input id="searchYear" type="number" value="2026" placeholder="Year">
-        <button onclick="search()">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            View Results
-        </button>
-        <button onclick="showAdmin()">
+    <div class="hero">
+        <i class="fa-solid fa-school" style="font-size:70px;"></i>
+
+        <h1>BANDAWE SCHOOL FOR THE DEAF</h1>
+
+        <h2>Results Portal</h2>
+
+        <p>
+            Welcome to Bandawe School for the Deaf Academic Portal
+        </p>
+    </div>
+
+    <div class="dashboard-grid">
+
+        <div class="dashboard-card" onclick="showSearchPortal()">
+            <i class="fa-solid fa-file-lines"></i>
+            <h3>View Results</h3>
+            <p>Check examination results and report cards</p>
+        </div>
+
+        <div class="dashboard-card">
+            <i class="fa-solid fa-bullhorn"></i>
+            <h3>School Notices</h3>
+            <p>Latest announcements and updates</p>
+        </div>
+
+        <div class="dashboard-card">
+            <i class="fa-solid fa-calendar-days"></i>
+            <h3>Opening Dates</h3>
+            <p>Academic calendar and reopening dates</p>
+        </div>
+
+        <div class="dashboard-card" onclick="showAdmin()">
             <i class="fa-solid fa-user-shield"></i>
-            Admin Login
-        </button>
+            <h3>Admin Portal</h3>
+            <p>School administration access</p>
+        </div>
+
+    </div>
+
+    <div class="notice-board">
+
+        <h3>
+            <i class="fa-solid fa-bell"></i>
+            Latest Announcements
+        </h3>
+
+        <div class="notice-item">
+            📢 Term 2 Results Will be Available Soon.
+        </div>
+
+        <div class="notice-item">
+            📅 Next Term Opens on 14 September 2026
+        </div>
+
+        <div class="notice-item">
+            🌽 All students should bring 20kg maize
+        </div>
+
+        <div class="notice-item">
+            👨‍👩‍👧 PTA Meeting Scheduled for 2026 will be communicated soon!
+        </div>
+
+    </div>
+   
+        <div id="searchPortal" class="hidden">
+
+    <h2>
+        <i class="fa-solid fa-magnifying-glass"></i>
+        View Student Results
+    </h2>
+
+    <input id="name" placeholder="Full Name">
+
+    <input id="dob" placeholder="Date of Birth (dd/mm/yyyy)">
+
+    <button onclick="search()">
+        <i class="fa-solid fa-file-lines"></i>
+        View Results
+    </button>
+
+    <button onclick="backToSearch()">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back
+    </button>
+
+    </div>
     </div>
 
     <!-- RESULTS -->
