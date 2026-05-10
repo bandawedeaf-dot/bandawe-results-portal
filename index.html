@@ -147,11 +147,9 @@
             });
 
             try {
-                const resultId = `${term}-${year}`;
-
-                await setDoc(
-                    doc(db, "results", rstudent, "terms", resultId),
-                    {
+                const resultId =
+                    `${rstudent}_${term}_${year}`;
+                await setDoc(doc(db, "results", resultId),
                         scores,
                         total,
                         class: rclass,
