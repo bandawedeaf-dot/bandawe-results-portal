@@ -326,33 +326,41 @@
 
         window.downloadPDF = function() { 
 
-            alert("PDF button clicked");
-
             const element = document.getElementById("reportCard");
 
             const studentName =
                 document.getElementById("rname").innerText
                     .replace(/\s+/g, '_');
 
-            const opt = {
-                margin:0.4,
-                filename: `${studentName}_Report_Card.pdf`,
-                image: { type: 'jpeg', quality: 1 },
-                html2canvas: {
-                    scale: 2,
-                    useCORS: true
-                },
-                jsPDF: {
-                    unit: 'in',
-                    format: 'a4',
-                    orientation: 'portrait'
-                }
-            };
+        const opt = {
+            margin: 0.2,
+            filename: `${studentName}_Report_Card.pdf`,
+            image: {
+                type: 'jpeg',
+                quality: 1
+            },
+            
+            html2canvas: {
+                scale: 3,
+                useCORS: true,
+                scrollY: 0
+            },
+            
+            jsPDF: {
+                unit: 'in',
+                format: 'a4',
+                orientation: 'portrait'
+            },
+            
+            pagebreak: {
+                mode: ['avoid-all', 'css', 'legacy']
+            }
+        
+        };
             html2pdf().set(opt).from(element).save();
 
         };
-                
-
+        
         window.backToSearch = function() {
             document.getElementById("results").classList.add("hidden");
             document.getElementById("adminPanel").classList.add("hidden");
@@ -565,7 +573,7 @@
         .report-card {
             background: white;
             border-radius: 22px;
-            padding: 25px;
+            padding: 18px;
             box-shadow: 0 6px 20px rgba(0,0,0,0.15);
             margin-top: 20px;
         }
@@ -573,7 +581,7 @@
         .student-header {
             background: linear-gradient(to right, #003366, #0055aa);
             color: white;
-            padding: 25px;
+            padding: 18px;
             border-radius: 18px;
             text-align: center;
             margin-bottom: 25px;
@@ -653,6 +661,28 @@
             padding: 20px;
             border-radius: 16px;
             border-left: 6px solid #003366;
+        }
+       
+        #reportCard {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+        }
+        
+        #reportCard table {
+            page-break-inside: avoid;
+        }
+        
+        #reportCard tr,
+        #reportCard td,
+        #reportCard th {
+            page-break-inside: avoid;
+        }
+        
+        .teacher-remark,
+        .summary-grid,
+        .student-header {
+            page-break-inside: avoid;
         }
     </style>
 </head>
