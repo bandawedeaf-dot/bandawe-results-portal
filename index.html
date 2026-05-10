@@ -7,6 +7,8 @@
     <link rel="stylesheet" 
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
@@ -324,6 +326,8 @@
 
         window.downloadPDF = function() { 
 
+            alert("PDF button clicked");
+
             const element = document.getElementById("reportCard");
 
             const studentName =
@@ -358,9 +362,7 @@
             document.getElementById("adminArea").innerHTML = "";
         };
     </script>
-     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
+    
     <style>
         body { 
             font-family: Arial, sans-serif; 
