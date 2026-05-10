@@ -257,57 +257,44 @@
             : '<span class="fail-badge">FAILED</span>';
 
             // REAL POSITION CALCULATION
-            getDocs(collection(db, "results")).then(async studentsSnapshot => {
-                
+            
+            getDocs(collection(db, "results")).then(snapshot => 
                 let classResults = [];
+            
+            snapshot.forEach(docSnap => {
                 
-                for (const studentDoc of studentsSnapshot.docs) {    
-                   
-                    const termId = `${data.term}-${data.year}`; 
+                const d = docSnap.data();
+                
+                // same class + same term + same year
+                
+                if (
+                    d.class === data.class &&
+                    d.term === data.term &&
+                    d.year == data.year
+                ) {
                     
-                    const resultRef = doc(
-                        db,
-                        "results",
-                        studentDoc.id,
-                        "terms",
-                        termId
-                    );
-
-                    const resultSnap = await getDoc(resultRef);
-
-                    if(resultSnap.exists()) {
-
-                        const d = resultSnap.data();
-                        
-                        // same class only
-                        if(d.class === data.class){
-
-                            classResults.push({
-                                name: studentDoc.id.trim().toLowerCase(),
-                                total: d.total || 0
-                            });
-
-                      }
-
-                 }
-
-            }
-
-            // sort descending
-            classResults. sort((a,b) => b.total - a.total);
-
-            //find position
-            const currentStudent =
-                name.trim().toLowerCase();
-
+                    classResults.push({
+                        name: docSnap.id,
+                        total: d.total || 0
+                    });
+                }
+            
+            });
+            
+            // Sort highest to lowest
+            
+            classResults.sort((a, b) => b.total - a.total);
+            
+            // Find student's position
+            
             const position =
-                classResults.findIndex(
-                    s => s.name === currentStudent
-                ) + 1;
-
+                classResults.findIndex(student =>
+                    student.name.startsWith(name)
+                                      ) + 1;
+            
             document.getElementById("position").innerText =
-                `${position} out of ${classResults.length}`; 
-
+                `Position: ${position} out of ${classResults.length}`;
+        
         });
                 
             // Fixed Table
