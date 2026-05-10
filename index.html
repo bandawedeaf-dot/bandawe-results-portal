@@ -258,7 +258,7 @@
 
             // REAL POSITION CALCULATION
             
-            getDocs(collection(db, "results")).then(snapshot => 
+            getDocs(collection(db, "results")).then(snapshot => {
                 let classResults = [];
             
             snapshot.forEach(docSnap => {
