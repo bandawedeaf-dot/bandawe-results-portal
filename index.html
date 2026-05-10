@@ -326,47 +326,50 @@
 
         window.downloadPDF = function() { 
 
-            const element = document.getElementById("reportCard");
-
+            const element =
+                document.getElementById("reportCard");
+            document.body.classList.add("pdf-mode");
+            
             const studentName =
-                document.getElementById("rname").innerText
-                    .replace(/\s+/g, '_');
-
-        const opt = {
-            margin: 0.2,
-            filename: `${studentName}_Report_Card.pdf`,
-            image: {
-                type: 'jpeg',
-                quality: 1
-            },
+                document.getElementById("rname")
+                .innerText
+                .replace(/\s+/g, '_');
             
-            html2canvas: {
-                scale: 3,
-                useCORS: true,
-                scrollY: 0
-            },
+            const opt = {
+                margin: 0.2,
+                filename:
+                    `${studentName}_Report_Card.pdf`,
+                image: {
+                    type: 'jpeg',
+                    quality: 1
+                },
+                
+                html2canvas: {
+                    scale: 3,
+                    useCORS: true,
+                    scrollY: 0
+                },
+                
+                jsPDF: {
+                    unit: 'in',
+                    format: 'a4',
+                    orientation: 'portrait'
+                },
+                
+                pagebreak: {
+                    mode: ['avoid-all']
+                }
+            };
             
-            jsPDF: {
-                unit: 'in',
-                format: 'a4',
-                orientation: 'portrait'
-            },
-            
-            pagebreak: {
-                mode: ['avoid-all', 'css', 'legacy']
-            }
-        
-        };
-            
-            const buttons =
-                element.querySelectorAll("button");
-            
-            buttons.forEach(btn => btn.style.display = "none");
-           
-            html2pdf().set(opt).from(element).save();
-            
-            buttons.forEach(btn => btn.style.display = "inline-block");
-
+            html2pdf()
+                .set(opt)
+                .from(element)
+                .save()
+                .then(() => {
+                    document.body
+                        .classList
+                        .remove("pdf-mode");
+                });
         };
         
         window.backToSearch = function() {
@@ -676,8 +679,9 @@
         }
        
         #reportCard {
-            width: 210mm;
-            min-height: 297mm;
+            width: 100%;
+            max-width: 190mm;
+            margin: auto;
             background: white;
         }
         
@@ -695,6 +699,14 @@
         .summary-grid,
         .student-header {
             page-break-inside: avoid;
+        }
+
+        .no-print {
+            display: inline-block;
+        }
+        
+        .pdf-mode .no-print {
+            display: none !important;
         }
     </style>
 </head>
@@ -946,12 +958,12 @@
 
         <div style="margin-top:25px; text-align:center;">
 
-            <button onclick="downloadPDF()">
+            <button class="no-print" onclick="downloadPDF()">
                 <i class="fa-solid fa-file-pdf"></i>
                 Download Professional PDF
             </button>
 
-            <button onclick="backToSearch()">
+            <button class="no-print" onclick="backToSearch()">
                 <i class="fa-solid fa-arrow-left"></i>
                 Back
             </button>
