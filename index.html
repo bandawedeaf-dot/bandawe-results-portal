@@ -184,18 +184,22 @@
 
                 if (!found) return alert("Student not found");
 
-                const searchTerm =
-                document.getElementById("searchTerm").value;
+                const inputTerm =
+                    document.getElementById("searchTerm").value;
+                
+                const inputYear =
+                    document.getElementById("searchYear").value;
 
-                const searchYear =
-                document.getElementById("searchYear").value;
-
-                const resultId = `${searchTerm}-${searchYear}`;
-
-                const resultSnap = await getDoc(
-                    doc(db, "results", found, "terms", resultId)
-                );
-                if (!resultSnap.exists()) return alert("Results not entered yet");
+                const resultDocId =
+                    `${found}_${inputTerm}_${inputYear}`;
+                
+                const resultSnap =
+                    await getDoc(doc(db, "results", resultDocId));
+                
+                if (!resultSnap.exists()) {
+                    alert("Results not found for selected term/year");
+                    return;
+                }
 
                 document.getElementById("public").classList.add("hidden");
                 document.getElementById("results").classList.remove("hidden");
@@ -809,6 +813,17 @@
 
         <input id="dob"
                placeholder="Date of Birth (dd/mm/yyyy)">
+        
+        <select id="searchTerm">
+            <option value="">Select Term</option>
+            <option value="Term 1">Term 1</option>
+            <option value="Term 2">Term 2</option>
+            <option value="Term 3">Term 3</option>
+        </select>
+
+        <input id="searchYear"
+            type="number"
+            placeholder="Year e.g. 2026">
 
         <button onclick="search()">
             <i class="fa-solid fa-file-lines"></i>
