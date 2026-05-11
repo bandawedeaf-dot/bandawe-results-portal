@@ -240,9 +240,6 @@
             document.getElementById("rname").innerText = name;
             document.getElementById("studentClass").innerHTML =
             "<strong>Class:</strong> " + data.class;
-            document.getElementById("studentYear").innerHTML =
-            "<strong>Term:</strong> " + data.term +
-            " | <strong>Year:</strong> " + data.year;
             document.getElementById("total").innerText = data.total || 0;
 
             const maxTotal = subjects.length * 100;
@@ -967,8 +964,6 @@
             <h2 id="rname"></h2>
             
             <p id="studentClass"></p>
-            
-            <p id="studentYear"></p>
         
         </div>
 
