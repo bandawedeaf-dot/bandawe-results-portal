@@ -320,41 +320,30 @@
 
             document.getElementById("remark").innerHTML = `<strong>Teacher's Remark:</strong> ${getOverallRemark(data.total, maxTotal)}`;
         }
-
+        
         window.downloadPDF = function() { 
-
-            const element =
-                document.getElementById("reportCard");
+            const element = document.getElementById("reportCard");
             document.body.classList.add("pdf-mode");
             
-            const studentName =
-                document.getElementById("rname")
-                .innerText
-                .replace(/\s+/g, '_');
+            const studentName = document.getElementById("rname").innerText.replace(/\s+/g, '_');
             
             const opt = {
-                margin: 0.2,
-                filename:
-                    `${studentName}_Report_Card.pdf`,
-                image: {
-                    type: 'jpeg',
-                    quality: 1
-                },
-                
-                html2canvas: {
+                margin: [0.4, 0.3, 0.4, 0.3],   // top, left, bottom, right (in inches)
+                filename: `${studentName}_Report_Card.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
                     scale: 3,
                     useCORS: true,
+                    letterRendering: true,
                     scrollY: 0
                 },
-                
-                jsPDF: {
-                    unit: 'in',
-                    format: 'a4',
-                    orientation: 'portrait'
+                jsPDF: { 
+                    unit: 'in', 
+                    format: 'a4', 
+                    orientation: 'portrait' 
                 },
-                
-                pagebreak: {
-                    mode: ['avoid-all']
+                pagebreak: { 
+                    mode: ['avoid-all', 'css', 'legacy'] 
                 }
             };
             
@@ -363,11 +352,10 @@
                 .from(element)
                 .save()
                 .then(() => {
-                    document.body
-                        .classList
-                        .remove("pdf-mode");
+                    document.body.classList.remove("pdf-mode");
                 });
         };
+
         
         window.backToSearch = function() {
             document.getElementById("results").classList.add("hidden");
@@ -751,6 +739,58 @@
             font-size: 28px;
             color: white;
         }
+
+        /* === PDF OPTIMIZATION === */
+        .pdf-mode #reportCard {
+            padding: 20px !important;
+            max-width: 190mm;
+            margin: 0 auto;
+        }
+        
+        .pdf-mode .student-header {
+            padding: 12px 15px !important;
+            margin-bottom: 15px !important;
+        }
+        
+        .pdf-mode .report-logo {
+            width: 65px !important;
+            height: 65px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        .pdf-mode .student-header h1 {
+            font-size: 24px !important;
+            margin: 5px 0 3px 0 !important;
+        }
+        
+        .pdf-mode .student-header h2 {
+            font-size: 18px !important;
+            margin: 3px 0 !important;
+        }
+        
+        .pdf-mode .student-header p {
+            font-size: 15px !important;
+            margin: 2px 0 !important;
+        }
+        
+        .pdf-mode .summary-grid {
+            gap: 8px !important;
+            margin-bottom: 18px !important;
+        }
+        
+        .pdf-mode .summary-box {
+            padding: 8px !important;
+        }
+        
+        .pdf-mode .teacher-remark {
+            margin-top: 15px !important;
+            padding: 12px !important;
+        }
+        /* Reduce table padding slightly in PDF */
+        .pdf-mode #table td,
+        .pdf-mode #table th {
+            padding: 8px 6px !important;
+        }
     </style>
 </head>
 <body>
@@ -958,11 +998,10 @@
                 alt="School Logo">
             
             <h1>Bandawe School for the Deaf</h1>
-            
             <h2 id="reportTitle"></h2>
-            
-            <h2 id="rname"></h2>
-            
+            <div style="margin: 8px 0 4px 0;">
+                <strong id="rname" style="font-size: 22px;"></strong>
+            </div>
             <p id="studentClass"></p>
         
         </div>
