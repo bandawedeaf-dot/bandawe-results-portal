@@ -15,17 +15,19 @@
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     
     const firebaseConfig = {
-        apiKey: "AIzaSyDUny1WaUaMeUgLLsUrFckhQAloCwDHX-c",
+        apiKey: "AIzaSyDUny1WaUaMeUgLLsUrFckhQAIoCwDHX-c",
         authDomain: "bandawe-results-portal.firebaseapp.com",
         projectId: "bandawe-results-portal",
         storageBucket: "bandawe-results-portal.firebasestorage.app",
         messagingSenderId: "558408212445",
-        appId: "1:558408212445:web:f93a5d74b74010ebdee034"
+        appId: "1:558408212445:web:f93a5d74b74010ebdee034",
+        measurementId: "G-CKERZYKZWT"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+        console.log("🔥 Firebase initialized on:", window.location.hostname);
 
     window.db = db;
     window.auth = auth;
