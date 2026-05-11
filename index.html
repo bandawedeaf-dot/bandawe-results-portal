@@ -106,17 +106,6 @@
             document.getElementById("adminLogin").classList.remove("hidden");
         };
 
-        window.login = function() {
-            const username = document.getElementById("user").value.trim();
-            const password = document.getElementById("pass").value.trim();
-            if (username === "admin" && password === "1234") {
-                document.getElementById("adminLogin").classList.add("hidden");
-                document.getElementById("adminPanel").classList.remove("hidden");
-            } else {
-                alert("Incorrect credentials!");
-            }
-        };
-
         window.addStudent = function() {
             let classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
             document.getElementById("adminArea").innerHTML = `
