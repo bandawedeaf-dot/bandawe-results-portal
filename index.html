@@ -10,50 +10,90 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getFirestore, collection, doc, setDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    
+    const firebaseConfig = {
+        apiKey: "AIzaSyDUny1WaUaMeUgLLsUrFckhQAloCwDHX-c",
+        authDomain: "bandawe-results-portal.firebaseapp.com",
+        projectId: "bandawe-results-portal",
+        storageBucket: "bandawe-results-portal.firebasestorage.app",
+        messagingSenderId: "558408212445",
+        appId: "1:558408212445:web:f93a5d74b74010ebdee034"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    window.db = db;
+    window.auth = auth;
+
+    // ================== KEEP ALL YOUR EXISTING FUNCTIONS BELOW ==================
+    
+    const subjects = [
+        "Agriculture", "Bible Knowledge", "Chichewa", "English", 
+        "Expressive Arts", "Mathematics", "Life Skills", 
+        "Science & Tech", "Social Studies"
+    ];
+
+    const classes = [
+        "Standard 1", "Standard 2", "Standard 3", "Standard 4",
+        "Standard 5", "Standard 6", "Standard 7", "Standard 8"
+    ];
+
+    function getGradeAndRemark(score) {
+        if (score >= 80) return { grade: 4, remark: "Excellent" };
+        if (score >= 60) return { grade: 3, remark: "Good" };
+        if (score >= 40) return { grade: 2, remark: "Average" };
+        return { grade: 1, remark: "Need Support" };
+    }
+
+    function getOverallRemark(total, maxTotal) {
+        const percentage = (total / maxTotal) * 100;
+        if (percentage >= 80) return "Outstanding performance! Keep it up.";
+        if (percentage >= 70) return "Very good work. Continue improving.";
+        if (percentage >= 60) return "Good performance. Aim higher next term.";
+        if (percentage >= 40) return "Satisfactory. More effort needed in weak areas.";
+        return "Needs significant improvement. Extra support recommended.";
+    }
+
+    // ================= AUTHENTICATION FUNCTIONS =================
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById("adminLogin").classList.add("hidden");
+            document.getElementById("adminPanel").classList.remove("hidden");
+        }
+    });
+
+    window.login = async function() {
+        const email = document.getElementById("user").value.trim();
+        const password = document.getElementById("pass").value.trim();
+
+        if (!email || !password) return alert("Please enter email and password!");
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            alert("Login successful! Welcome.");
+        } catch (e) {
+            alert("Login failed: " + e.message);
+        }
+    };
+
+    window.logout = async function() {
+        try {
+            await signOut(auth);
+            alert("Logged out successfully");
+            backToSearch();
+        } catch (e) {
+            alert("Logout error: " + e.message);
+        }
+    };
+
+    // Keep all your other existing functions (showSearchPortal, showAdmin, addStudent, saveStudent, etc.)
         
-        const firebaseConfig = {
-            apiKey: "AIzaSyDUny1WaUaMeUgLLsUrFckhQAloCwDHX-c",
-            authDomain: "bandawe-results-portal.firebaseapp.com",
-            projectId: "bandawe-results-portal",
-            storageBucket: "bandawe-results-portal.firebasestorage.app",
-            messagingSenderId: "558408212445",
-            appId: "1:558408212445:web:f93a5d74b74010ebdee034"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        const subjects = [
-            "Agriculture", "Bible Knowledge", "Chichewa", "English", 
-            "Expressive Arts", "Mathematics", "Life Skills", 
-            "Science & Tech", "Social Studies"
-        ];
-
-       // =============== CLASSES ARRAY ====================
-        const classes = [
-            "Standard 1", "Standard 2", "Standard 3", "Standard 4",
-            "Standard 5", "Standard 6", "Standard 7", "Standard 8"
-        ];
-
-        window.db = db;
-
-        function getGradeAndRemark(score) {
-            if (score >= 80) return { grade: 4, remark: "Excellent" };
-            if (score >= 60) return { grade: 3, remark: "Good" };
-            if (score >= 40) return { grade: 2, remark: "Average" };
-            return { grade: 1, remark: "Need Support" };
-        }
-
-        function getOverallRemark(total, maxTotal) {
-            const percentage = (total / maxTotal) * 100;
-            if (percentage >= 80) return "Outstanding performance! Keep it up.";
-            if (percentage >= 70) return "Very good work. Continue improving.";
-            if (percentage >= 60) return "Good performance. Aim higher next term.";
-            if (percentage >= 40) return "Satisfactory. More effort needed in weak areas.";
-            return "Needs significant improvement. Extra support recommended.";
-        }
 
         // ================= ADMIN =================
         window.showSearchPortal = function() {
@@ -1060,18 +1100,19 @@
     </div>
 
     <!-- ADMIN LOGIN -->
-    <div id="adminLogin" class="hidden">
-        <input id="user" placeholder="Username">
-        <input id="pass" type="password" placeholder="Password">
-        <button onclick="login()">
-            <i class="fa-solid fa-right-to-bracket"></i>
-            Login
-        </button>
-        <button onclick="backToSearch()">
-            <i class="fa-solid fa-arrow-left"></i>
-            Back
-        </button>
-    </div>
+<div id="adminLogin" class="hidden">
+    <h2 style="text-align:center; color:#003366; margin-bottom:20px;">
+        <i class="fa-solid fa-user-shield"></i> Admin Login
+    </h2>
+    <input id="user" type="email" placeholder="Email Address">
+    <input id="pass" type="password" placeholder="Password">
+    <button onclick="login()">
+        <i class="fa-solid fa-right-to-bracket"></i> Login
+    </button>
+    <button onclick="backToSearch()">
+        <i class="fa-solid fa-arrow-left"></i> Back
+    </button>
+</div>
 
     <!-- ADMIN PANEL -->
     <div id="adminPanel" class="hidden">
@@ -1083,9 +1124,8 @@
             <i class="fa-solid fa-pen-to-square"></i>
             Enter Results
         </button>
-        <button onclick="backToSearch()">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            Logout
+        <button onclick="logout()">
+    <i class="fa-solid fa-right-from-bracket"></i> Logout
         </button>
         <div id="adminArea" style="margin-top:20px;"></div>
     </div>
