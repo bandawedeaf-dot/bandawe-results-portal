@@ -474,6 +474,105 @@
                 alert("Error: " + e.message);
             }
         };
+          // ================= PHASE 3: BULK RESULTS UPLOAD =================
+        
+        window.showBulkUpload = function() {
+            let classOptions = classes.map(cls => `<option value="\( {cls}"> \){cls}</option>`).join('');
+            
+            document.getElementById("adminArea").innerHTML = `
+            <h3>Bulk Results Upload</h3>
+            <p style="color:#555;">Upload results for an entire class at once</p>
+            
+            <select id="bulkClass" style="margin-bottom:15px;">
+            <option value="">—— Select Class ——</option>
+            ${classOptions}
+            </select>
+            
+            <select id="bulkTerm" style="margin-bottom:15px;">
+            <option value="Term 3" selected>Term 3</option>
+            <option value="Term 1">Term 1</option>
+            <option value="Term 2">Term 2</option>
+            </select>
+            
+            <input id="bulkYear" type="number" value="2026" placeholder="Year">
+            
+            <div style="margin:20px 0; padding:15px; border:2px dashed #003366; border-radius:12px; text-align:center;">
+            
+            <p><strong>Upload CSV File</strong></p>
+            <input type="file" id="csvFile" accept=".csv" style="margin:10px auto; display:block;">
+            <small style="color:#666;">Columns needed: StudentName, ${subjects.join(", ")}</small>
+            </div>
+            
+            <button onclick="processBulkUpload()" style="background:#28a745;">Process & Save Results</button>
+            <button onclick="viewAllStudents()">Back to Students</button>
+            
+            `;
+        };
+        
+        window.processBulkUpload = async function() {
+            const fileInput = document.getElementById("csvFile");
+            const className = document.getElementById("bulkClass").value;
+            const term = document.getElementById("bulkTerm").value;
+            const year = document.getElementById("bulkYear").value;
+            if (!fileInput.files[0] || !className || !term || !year) {
+                return alert("Please select class, term, year and upload a CSV file.");
+            }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = async function(e) {
+                try {
+                    const text = e.target.result;
+                    const rows = text.trim().split('\n');
+                    const headers = rows[0].split(',').map(h => h.trim());
+                    
+                    let successCount = 0;
+                    let errorCount = 0;
+                    
+                    for (let i = 1; i < rows.length; i++) {
+                        if (!rows[i].trim()) continue;
+                        
+                        const values = rows[i].split(',').map(v => v.trim());
+                        const studentName = values[0];
+                        
+                        if (!studentName) continue;
+                        
+                        let scores = {};
+                        
+                        let total = 0;
+                        
+                        subjects.forEach((subject, index) => {
+                            const score = parseInt(values[index + 1]) || 0;
+                            scores[subject] = score;
+                            total += score;
+                        });
+                        
+                        try {
+                            const resultId = `\( {studentName}_ \){term}_${year}`;
+                            await setDoc(doc(db, "results", resultId), {
+                                scores: scores,
+                                total: total,
+                                class: className,
+                                classSize: 0, // Can be updated later
+                                term: term,
+                                year: year
+                            });
+                            successCount++;
+                        } catch (err) {
+                            errorCount++;
+                            console.error("Error saving", studentName, err);
+                        }
+                    }
+                    alert(`✅ Bulk upload completed!\n\nSuccess: ${successCount}\nFailed: ${errorCount}`);
+                    viewAllStudents();
+                
+                } catch (e) {
+                    alert("Error processing file: " + e.message);
+                }
+            };
+            reader.readAsText(file);
+        };
     </script>
     
     <style>
@@ -1189,8 +1288,9 @@
     
     <div style="margin:15px 0; display:flex; gap:10px; flex-wrap:wrap;">
         <button onclick="addStudent()"><i class="fa-solid fa-user-plus"></i> Add Student</button>
-        <button onclick="enterResults()"><i class="fa-solid fa-pen-to-square"></i> Enter Results</button>
+        <button onclick="enterResults()"><i class="fa-solid fa-pen-to-square"></i> Enter Single Result</button>
         <button onclick="viewAllStudents()"><i class="fa-solid fa-list"></i> View All Students</button>
+        <button onclick="showBulkUpload()"><i class="fa-solid fa-file-excel"></i> Bulk Upload Results</button>
         <button onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
     </div>
 
