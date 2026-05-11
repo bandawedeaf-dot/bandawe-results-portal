@@ -396,6 +396,84 @@
             document.getElementById("public").classList.remove("hidden");
             document.getElementById("adminArea").innerHTML = "";
         };
+        // ================= PHASE 2: ENHANCED ADMIN DASHBOARD =================
+        
+        window.viewAllStudents = async function() {
+            document.getElementById("adminArea").innerHTML = `<p>Loading students...</p>`;
+            
+            try {
+                const snapshot = await getDocs(collection(db, "students"));
+                let html = `
+                <h3>All Students (${snapshot.size})</h3>
+                <input type="text" id="studentSearch" placeholder="Search by name..." 
+                style="margin-bottom:15px; padding:10px;" onkeyup="filterStudents()">
+                <table style="width:100%; border-collapse:collapse;">
+        
+        <tr>
+        <th style="background:#003366; color:white; padding:10px;">Student Name</th>
+        <th style="background:#003366; color:white; padding:10px;">Class</th>
+        <th style="background:#003366; color:white; padding:10px;">DOB</th>
+        <th style="background:#003366; color:white; padding:10px;">Actions</th>
+        </tr>`;
+                
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    html += `
+                    <tr>
+                    <td style="padding:10px; border-bottom:1px solid #ddd;">${docSnap.id}</td>
+                    <td style="padding:10px; border-bottom:1px solid #ddd;">${data.class}</td>
+                    <td style="padding:10px; border-bottom:1px solid #ddd;">${data.dob}</td>
+                    <td style="padding:10px; border-bottom:1px solid #ddd;">
+                    <button onclick="viewStudentResults('${docSnap.id}')" style="padding:5px 10px; font-size:14px;">
+                    View Results
+                    </button>
+                    </td>
+                    </tr>`;
+                });
+                
+                html += `</table>`;
+                    document.getElementById("adminArea").innerHTML = html;
+            
+            } catch (e) {
+                document.getElementById("adminArea").innerHTML = `<p style="color:red;">Error loading students: ${e.message}</p>`;
+            }
+        };
+        
+        window.filterStudents = function() {
+            const searchTerm = document.getElementById("studentSearch").value.toLowerCase().trim();
+            const rows = document.querySelectorAll("#adminArea table tr");
+            
+            rows.forEach((row, index) => {
+                if (index === 0) return; // Skip header
+                const nameCell = row.cells[0];
+                if (nameCell) {
+                    row.style.display = nameCell.textContent.toLowerCase().includes(searchTerm) ? "" : "none";
+                }
+            });
+        };
+        
+        window.viewStudentResults = async function(studentName) {
+            // For now, we'll prompt for term/year (can be improved later)
+            const term = prompt("Enter Term (Term 1 / Term 2 / Term 3):", "Term 3");
+            const year = prompt("Enter Year:", "2026");
+            
+            if (!term || !year) return;
+            
+            try {
+                const resultDocId = `\( {studentName}_ \){term}_${year}`;
+                const resultSnap = await getDoc(doc(db, "results", resultDocId));
+        
+                if (resultSnap.exists()) {
+                    document.getElementById("adminPanel").classList.add("hidden");
+                    document.getElementById("results").classList.remove("hidden");
+                    loadResults(studentName, resultSnap.data());
+                } else {
+                    alert("No results found for this student in the selected term/year.");
+                } 
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
     </script>
     
     <style>
@@ -1106,20 +1184,17 @@
 </div>
 
     <!-- ADMIN PANEL -->
-    <div id="adminPanel" class="hidden">
-        <button onclick="addStudent()">
-            <i class="fa-solid fa-user-plus"></i>
-            Add Student
-        </button>
-        <button onclick="enterResults()">
-            <i class="fa-solid fa-pen-to-square"></i>
-            Enter Results
-        </button>
-        <button onclick="logout()">
-    <i class="fa-solid fa-right-from-bracket"></i> Logout
-        </button>
-        <div id="adminArea" style="margin-top:20px;"></div>
+<div id="adminPanel" class="hidden">
+    <h2 style="color:#003366; text-align:center;">Admin Dashboard</h2>
+    
+    <div style="margin:15px 0; display:flex; gap:10px; flex-wrap:wrap;">
+        <button onclick="addStudent()"><i class="fa-solid fa-user-plus"></i> Add Student</button>
+        <button onclick="enterResults()"><i class="fa-solid fa-pen-to-square"></i> Enter Results</button>
+        <button onclick="viewAllStudents()"><i class="fa-solid fa-list"></i> View All Students</button>
+        <button onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
     </div>
 
+    <div id="adminArea" style="margin-top:20px;"></div>
+</div>
 </body>
     </html>
