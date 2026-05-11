@@ -8,6 +8,7 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -474,104 +475,125 @@
                 alert("Error: " + e.message);
             }
         };
-          // ================= PHASE 3: BULK RESULTS UPLOAD =================
-        
+          // ================= IMPROVED BULK UPLOAD =================
         window.showBulkUpload = function() {
-            let classOptions = classes.map(cls => `<option value="\( {cls}"> \){cls}</option>`).join('');
+            let classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
             
             document.getElementById("adminArea").innerHTML = `
-            <h3>Bulk Results Upload</h3>
-            <p style="color:#555;">Upload results for an entire class at once</p>
+            <h3>Bulk Results Upload (Excel Recommended)</h3>
+            <p style="color:#555;">Upload results for an entire class using Excel or CSV</p>
             
-            <select id="bulkClass" style="margin-bottom:15px;">
+            <div style="margin:15px 0;">
+            <select id="bulkClass" style="padding:12px; width:100%; margin-bottom:10px;">
             <option value="">—— Select Class ——</option>
             ${classOptions}
             </select>
             
-            <select id="bulkTerm" style="margin-bottom:15px;">
-            <option value="Term 3" selected>Term 3</option>
-            <option value="Term 1">Term 1</option>
-            <option value="Term 2">Term 2</option>
+            <select id="bulkTerm" style="padding:12px; width:100%; margin-bottom:10px;">
+                <option value="Term 3" selected>Term 3</option>
+                <option value="Term 1">Term 1</option>
+                <option value="Term 2">Term 2</option>
             </select>
             
-            <input id="bulkYear" type="number" value="2026" placeholder="Year">
-            
-            <div style="margin:20px 0; padding:15px; border:2px dashed #003366; border-radius:12px; text-align:center;">
-            
-            <p><strong>Upload CSV File</strong></p>
-            <input type="file" id="csvFile" accept=".csv" style="margin:10px auto; display:block;">
-            <small style="color:#666;">Columns needed: StudentName, ${subjects.join(", ")}</small>
-            </div>
-            
-            <button onclick="processBulkUpload()" style="background:#28a745;">Process & Save Results</button>
-            <button onclick="viewAllStudents()">Back to Students</button>
-            
-            `;
-        };
+            <input id="bulkYear" type="number" value="2026" placeholder="Year" 
+                   style="padding:12px; width:100%; margin-bottom:15px;">
+        </div>
         
+        <div style="margin:20px 0; padding:20px; border:2px dashed #003366; border-radius:12px; text-align:center; background:#f8f9ff;">
+            <p><strong>Upload Excel File (.xlsx) or CSV</strong></p>
+            <input type="file" id="excelFile" accept=".xlsx,.csv" style="margin:15px auto; display:block;">
+            <small style="color:#666;">
+                First column must be <strong>StudentName</strong><br>
+                Then columns for each subject in order
+            </small>
+        </div>
+        
+        <button onclick="processBulkUpload()" style="background:#28a745; padding:12px; font-size:16px;">
+            <i class="fa-solid fa-upload"></i> Process & Save All Results
+        </button>
+        <button onclick="viewAllStudents()" style="margin-left:10px;">Back</button>
+        
+        <div id="uploadStatus" style="margin-top:15px;"></div>
+        `;
+        };
+       
         window.processBulkUpload = async function() {
-            const fileInput = document.getElementById("csvFile");
+            const fileInput = document.getElementById("excelFile");
             const className = document.getElementById("bulkClass").value;
             const term = document.getElementById("bulkTerm").value;
             const year = document.getElementById("bulkYear").value;
+            const statusDiv = document.getElementById("uploadStatus");
+            
             if (!fileInput.files[0] || !className || !term || !year) {
-                return alert("Please select class, term, year and upload a CSV file.");
+                return alert("Please select class, term, year and upload a file.");
             }
             
+            statusDiv.innerHTML = `<p style="color:blue;">Processing file...</p>`;
             const file = fileInput.files[0];
-            const reader = new FileReader();
             
-            reader.onload = async function(e) {
-                try {
-                    const text = e.target.result;
-                    const rows = text.trim().split('\n');
-                    const headers = rows[0].split(',').map(h => h.trim());
-                    
-                    let successCount = 0;
-                    let errorCount = 0;
-                    
-                    for (let i = 1; i < rows.length; i++) {
-                        if (!rows[i].trim()) continue;
-                        
-                        const values = rows[i].split(',').map(v => v.trim());
-                        const studentName = values[0];
-                        
-                        if (!studentName) continue;
-                        
-                        let scores = {};
-                        
-                        let total = 0;
-                        
-                        subjects.forEach((subject, index) => {
-                            const score = parseInt(values[index + 1]) || 0;
-                            scores[subject] = score;
-                            total += score;
-                        });
-                        
-                        try {
-                            const resultId = `\( {studentName}_ \){term}_${year}`;
-                            await setDoc(doc(db, "results", resultId), {
-                                scores: scores,
-                                total: total,
-                                class: className,
-                                classSize: 0, // Can be updated later
-                                term: term,
-                                year: year
-                            });
-                            successCount++;
-                        } catch (err) {
-                            errorCount++;
-                            console.error("Error saving", studentName, err);
-                        }
-                    }
-                    alert(`✅ Bulk upload completed!\n\nSuccess: ${successCount}\nFailed: ${errorCount}`);
-                    viewAllStudents();
+            try {
+                let data;
                 
-                } catch (e) {
-                    alert("Error processing file: " + e.message);
+                if (file.name.endsWith('.xlsx')) {
+                    // Excel support
+                    const arrayBuffer = await file.arrayBuffer();
+                    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                } else {
+                    // CSV fallback
+                    const text = await file.text();
+                    const rows = text.trim().split('\n');
+                    data = rows.map(row => row.split(',').map(cell => cell.trim()));
                 }
-            };
-            reader.readAsText(file);
+                
+                const headers = data[0];
+                let successCount = 0;
+                let errorCount = 0;
+                
+                for (let i = 1; i < data.length; i++) {
+                    const row = data[i];
+                    if (!row || row.length < 1) continue;
+                    
+                    const studentName = String(row[0]).trim();
+                    if (!studentName) continue;
+                    
+                    let scores = {};
+                    let total = 0;
+                    
+                    subjects.forEach((subject, index) => {
+                        const score = parseInt(row[index + 1]) || 0;
+                        scores[subject] = score;
+                        total += score;
+                    });
+                    
+                    try {
+                        const resultId = `${studentName}_${term}_${year}`;
+                        await setDoc(doc(db, "results", resultId), {
+                            scores: scores,
+                            total: total,
+                            class: className,
+                            classSize: 40, // default - can improve later
+                            term: term,
+                            year: parseInt(year)
+                        });
+                        successCount++;
+                    } catch (err) {
+                        errorCount++;
+                    }
+                }
+                
+                statusDiv.innerHTML = `<p style="color:green; font-weight:bold;">
+                ✅ Upload Complete!<br>
+                Success: ${successCount} students<br>
+                Failed: ${errorCount}
+                </p>`;
+                
+                setTimeout(() => viewAllStudents(), 2500);
+            
+            } catch (e) {
+                statusDiv.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
+            }
         };
     </script>
     
