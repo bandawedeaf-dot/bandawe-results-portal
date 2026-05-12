@@ -63,16 +63,19 @@
         if (percentage >= 40) return "Satisfactory. More effort needed in weak areas.";
         return "Needs significant improvement. Extra support recommended.";
     }
-
-     // ================= AUTHENTICATION + ROLES =================
-        
+        // ================= AUTHENTICATION + ROLES =================
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                const userDoc = await getDoc(doc(db, "users", user.email));
-                if (userDoc.exists()) {
-                    window.currentUser = userDoc.data();
-                } else {
-                    window.currentUser = { role: "admin", class: null };
+                
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.email));
+                    if (userDoc.exists()) {
+                        window.currentUser = userDoc.data();
+                    } else {
+                        window.currentUser = { role: "admin", fullName: "Administrator" };
+                    }
+                } catch (e) {
+                    window.currentUser = { role: "admin", fullName: "Administrator" };
                 }
                 
                 document.getElementById("adminLogin").classList.add("hidden");
@@ -89,39 +92,29 @@
             
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                alert("Login successful!");
+                alert("Login successful! Welcome.");
             } catch (e) {
                 alert("Login failed: " + e.message);
             }
         };
         
         window.logout = async function() {
-        try {
-            await signOut(auth);
-            alert("Logged out successfully");
-            backToSearch();
-        } catch (e) {
-            alert("Logout error: " + e.message);
-        }
-    };
+            try {
+                await signOut(auth);
+                alert("Logged out successfully");
+                backToSearch();
+            } catch (e) {
+                alert("Logout error: " + e.message);
+            }
+        };
         
-       function updateAdminUI() {
-           const user = window.currentUser;
-           if (!user) return;
-           
-           const isAdmin = user.role === "admin";
-           const teacherClass = user.class;
-           
-           console.log(`Logged in as ${user.role} - ${user.fullName || user.email}`);
-           
-           // Optional: Show welcome message
-           const welcomeHTML = `<p style="text-align:center; color:#003366; font-weight:bold;">
-           Welcome, ${user.fullName || (isAdmin ? "Administrator" : "Teacher")} 
-           ${isAdmin ? "" : `(${teacherClass})`}
-           </p>`;
-           // You can dynamically change buttons, but for now we'll show different options in Manage functions
-       }
-          
+        function updateAdminUI() {
+            const user = window.currentUser;
+            if (!user) return;
+            console.log(`Logged in as ${user.role} - ${user.fullName || user.email}`);
+        }
+             
+     
         // Keep all your other existing functions (showSearchPortal, showAdmin, addStudent, saveStudent, etc.)
         // ================= ADMIN =================
         window.showSearchPortal = function() {
@@ -1090,61 +1083,59 @@
             
             <hr style="margin-top:30px;">
             </div>`;
-        // ================= MANAGE USERS (Create Teachers) =================
-             window.manageUsers = function() {
-                 const user = window.currentUser;
-                 if (user.role !== "admin") {
-                     return alert("Only Administrators can manage users.");
-                 }
-        // Your existing manageUsers code...
-                     document.getElementById("adminArea").innerHTML = `
-                     <h3>Manage Users (Admin Only)</h3>
-                     <div style="background:#f8f9ff; padding:20px; border-radius:12px;">
-                     <h4>Create New Teacher Account</h4>
-                     <input id="teacherEmail" type="email" placeholder="Teacher Email" style="margin-bottom:10px;">
-                     <input id="teacherName" placeholder="Full Name" style="margin-bottom:10px;">
-                     <select id="teacherClass" style="margin-bottom:15px;">
-                     <option value="">—— Assign Class ——</option>
-                     ${classes.map(cls => `<option value="${cls}">${cls}</option>`).join('')}
-                     </select>
-                     <input id="teacherPassword" type="password" placeholder="Password (min 6 chars)" style="margin-bottom:15px;">
-                     <button onclick="createTeacherAccount()" style="background:#28a745;">Create Teacher Account</button>
-                     </div>
-                     <button onclick="viewAllStudents()" style="margin-top:15px;">Back</button>
-                     `;
-             };
-            
-            window.createTeacherAccount = async function() {
-                const email = document.getElementById("teacherEmail").value.trim();
-                const fullName = document.getElementById("teacherName").value.trim();
-                const assignedClass = document.getElementById("teacherClass").value;
-                const password = document.getElementById("teacherPassword").value.trim();
-                
-                if (!email || !fullName || !assignedClass || !password) {
-                    return alert("All fields are required!");
-                }
-                if (password.length < 6) return alert("Password must be at least 6 characters!");
-                try {
-                    
-                    // Create user in Firebase Auth
-                    const { createUserWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js");
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    
-                    // Save user role and class in Firestore
-                    await setDoc(doc(db, "users", email), {
-                        role: "teacher",
-                        fullName: fullName,
-                        class: assignedClass,
-                        createdAt: new Date()
-                    });
-                    
-                    alert(`✅ Teacher account created successfully!\n\nEmail: ${email}\nPassword: ${password}`);
-                    manageUsers(); // Refresh
-                
-                } catch (e) {
-                    alert("Error creating account: " + e.message);
-                }
-            };
+            // ================= MANAGE USERS (Create Teachers) =================
+window.manageUsers = function() {
+    const user = window.currentUser;
+    if (user.role !== "admin") {
+        return alert("Only Administrators can manage users.");
+    }
+    
+    document.getElementById("adminArea").innerHTML = `
+        <h3>Manage Users (Admin Only)</h3>
+        <div style="background:#f8f9ff; padding:20px; border-radius:12px;">
+            <h4>Create New Teacher Account</h4>
+            <input id="teacherEmail" type="email" placeholder="Teacher Email" style="margin-bottom:10px;">
+            <input id="teacherName" placeholder="Full Name" style="margin-bottom:10px;">
+            <select id="teacherClass" style="margin-bottom:15px;">
+                <option value="">—— Assign Class ——</option>
+                ${classes.map(cls => `<option value="${cls}">${cls}</option>`).join('')}
+            </select>
+            <input id="teacherPassword" type="password" placeholder="Password (min 6 chars)" style="margin-bottom:15px;">
+            <button onclick="createTeacherAccount()" style="background:#28a745;">Create Teacher Account</button>
+        </div>
+        <button onclick="viewAllStudents()" style="margin-top:15px;">Back</button>
+    `;
+};
+
+window.createTeacherAccount = async function() {
+    const email = document.getElementById("teacherEmail").value.trim();
+    const fullName = document.getElementById("teacherName").value.trim();
+    const assignedClass = document.getElementById("teacherClass").value;
+    const password = document.getElementById("teacherPassword").value.trim();
+
+    if (!email || !fullName || !assignedClass || !password) {
+        return alert("All fields are required!");
+    }
+    if (password.length < 6) return alert("Password must be at least 6 characters!");
+
+    try {
+        const { createUserWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js");
+        await createUserWithEmailAndPassword(auth, email, password);
+
+        await setDoc(doc(db, "users", email), {
+            role: "teacher",
+            fullName: fullName,
+            class: assignedClass,
+            createdAt: new Date()
+        });
+
+        alert(`✅ Teacher account created successfully!\n\nEmail: ${email}\nPassword: ${password}`);
+        manageUsers();
+    } catch (e) {
+        alert("Error creating account: " + e.message);
+    }
+};
+      
     </script>
     
     <style>
