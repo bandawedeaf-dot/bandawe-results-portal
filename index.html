@@ -64,30 +64,38 @@
         return "Needs significant improvement. Extra support recommended.";
     }
 
-    // ================= AUTHENTICATION FUNCTIONS =================
-
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            document.getElementById("adminLogin").classList.add("hidden");
-            document.getElementById("adminPanel").classList.remove("hidden");
-        }
-    });
-
-    window.login = async function() {
-        const email = document.getElementById("user").value.trim();
-        const password = document.getElementById("pass").value.trim();
-
-        if (!email || !password) return alert("Please enter email and password!");
-
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-            alert("Login successful! Welcome.");
-        } catch (e) {
-            alert("Login failed: " + e.message);
-        }
-    };
-
-    window.logout = async function() {
+     // ================= AUTHENTICATION + ROLES =================
+        
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userDoc = await getDoc(doc(db, "users", user.email));
+                if (userDoc.exists()) {
+                    window.currentUser = userDoc.data();
+                } else {
+                    window.currentUser = { role: "admin", class: null };
+                }
+                
+                document.getElementById("adminLogin").classList.add("hidden");
+                document.getElementById("adminPanel").classList.remove("hidden");
+                updateAdminUI();
+            }
+        });
+        
+        window.login = async function() {
+            const email = document.getElementById("user").value.trim();
+            const password = document.getElementById("pass").value.trim();
+            
+            if (!email || !password) return alert("Please enter email and password!");
+            
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                alert("Login successful!");
+            } catch (e) {
+                alert("Login failed: " + e.message);
+            }
+        };
+        
+        window.logout = async function() {
         try {
             await signOut(auth);
             alert("Logged out successfully");
@@ -1025,7 +1033,13 @@
             
             <hr style="margin-top:30px;">
             </div>`;
-        }
+            
+            function updateAdminUI() {
+                const isAdmin = window.currentUser?.role === "admin";
+                
+                // You can hide/show buttons based on role here
+                console.log("Current User Role:", window.currentUser?.role);
+            }
     </script>
     
     <style>
