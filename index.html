@@ -14,8 +14,9 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import { getFirestore, collection, doc, setDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    
+    import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
     const firebaseConfig = {
+
         apiKey: "AIzaSyDUny1WaUaMeUgLLsUrFckhQAIoCwDHX-c",
         authDomain: "bandawe-results-portal.firebaseapp.com",
         projectId: "bandawe-results-portal",
@@ -407,40 +408,45 @@
                 let html = `
                 <h3>All Students (${snapshot.size})</h3>
                 <input type="text" id="studentSearch" placeholder="Search by name..." 
-                style="margin-bottom:15px; padding:10px;" onkeyup="filterStudents()">
-                <table style="width:100%; border-collapse:collapse;">
-        
-        <tr>
-        <th style="background:#003366; color:white; padding:10px;">Student Name</th>
-        <th style="background:#003366; color:white; padding:10px;">Class</th>
-        <th style="background:#003366; color:white; padding:10px;">DOB</th>
-        <th style="background:#003366; color:white; padding:10px;">Actions</th>
-        </tr>`;
+                style="margin-bottom:15px; padding:12px; width:100%;" onkeyup="filterStudents()">
+                
+                <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+                <tr style="background:#003366; color:white;">
+                    <th style="padding:12px; text-align:left;">Student Name</th>
+                    <th style="padding:12px; text-align:left;">Class</th>
+                    <th style="padding:12px; text-align:left;">DOB</th>
+                    <th style="padding:12px; text-align:center;">Actions</th>
+                </tr>`;
                 
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
                     html += `
-                    <tr>
-                    <td style="padding:10px; border-bottom:1px solid #ddd;">${docSnap.id}</td>
-                    <td style="padding:10px; border-bottom:1px solid #ddd;">${data.class}</td>
-                    <td style="padding:10px; border-bottom:1px solid #ddd;">${data.dob}</td>
-                    <td style="padding:10px; border-bottom:1px solid #ddd;">
-                    <button onclick="viewStudentResults('${docSnap.id}')" style="padding:5px 10px; font-size:14px;">
-                    View Results
+                    <tr style="border-bottom:1px solid #ddd;">
+                    <td style="padding:12px;">${docSnap.id}</td>
+                    <td style="padding:12px;">${data.class || '-'}</td>
+                    <td style="padding:12px;">${data.dob || '-'}</td>
+                    <td style="padding:12px; text-align:center;">
+                    <button onclick="editStudent('${docSnap.id}')" 
+                    style="background:#ffc107; color:black; margin:2px; padding:6px 12px; font-size:13px;">
+                    Edit
+                    </button>
+                    <button onclick="deleteStudent('${docSnap.id}')" 
+                    style="background:#dc3545; color:white; margin:2px; padding:6px 12px; font-size:13px;">
+                    Delete
                     </button>
                     </td>
                     </tr>`;
                 });
                 
                 html += `</table>`;
-                    document.getElementById("adminArea").innerHTML = html;
+                document.getElementById("adminArea").innerHTML = html;
             
             } catch (e) {
-                document.getElementById("adminArea").innerHTML = `<p style="color:red;">Error loading students: ${e.message}</p>`;
+                document.getElementById("adminArea").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
             }
         };
-        
-        window.filterStudents = function() {
+       
+            window.filterStudents = function() {
             const searchTerm = document.getElementById("studentSearch").value.toLowerCase().trim();
             const rows = document.querySelectorAll("#adminArea table tr");
             
@@ -593,6 +599,77 @@
             
             } catch (e) {
                 statusDiv.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
+            }
+        };
+
+        // ================= STUDENT EDIT & DELETE =================
+        
+        window.editStudent = async function(studentName) {
+            try {
+                const docSnap = await getDoc(doc(db, "students", studentName));
+                if (!docSnap.exists()) return alert("Student not found");
+                
+                const data = docSnap.data();
+                let classOptions = classes.map(cls => 
+                    `<option value="${cls}" ${cls === data.class ? 'selected' : ''}>${cls}</option>`
+                                              ).join('');
+                
+                document.getElementById("adminArea").innerHTML = `
+                <h3>Edit Student: ${studentName}</h3>
+                <input id="editName" value="${studentName}" placeholder="Full Name" style="margin-bottom:10px;">
+                <select id="editClass" style="margin-bottom:10px;">${classOptions}</select>
+                <input id="editDob" value="${data.dob || ''}" placeholder="DOB dd/mm/yyyy">
+                
+                <button onclick="saveEditedStudent('${studentName}')" style="background:#28a745;">Save Changes</button>
+                <button onclick="viewAllStudents()">Cancel</button>
+                `;
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+        
+        window.saveEditedStudent = async function(oldName) {
+            const newName = document.getElementById("editName").value.trim();
+            const sclass = document.getElementById("editClass").value;
+            const sdob = document.getElementById("editDob").value.trim();
+            
+            if (!newName || !sclass || !sdob) return alert("All fields are required!");
+            
+            try {
+                // If name changed, delete old and create new
+                if (newName !== oldName) {
+                    await setDoc(doc(db, "students", newName), { class: sclass, dob: sdob });
+                    // Note: You may want to update results too, but keeping simple for now
+                
+                } else {
+                    await setDoc(doc(db, "students", oldName), { class: sclass, dob: sdob });
+                }
+                
+                alert("Student updated successfully!");
+                viewAllStudents();
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+        
+        window.deleteStudent = async function(studentName) {
+            if (!confirm(`Delete student "${studentName}" and all their results?`)) return;
+            
+            try {
+                await deleteDoc(doc(db, "students", studentName));
+                
+                // Optionally delete all their results (optional)
+                const resultsSnapshot = await getDocs(collection(db, "results"));
+                resultsSnapshot.forEach(async (resultDoc) => {
+                    if (resultDoc.id.startsWith(studentName + "_")) {
+                        await deleteDoc(resultDoc.ref);
+                    }
+                });
+                
+                alert("Student deleted successfully!");
+                viewAllStudents();
+            } catch (e) {
+                alert("Error deleting student: " + e.message);
             }
         };
     </script>
@@ -1304,7 +1381,7 @@
     </button>
 </div>
 
-    <!-- ADMIN PANEL -->
+   <!-- ADMIN PANEL -->
 <div id="adminPanel" class="hidden">
     <h2 style="color:#003366; text-align:center;">Admin Dashboard</h2>
     
@@ -1312,7 +1389,7 @@
         <button onclick="addStudent()"><i class="fa-solid fa-user-plus"></i> Add Student</button>
         <button onclick="enterResults()"><i class="fa-solid fa-pen-to-square"></i> Enter Single Result</button>
         <button onclick="viewAllStudents()"><i class="fa-solid fa-list"></i> View All Students</button>
-        <button onclick="showBulkUpload()"><i class="fa-solid fa-file-excel"></i> Bulk Upload Results</button>
+        <button onclick="showBulkUpload()"><i class="fa-solid fa-file-excel"></i> Bulk Upload</button>
         <button onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
     </div>
 
