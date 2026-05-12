@@ -104,10 +104,47 @@
             alert("Logout error: " + e.message);
         }
     };
-
-    // Keep all your other existing functions (showSearchPortal, showAdmin, addStudent, saveStudent, etc.)
         
-   // ================= ADMIN =================
+       function updateAdminUI() {
+           const user = window.currentUser;
+           if (!user) return;
+           
+           const isAdmin = user.role === "admin";
+           const teacherClass = user.class;
+           
+           console.log(`Logged in as ${user.role} - ${user.fullName || user.email}`);
+           
+           // Optional: Show welcome message
+           const welcomeHTML = `<p style="text-align:center; color:#003366; font-weight:bold;">
+           Welcome, ${user.fullName || (isAdmin ? "Administrator" : "Teacher")} 
+           ${isAdmin ? "" : `(${teacherClass})`}
+           </p>`;
+           // You can dynamically change buttons, but for now we'll show different options in Manage functions
+       }
+        // Call this after login
+        window.login = async function() {
+            const email = document.getElementById("user").value.trim();
+            const password = document.getElementById("pass").value.trim();
+            
+            if (!email || !password) return alert("Please enter email and password!");
+            
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                alert("Login successful! Welcome.");
+            } catch (e) {
+                alert("Login failed: " + e.message);
+            
+            }
+        };
+        window.manageUsers = function() {
+    const user = window.currentUser;
+    if (user.role !== "admin") {
+        return alert("Only Administrators can manage users.");
+    }
+    // Your existing manageUsers code...
+        };
+        // Keep all your other existing functions (showSearchPortal, showAdmin, addStudent, saveStudent, etc.)
+        // ================= ADMIN =================
         window.showSearchPortal = function() {
             document.getElementById("public").classList.add("hidden");
             document.getElementById("searchPortal").classList.remove("hidden");
@@ -407,11 +444,20 @@
             document.getElementById("adminArea").innerHTML = "";
         };
         // ================= PHASE 2: ENHANCED ADMIN DASHBOARD =================
-        
+
         window.viewAllStudents = async function() {
-            document.getElementById("adminArea").innerHTML = `<p>Loading students...</p>`;
+            const user = window.currentUser;
+            if (!user) return;
             
-            try {
+            if (user.role === "teacher") {
+                return showTeacherClassOnly(user.class);
+            }
+            // Admin sees everything (existing code)
+            document.getElementById("adminArea").innerHTML = `<p>Loading students...</p>`;
+            // ... rest of your original viewAllStudents code ...
+        };
+        
+        try {
                 const snapshot = await getDocs(collection(db, "students"));
                 let html = `
                 <h3>All Students (${snapshot.size})</h3>
@@ -453,6 +499,29 @@
                 document.getElementById("adminArea").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
             }
         };
+            window.showTeacherClassOnly = async function(teacherClass) {
+                document.getElementById("adminArea").innerHTML = `<p>Loading ${teacherClass} students...</p>`;
+                
+                try {
+                    const snapshot = await getDocs(collection(db, "students"));
+                    let html = `<h3>${teacherClass} Students</h3>`;
+                    
+                    snapshot.forEach(docSnap => {
+                        const data = docSnap.data();
+                        if (data.class === teacherClass) {
+                            html += `
+                            <div style="padding:12px; border-bottom:1px solid #ddd;">
+                            ${docSnap.id} 
+                            <button onclick="viewStudentResults('${docSnap.id}')" style="margin-left:15px;">View Results</button>
+                            </div>`;
+                        }
+                    });
+                    
+                    document.getElementById("adminArea").innerHTML = html || `<p>No students found in ${teacherClass}.</p>`;
+                } catch (e) {
+                    alert("Error: " + e.message);
+                }
+            };
        
             window.filterStudents = function() {
             const searchTerm = document.getElementById("studentSearch").value.toLowerCase().trim();
@@ -490,7 +559,16 @@
             }
         };
           // ================= IMPROVED BULK UPLOAD =================
-        window.showBulkUpload = function() {
+        
+            window.showBulkUpload = function() {
+                const user = window.currentUser;
+                if (user.role === "teacher") {
+                    alert(`You can only upload results for ${user.class}`);
+                    // Optionally auto-select their class
+                } 
+              // Keep your existing showBulkUpload code...
+            };
+            
             let classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
             
             document.getElementById("adminArea").innerHTML = `
@@ -524,6 +602,13 @@
             
             <div id="uploadStatus" style="margin-top:20px;"></div>
             `;
+        };
+        window.manageUsers = function() {
+            const user = window.currentUser;
+            if (user.role !== "admin") {
+                return alert("Only Administrators can manage users.");
+            }
+            // Your existing manageUsers code...
         };
        
         window.processBulkUpload = async function() {
@@ -1033,13 +1118,57 @@
             
             <hr style="margin-top:30px;">
             </div>`;
-            
-            function updateAdminUI() {
-                const isAdmin = window.currentUser?.role === "admin";
+        // ================= MANAGE USERS (Create Teachers) =================
+            window.manageUsers = async function() {
+                document.getElementById("adminArea").innerHTML = `
+                <h3>Manage Users (Admin Only)</h3>
+                <div style="background:#f8f9ff; padding:20px; border-radius:12px;">
+                <h4>Create New Teacher Account</h4>
+                <input id="teacherEmail" type="email" placeholder="Teacher Email" style="margin-bottom:10px;">
+                <input id="teacherName" placeholder="Full Name" style="margin-bottom:10px;">
+                <select id="teacherClass" style="margin-bottom:15px;">
+                <option value="">—— Assign Class ——</option>
+                ${classes.map(cls => `<option value="${cls}">${cls}</option>`).join('')}
+                </select>
+                <input id="teacherPassword" type="password" placeholder="Password (min 6 chars)" style="margin-bottom:15px;">
+                <button onclick="createTeacherAccount()" style="background:#28a745;">Create Teacher Account</button>
+                </div>
                 
-                // You can hide/show buttons based on role here
-                console.log("Current User Role:", window.currentUser?.role);
-            }
+                <button onclick="viewAllStudents()" style="margin-top:15px;">Back</button>
+                `;
+            };
+            
+            window.createTeacherAccount = async function() {
+                const email = document.getElementById("teacherEmail").value.trim();
+                const fullName = document.getElementById("teacherName").value.trim();
+                const assignedClass = document.getElementById("teacherClass").value;
+                const password = document.getElementById("teacherPassword").value.trim();
+                
+                if (!email || !fullName || !assignedClass || !password) {
+                    return alert("All fields are required!");
+                }
+                if (password.length < 6) return alert("Password must be at least 6 characters!");
+                try {
+                    
+                    // Create user in Firebase Auth
+                    const { createUserWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js");
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    
+                    // Save user role and class in Firestore
+                    await setDoc(doc(db, "users", email), {
+                        role: "teacher",
+                        fullName: fullName,
+                        class: assignedClass,
+                        createdAt: new Date()
+                    });
+                    
+                    alert(`✅ Teacher account created successfully!\n\nEmail: ${email}\nPassword: ${password}`);
+                    manageUsers(); // Refresh
+                
+                } catch (e) {
+                    alert("Error creating account: " + e.message);
+                }
+            };
     </script>
     
     <style>
@@ -1760,6 +1889,7 @@
         <button onclick="showBulkUpload()"><i class="fa-solid fa-file-excel"></i> Bulk Upload</button>
         <button onclick="showClassDashboard()"><i class="fa-solid fa-chart-bar"></i> Class Performance</button>
         <button onclick="printAllReportCards()"><i class="fa-solid fa-print"></i> Print All Reports</button>
+        <button onclick="manageUsers()"><i class="fa-solid fa-users"></i> Manage Users</button>
         <button onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
     </div>
 
