@@ -136,13 +136,7 @@
             
             }
         };
-        window.manageUsers = function() {
-    const user = window.currentUser;
-    if (user.role !== "admin") {
-        return alert("Only Administrators can manage users.");
-    }
-    // Your existing manageUsers code...
-        };
+       
         // Keep all your other existing functions (showSearchPortal, showAdmin, addStudent, saveStudent, etc.)
         // ================= ADMIN =================
         window.showSearchPortal = function() {
@@ -1119,24 +1113,28 @@
             <hr style="margin-top:30px;">
             </div>`;
         // ================= MANAGE USERS (Create Teachers) =================
-            window.manageUsers = async function() {
-                document.getElementById("adminArea").innerHTML = `
-                <h3>Manage Users (Admin Only)</h3>
-                <div style="background:#f8f9ff; padding:20px; border-radius:12px;">
-                <h4>Create New Teacher Account</h4>
-                <input id="teacherEmail" type="email" placeholder="Teacher Email" style="margin-bottom:10px;">
-                <input id="teacherName" placeholder="Full Name" style="margin-bottom:10px;">
-                <select id="teacherClass" style="margin-bottom:15px;">
-                <option value="">—— Assign Class ——</option>
-                ${classes.map(cls => `<option value="${cls}">${cls}</option>`).join('')}
-                </select>
-                <input id="teacherPassword" type="password" placeholder="Password (min 6 chars)" style="margin-bottom:15px;">
-                <button onclick="createTeacherAccount()" style="background:#28a745;">Create Teacher Account</button>
-                </div>
-                
-                <button onclick="viewAllStudents()" style="margin-top:15px;">Back</button>
-                `;
-            };
+             window.manageUsers = function() {
+                 const user = window.currentUser;
+                 if (user.role !== "admin") {
+                     return alert("Only Administrators can manage users.");
+                 }
+        // Your existing manageUsers code...
+                     document.getElementById("adminArea").innerHTML = `
+                     <h3>Manage Users (Admin Only)</h3>
+                     <div style="background:#f8f9ff; padding:20px; border-radius:12px;">
+                     <h4>Create New Teacher Account</h4>
+                     <input id="teacherEmail" type="email" placeholder="Teacher Email" style="margin-bottom:10px;">
+                     <input id="teacherName" placeholder="Full Name" style="margin-bottom:10px;">
+                     <select id="teacherClass" style="margin-bottom:15px;">
+                     <option value="">—— Assign Class ——</option>
+                     ${classes.map(cls => `<option value="${cls}">${cls}</option>`).join('')}
+                     </select>
+                     <input id="teacherPassword" type="password" placeholder="Password (min 6 chars)" style="margin-bottom:15px;">
+                     <button onclick="createTeacherAccount()" style="background:#28a745;">Create Teacher Account</button>
+                     </div>
+                     <button onclick="viewAllStudents()" style="margin-top:15px;">Back</button>
+                     `;
+             };
             
             window.createTeacherAccount = async function() {
                 const email = document.getElementById("teacherEmail").value.trim();
