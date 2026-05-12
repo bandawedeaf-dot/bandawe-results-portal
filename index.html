@@ -881,8 +881,9 @@
             term = term.trim();
             year = year.trim();
             
-            document.getElementById("adminArea").innerHTML = `<p>Generating report cards for <strong>${term} ${year}</strong>...</p>`;
-            
+            const adminArea = document.getElementById("adminArea");
+            if (adminArea) adminArea.innerHTML = `<p>Generating report cards for <strong>${term} ${year}</strong>...</p>`;
+           
             try {
                 const snapshot = await getDocs(collection(db, "results"));
                 let cardsHTML = '';
@@ -904,46 +905,36 @@
                     return alert(`No results found for ${term} ${year}.\n\nPlease check that results exist for this term/year.`);
                 }
 
-        // More reliable printing method (using main window)
-                const printContainer = document.createElement("div");
+        // Create temporary container for printing
+                let printContainer = document.getElementById("printContainer");
+                if (!printContainer) {
+                    printContainer = document.createElement("div");
+                    printContainer.id = "printContainer";
+                    document.body.appendChild(printContainer);
+                }
+                
                 printContainer.innerHTML = `
                 <h1 style="text-align:center; color:#003366;">Bandawe School for the Deaf</h1>
                 <h2 style="text-align:center;">${term} ${year} Report Cards (${count} Students)</h2>
                 ${cardsHTML}
                 `;
-
-        // Replace body temporarily for printing
-                const originalContent = document.body.innerHTML;
-                document.body.innerHTML = printContainer.innerHTML;
-
-        // Add print styles
-                const style = document.createElement('style');
-                style.innerHTML = `
-                body { font-family: Arial, sans-serif; padding: 20px; }
-                .report-card { page-break-after: always; margin: 30px auto; max-width: 800px; border: 2px solid #003366; padding: 25px; }
-                table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-                th, td { border: 1px solid #444; padding: 8px; text-align: left; }
-                th { background: #003366; color: white; }
-                `;
-                document.head.appendChild(style);
-                window.print();
-                // Restore after printing (with delay)
-                setTimeout(() => {
-                    document.body.innerHTML = originalContent;
-                    location.reload(); // Restore all functionality
-                }, 1500);
                 
-                document.getElementById("adminArea").innerHTML = `
-                <p style="color:green; font-size:18px;">
-                ✅ Successfully prepared <strong>${count}</strong> report cards.<br>
-                Print dialog should appear now.
-                </p>`;
+                window.print();
+                // Safe success message
+                if (adminArea) {
+                    adminArea.innerHTML = `
+                    <p style="color:green; font-size:18px;">
+                    ✅ Successfully prepared <strong>${count}</strong> report cards.<br>
+                    Check your PDF/Print options.
+                    </p>`;
+                }
             
             } catch (e) {
                 console.error(e);
                 alert("Error generating reports: " + e.message);
             }
         };
+            
         function generateReportCardHTML(name, data) {
             const maxTotal = subjects.length * 100;
             const total = data.total || 0;
