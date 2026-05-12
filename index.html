@@ -870,20 +870,18 @@
                 }
             });
         };
-        // ================= PRINT ALL REPORT CARDS (Improved & Fixed) =================
-        
+         // ================= PRINT ALL REPORT CARDS - CLEAN VERSION =================
         window.printAllReportCards = async function() {
             let term = prompt("Enter Term (e.g. Term 1, Term 2, Term 3):", "Term 3");
             let year = prompt("Enter Year:", "2026");
             
             if (!term || !year) return;
-            
             term = term.trim();
             year = year.trim();
             
             const adminArea = document.getElementById("adminArea");
-            if (adminArea) adminArea.innerHTML = `<p>Generating report cards for <strong>${term} ${year}</strong>...</p>`;
-           
+            if (adminArea) adminArea.innerHTML = `<p>Preparing ${term} ${year} report cards...</p>`;
+            
             try {
                 const snapshot = await getDocs(collection(db, "results"));
                 let cardsHTML = '';
@@ -896,45 +894,74 @@
                     
                     if (storedTerm === inputTerm && String(d.year) === String(year)) {
                         const studentName = docSnap.id.split('_')[0];
+                        
                         count++;
                         cardsHTML += generateReportCardHTML(studentName, d);
                     }
                 });
                 
                 if (count === 0) {
-                    return alert(`No results found for ${term} ${year}.\n\nPlease check that results exist for this term/year.`);
-                }
-
-        // Create temporary container for printing
-                let printContainer = document.getElementById("printContainer");
-                if (!printContainer) {
-                    printContainer = document.createElement("div");
-                    printContainer.id = "printContainer";
-                    document.body.appendChild(printContainer);
+                    return alert(`No results found for ${term} ${year}.`);
                 }
                 
-                printContainer.innerHTML = `
+                // Open a completely new clean window
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                <meta charset="UTF-8">
+                <title>${term} ${year} - All Report Cards</title>
+                <style>
+                @page { margin: 0.5cm; }
+                body { 
+                font-family: Arial, sans-serif; 
+                padding: 20px; 
+                background: white;
+                }
+                .report-card { 
+                page-break-after: always; 
+                margin-bottom: 40px; 
+                border: 2px solid #003366; 
+                padding: 30px; 
+                max-width: 800px; 
+                margin: 20px auto;
+                }
+                h2, h3 { text-align: center; margin: 10px 0; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                th, td { border: 1px solid #444; padding: 10px; text-align: left; }
+                th { background: #003366; color: white; }
+                .no-break { page-break-inside: avoid; }
+                </style>
+                </head>
+                <body>
                 <h1 style="text-align:center; color:#003366;">Bandawe School for the Deaf</h1>
-                <h2 style="text-align:center;">${term} ${year} Report Cards (${count} Students)</h2>
+                <h2 style="text-align:center;">${term} ${year} Report Cards</h2>
                 ${cardsHTML}
-                `;
+                </body>
+                </html>
+                `);
                 
-                window.print();
-                // Safe success message
+                printWindow.document.close();
+                
+                setTimeout(() => {
+                    printWindow.focus();
+                    printWindow.print();
+                }, 800);
+                
                 if (adminArea) {
                     adminArea.innerHTML = `
                     <p style="color:green; font-size:18px;">
-                    ✅ Successfully prepared <strong>${count}</strong> report cards.<br>
-                    Check your PDF/Print options.
+                    ✅ <strong>${count}</strong> report cards generated successfully.<br>
+                    <small>Print preview window opened. Use "Save as PDF" if needed.</small>
                     </p>`;
                 }
-            
             } catch (e) {
                 console.error(e);
-                alert("Error generating reports: " + e.message);
+                alert("Error: " + e.message);
             }
         };
-            
+       
         function generateReportCardHTML(name, data) {
             const maxTotal = subjects.length * 100;
             const total = data.total || 0;
@@ -951,12 +978,12 @@
             
             return `
             <div class="report-card">
-            <h2 style="text-align:center;">Bandawe School for the Deaf</h2>
-            <h3 style="text-align:center;">${data.term} ${data.year} Report Card</h3>
+            <h2>Bandawe School for the Deaf</h2>
+            <h3>${data.term} ${data.year} Report Card</h3>
             <p><strong>Student:</strong> ${name}</p>
             <p><strong>Class:</strong> ${data.class || '-'}</p>
             <p><strong>Total Score:</strong> ${total} / ${maxTotal} (${percentage}%)</p>
-            <table style="width:100%; border-collapse:collapse; margin:15px 0;">${tableHtml}</table>
+            <table>${tableHtml}</table>
             <p><strong>Result:</strong> <strong>${passed ? 'PASSED' : 'FAILED'}</strong></p>
             <p><strong>Teacher's Remark:</strong> ${getOverallRemark(total, maxTotal)}</p>
             <hr>
