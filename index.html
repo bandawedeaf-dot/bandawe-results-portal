@@ -12,11 +12,11 @@
 
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     
         const firebaseConfig = {
-            apiKey: "AIzaSyDUny1WaUaMeUgLLsUrFckhQAIoCwDHX-c",
+            apiKey: "AIzaSyDUny1WaUaMeUgLLsUrFckhQAloCwDHX-c",
             authDomain: "bandawe-results-portal.firebaseapp.com",
             projectId: "bandawe-results-portal",
             storageBucket: "bandawe-results-portal.firebasestorage.app",
@@ -465,7 +465,7 @@
             if (!term || !year) return;
             
             try {
-                const resultDocId = `\( {studentName}_ \){term}_${year}`;
+                const resultDocId = `${studentName}_${term}_${year}`;
                 const resultSnap = await getDoc(doc(db, "results", resultDocId));
         
                 if (resultSnap.exists()) {
@@ -484,41 +484,36 @@
             let classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
             
             document.getElementById("adminArea").innerHTML = `
-            <h3>Bulk Results Upload (Excel Recommended)</h3>
-            <p style="color:#555;">Upload results for an entire class using Excel or CSV</p>
+            <h3>Bulk Results Upload</h3>
+            <p style="color:#555;">Upload results for an entire class</p>
             
             <div style="margin:15px 0;">
             <select id="bulkClass" style="padding:12px; width:100%; margin-bottom:10px;">
             <option value="">—— Select Class ——</option>
             ${classOptions}
             </select>
-            
             <select id="bulkTerm" style="padding:12px; width:100%; margin-bottom:10px;">
                 <option value="Term 3" selected>Term 3</option>
                 <option value="Term 1">Term 1</option>
                 <option value="Term 2">Term 2</option>
             </select>
+            <input id="bulkYear" type="number" value="2026" style="padding:12px; width:100%; margin-bottom:15px;">
+            </div>
             
-            <input id="bulkYear" type="number" value="2026" placeholder="Year" 
-                   style="padding:12px; width:100%; margin-bottom:15px;">
-        </div>
-        
-        <div style="margin:20px 0; padding:20px; border:2px dashed #003366; border-radius:12px; text-align:center; background:#f8f9ff;">
-            <p><strong>Upload Excel File (.xlsx) or CSV</strong></p>
-            <input type="file" id="excelFile" accept=".xlsx,.csv" style="margin:15px auto; display:block;">
-            <small style="color:#666;">
-                First column must be <strong>StudentName</strong><br>
-                Then columns for each subject in order
-            </small>
-        </div>
-        
-        <button onclick="processBulkUpload()" style="background:#28a745; padding:12px; font-size:16px;">
-            <i class="fa-solid fa-upload"></i> Process & Save All Results
-        </button>
-        <button onclick="viewAllStudents()" style="margin-left:10px;">Back</button>
-        
-        <div id="uploadStatus" style="margin-top:15px;"></div>
-        `;
+            <div style="margin:20px 0; padding:20px; border:2px dashed #003366; border-radius:12px; text-align:center; background:#f8f9ff;">
+            <button onclick="downloadTemplate()" style="background:#28a745; padding:12px 20px; margin-bottom:15px;">
+                <i class="fa-solid fa-download"></i> Download Excel Template
+            </button>
+            
+            <input type="file" id="excelFile" accept=".xlsx,.csv" style="margin:10px auto; display:block;">
+            <small style="color:#666;">First column must be <strong>StudentName</strong></small>
+            </div>
+            
+            <button onclick="processBulkUpload()" style="background:#003366; padding:12px 25px;">Process & Save Results</button>
+            <button onclick="viewAllStudents()">Back</button>
+            
+            <div id="uploadStatus" style="margin-top:20px;"></div>
+            `;
         };
        
         window.processBulkUpload = async function() {
@@ -669,6 +664,26 @@
             } catch (e) {
                 alert("Error deleting student: " + e.message);
             }
+        };
+      
+        window.downloadTemplate = function() {
+            const wb = XLSX.utils.book_new();
+            const headers = ["StudentName", ...subjects];
+            
+            const sampleData = [
+                headers,
+                ["John Banda", 85, 78, 92, 88, 76, 94, 82, 89, 85],
+                ["Mary Phiri", 65, 70, 75, 68, 80, 72, 68, 75, 70],
+                ["Peter Mwale", 92, 88, 95, 90, 85, 96, 89, 91, 87],
+                ["Grace Manda", 45, 55, 60, 50, 65, 48, 52, 58, 55],
+                ["James Chawinga", 78, 82, 80, 85, 75, 88, 79, 83, 81]
+            ];
+            
+            const ws = XLSX.utils.aoa_to_sheet(sampleData);
+            ws['!cols'] = headers.map(() => ({ wch: 18 }));
+            
+            XLSX.utils.book_append_sheet(wb, ws, "Term 3 Results");
+            XLSX.writeFile(wb, "Bandawe_Bulk_Results_Template.xlsx");
         };
     </script>
     
