@@ -121,22 +121,7 @@
            </p>`;
            // You can dynamically change buttons, but for now we'll show different options in Manage functions
        }
-        // Call this after login
-        window.login = async function() {
-            const email = document.getElementById("user").value.trim();
-            const password = document.getElementById("pass").value.trim();
-            
-            if (!email || !password) return alert("Please enter email and password!");
-            
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                alert("Login successful! Welcome.");
-            } catch (e) {
-                alert("Login failed: " + e.message);
-            
-            }
-        };
-       
+          
         // Keep all your other existing functions (showSearchPortal, showAdmin, addStudent, saveStudent, etc.)
         // ================= ADMIN =================
         window.showSearchPortal = function() {
@@ -597,15 +582,8 @@
             <div id="uploadStatus" style="margin-top:20px;"></div>
             `;
         };
-        window.manageUsers = function() {
-            const user = window.currentUser;
-            if (user.role !== "admin") {
-                return alert("Only Administrators can manage users.");
-            }
-            // Your existing manageUsers code...
-        };
        
-        window.processBulkUpload = async function() {
+       window.processBulkUpload = async function() {
             const fileInput = document.getElementById("excelFile");
             const className = document.getElementById("bulkClass").value;
             const term = document.getElementById("bulkTerm").value;
