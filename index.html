@@ -973,20 +973,57 @@
             subjects.forEach(sub => {
                 const score = data.scores?.[sub] ?? 0;
                 const gr = getGradeAndRemark(score);
-                tableHtml += `<tr><td>${sub}</td><td>${score}</td><td>${gr.grade}</td><td>${gr.remark}</td></tr>`;
+                tableHtml += `<tr><td><strong>${sub}</strong></td><td>${score}</td><td>${gr.grade}</td><td>${gr.remark}</td></tr>`;
             });
+            
+            // Dynamic Headteacher's Remark
+            let headteacherRemark = "";
+            if (percentage >= 80) {
+                headteacherRemark = "Outstanding performance! You have excelled this term. Keep up this excellent work.";
+            } else if (percentage >= 70) {
+                headteacherRemark = "Very good results. Continue with this positive attitude and you will achieve even more.";
+            } else if (percentage >= 60) {
+                headteacherRemark = "Good performance. With more focus on weak areas, you can do even better next term.";
+            } else if (percentage >= 40) {
+                headteacherRemark = "Satisfactory performance. More consistent effort and extra practice is recommended.";
+            } else {
+                headteacherRemark = "Needs significant improvement. Please seek extra support and work harder next term.";
+            }
+            
+            // Dynamic Next Term Date (you can adjust logic as needed)
+            const nextTermDate = "14 September 2026";
             
             return `
             <div class="report-card">
-            <h2>Bandawe School for the Deaf</h2>
-            <h3>${data.term} ${data.year} Report Card</h3>
-            <p><strong>Student:</strong> ${name}</p>
+            <!-- Header inside border -->
+            <div style="text-align:center; margin-bottom:20px; border-bottom:2px solid #003366; padding-bottom:15px;">
+            <h2 style="margin:5px 0; color:#003366;">Bandawe School for the Deaf</h2>
+            <h3 style="margin:5px 0;">${data.term} ${data.year} Report Card</h3>
+            </div>
+            
+            <p><strong>Student Name:</strong> ${name}</p>
             <p><strong>Class:</strong> ${data.class || '-'}</p>
-            <p><strong>Total Score:</strong> ${total} / ${maxTotal} (${percentage}%)</p>
-            <table>${tableHtml}</table>
-            <p><strong>Result:</strong> <strong>${passed ? 'PASSED' : 'FAILED'}</strong></p>
-            <p><strong>Teacher's Remark:</strong> ${getOverallRemark(total, maxTotal)}</p>
-            <hr>
+            
+            <p><strong>Total Score:</strong> ${total} / ${maxTotal} (${percentage}%) 
+            &nbsp;&nbsp;&nbsp; <strong>Result:</strong> <strong>${passed ? 'PASSED' : 'FAILED'}</strong></p>
+            
+            <table style="width:100%; border-collapse:collapse; margin:15px 0;">${tableHtml}</table>
+            
+            <div style="background:#eef4ff; padding:15px; border-left:6px solid #003366; margin:20px 0;">
+            <strong>Teacher's Remark:</strong><br>
+            ${getOverallRemark(total, maxTotal)}
+            </div>
+            
+            <div style="background:#f8f9ff; padding:15px; border-left:6px solid #28a745; margin:20px 0;">
+            <strong>Headteacher's Remark:</strong><br>
+            ${headteacherRemark}
+            </div>
+            
+            <div style="margin-top:25px; padding:12px; text-align:center; background:#f0f0f0; border-radius:8px;">
+            <strong>Next Term Opens:</strong> <strong>${nextTermDate}</strong>
+            </div>
+            
+            <hr style="margin-top:30px;">
             </div>`;
         }
     </script>
