@@ -684,7 +684,144 @@
             ws['!cols'] = headers.map(() => ({ wch: 18 }));
             
             XLSX.utils.book_append_sheet(wb, ws, "Term 3 Results");
-            XLSX.writeFile(wb, "Bandawe_Bulk_Results_Template.xlsx");
+            XLSX.writeFile(wb, "Bandawe_Bulk_Results_Template.xlsx"); 
+        };  
+                 // ================= PHASE 5: CLASS PERFORMANCE DASHBOARD =================
+        
+        window.showClassDashboard = async function() {
+            document.getElementById("adminArea").innerHTML = `<p>Loading Class Performance...</p>`;
+            
+            try {
+                const snapshot = await getDocs(collection(db, "results"));
+                const term = "Term 3";   // You can make this selectable later
+                const year = "2026";
+                let classData = {};
+                
+                snapshot.forEach(docSnap => {
+                    const d = docSnap.data();
+                    if (d.term === term && d.year == year) {
+                        if (!classData[d.class]) {
+                            classData[d.class] = [];
+                        }
+                        classData[d.class].push({
+                            name: docSnap.id.split('_')[0],
+                            total: d.total || 0,
+                            scores: d.scores || {}
+                        });
+                    }
+                });
+                
+                let html = `<h3>Class Performance Dashboard - ${term} ${year}</h3>`;
+                Object.keys(classData).forEach(cls => {
+                    const students = classData[cls];
+                    const totalStudents = students.length;
+                    
+                    if (totalStudents === 0) return;
+                    
+                    // Calculate averages
+                    let totalScoreSum = 0;
+                    students.forEach(s => totalScoreSum += s.total);
+                    const classAverage = (totalScoreSum / totalStudents).toFixed(1);
+                    
+                    // Sort for top performers
+                    students.sort((a, b) => b.total - a.total);
+                    
+                    html += `
+                    <div style="background:white; padding:20px; margin:15px 0; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                    <h4>${cls} (${totalStudents} students) - Average: <strong>${classAverage}</strong></h4>
+                    <table style="width:100%; border-collapse:collapse;">
+                        <tr style="background:#003366; color:white;">
+                            <th style="padding:10px; text-align:left;">Position</th>
+                            <th style="padding:10px; text-align:left;">Student Name</th>
+                            <th style="padding:10px; text-align:center;">Total</th>
+                            <th style="padding:10px; text-align:center;">Action</th>
+                        </tr>`;
+                    
+                    students.slice(0, 10).forEach((student, index) => {
+                        html += `
+                        <tr style="border-bottom:1px solid #eee;">
+                        <td style="padding:10px;">${index + 1}</td>
+                        <td style="padding:10px;">${student.name}</td>
+                        <td style="padding:10px; text-align:center; font-weight:bold;">${student.total}</td>
+                        <td style="padding:10px; text-align:center;">
+                        <button onclick="viewStudentHistory('${student.name}')" style="padding:5px 12px; font-size:13px;">
+                        History
+                        </button>
+                        </td>
+                        </tr>`;
+                    });
+                    
+                    html += `</table></div>`;
+                });
+                
+                if (Object.keys(classData).length === 0) {
+                    html += `<p>No results found for ${term} ${year} yet.</p>`;
+                }
+                
+                document.getElementById("adminArea").innerHTML = html;
+            } catch (e) {
+                document.getElementById("adminArea").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
+            }
+        };      
+                
+        window.viewStudentHistory = async function(studentName) {
+            document.getElementById("adminArea").innerHTML = `<p>Loading ${studentName}'s history...</p>`;
+            
+            try {
+                const snapshot = await getDocs(collection(db, "results"));
+                let history = [];
+                
+                snapshot.forEach(docSnap => {
+                    if (docSnap.id.startsWith(studentName + "_")) {
+                        const d = docSnap.data();
+                        history.push({
+                            term: d.term,
+                            year: d.year,
+                            total: d.total,
+                            class: d.class,
+                            scores: d.scores
+                        });
+                    }
+                });
+                
+                history.sort((a, b) => b.year - a.year || b.term.localeCompare(a.term));
+                
+                let html = `
+                <h3>Academic History - ${studentName}</h3>
+                <button onclick="viewAllStudents()" style="margin-bottom:15px;">← Back to Students</button>`;
+                
+                if (history.length === 0) {
+                    html += `<p>No results found yet.</p>`;
+                } else {
+                    history.forEach(record => {
+                        html += `
+                        <div style="background:white; padding:18px; margin:12px 0; border-radius:10px; border-left:5px solid #003366;">
+                        <strong>${record.term} ${record.year} • ${record.class}</strong><br>
+                        <strong>Total: ${record.total} / ${subjects.length * 100}</strong>
+                        <button onclick="loadSingleResult('${studentName}', '${record.term}', '${record.year}')" 
+                        style="margin-left:15px; padding:6px 12px;">
+                        View Full Report
+                        </button>
+                        </div>`;
+                    });
+                }
+                
+                document.getElementById("adminArea").innerHTML = html;
+            
+            } catch (e) {
+                alert("Error loading history: " + e.message);
+            }
+        };
+        
+        window.loadSingleResult = function(studentName, term, year) {
+            const resultId = `${studentName}_${term}_${year}`;
+            getDoc(doc(db, "results", resultId)).then(snap => {
+                if (snap.exists()) {
+                    document.getElementById("adminPanel").classList.add("hidden");
+                    document.getElementById("results").classList.remove("hidden");
+                    loadResults(studentName, snap.data());
+                }
+            });
         };
     </script>
     
@@ -1404,6 +1541,7 @@
         <button onclick="enterResults()"><i class="fa-solid fa-pen-to-square"></i> Enter Single Result</button>
         <button onclick="viewAllStudents()"><i class="fa-solid fa-list"></i> View All Students</button>
         <button onclick="showBulkUpload()"><i class="fa-solid fa-file-excel"></i> Bulk Upload</button>
+        <button onclick="showClassDashboard()"><i class="fa-solid fa-chart-bar"></i> Class Performance</button>
         <button onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
     </div>
 
