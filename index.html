@@ -238,52 +238,39 @@
         };
 
         // ================= SEARCH & RESULTS =================
-        window.search = async function() {
+          window.search = async function() {
             try {
                 const inputName = document.getElementById("name").value.trim();
                 const inputDob = document.getElementById("dob").value.trim();
+                const inputTerm = document.getElementById("searchTerm")?.value;
+                const inputYear = document.getElementById("searchYear")?.value;
+
                 if (!inputName || !inputDob) return alert("Enter Name and DOB");
 
-                const snapshot = await getDocs(collection(db, "students"));
-                let found = null;
-                snapshot.forEach(docSnap => {
-                    if (docSnap.id.trim().toLowerCase() === inputName.toLowerCase() && 
-                        docSnap.data().dob.trim() === inputDob) {
-                        found = docSnap.id;
-                    }
-                });
+                // Optimized: Fetch the specific document directly by ID (Name)
+                const studentDoc = await getDoc(doc(db, "students", inputName));
 
-                if (!found) return alert("Student not found");
-
-                const inputTerm =
-                    document.getElementById("searchTerm").value;
-                
-                const inputYear =
-                    document.getElementById("searchYear").value;
-
-                const resultDocId =
-                    `${found}_${inputTerm}_${inputYear}`;
-                
-                const resultSnap =
-                    await getDoc(doc(db, "results", resultDocId));
-                
-                if (!resultSnap.exists()) {
-                    alert("Results not found for selected term/year");
-                    return;
+                if (!studentDoc.exists() || studentDoc.data().dob.trim() !== inputDob) {
+                    return alert("Student not found or DOB incorrect");
                 }
 
-                document.getElementById("searchPortal")
-                    .classList.add("hidden");
-                
-                document.getElementById("results")
-                    .classList.remove("hidden");
-               
-                loadResults(found, resultSnap.data());
+                // Search for the specific result
+                const resultId = `${inputName}_${inputTerm}_${inputYear}`;
+                const resultDoc = await getDoc(doc(db, "results", resultId));
+
+                if (!resultDoc.exists()) {
+                    return alert("Results not found for this Term/Year");
+                }
+
+                // Proceed to display results (logic to be implemented in your UI)
+                console.log("Results found:", resultDoc.data());
+                renderReportCard(studentDoc.data(), resultDoc.data());
+
             } catch (e) {
-                alert("Error: " + e.message);
+                console.error("Search error:", e);
+                alert("An error occurred during search.");
             }
         };
-
         function loadResults(name, data) {
             document.getElementById("reportTitle").innerText =
             `${data.term} ${data.year} Report Card`;
@@ -405,15 +392,11 @@
                     document.body.classList.remove("pdf-mode");
                 });
         };
-
-        
         window.backToSearch = function() {
-            document.getElementById("results").classList.add("hidden");
             document.getElementById("adminPanel").classList.add("hidden");
             document.getElementById("adminLogin").classList.add("hidden");
             document.getElementById("searchPortal").classList.add("hidden");
             document.getElementById("public").classList.remove("hidden");
-            document.getElementById("adminArea").innerHTML = "";
         };
         // ================= PHASE 2: ENHANCED ADMIN DASHBOARD =================
 
