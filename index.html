@@ -1123,20 +1123,20 @@
                 
                 try {
                     const { createUserWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js");
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    await createUserWithEmailAndPassword(auth, email, password);
                     
                     await setDoc(doc(db, "users", email), {
                         role: "teacher",
                         fullName: fullName,
                         class: assignedClass,
                         createdAt: new Date()
-                        uid: userCredential.user.uid
+            
                     });
                     
                     alert(`✅ Teacher account created successfully!\n\nEmail: ${email}\nPassword: ${password}`);
                     
                     // refresh the manage users view 
-                    window.manageUsers();
+                    manageUsers();
                 } catch (e) {
                     alert("Error creating account: " + e.message);
                 }
