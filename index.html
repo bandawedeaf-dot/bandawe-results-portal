@@ -131,7 +131,7 @@
             document.getElementById("public").classList.add("hidden");
             document.getElementById("adminLogin").classList.remove("hidden");
             document.getElementById("results").classList.add("hidden");
-            document.getElementById("searchPortal").classList.add(hidden");
+            document.getElementById("searchPortal").classList.add("hidden");
         };
 
         window.addStudent = function() {
@@ -421,61 +421,60 @@
             document.getElementById("adminArea").innerHTML = "";
         };
         // ================= PHASE 2: ENHANCED ADMIN DASHBOARD =================
-
-        window.viewAllStudents = async function() {
-            const user = window.currentUser;
-            if (!user) return;
-            
-            if (user.role === "teacher") {
-                return showTeacherClassOnly(user.class);
-            }
-            // Admin sees everything (existing code)
-            document.getElementById("adminArea").innerHTML = `<p>Loading students...</p>`;
-            // ... rest of your original viewAllStudents code ...
-        };
         
-        try {
-                const snapshot = await getDocs(collection(db, "students"));
-                let html = `
-                <h3>All Students (${snapshot.size})</h3>
-                <input type="text" id="studentSearch" placeholder="Search by name..." 
-                style="margin-bottom:15px; padding:12px; width:100%;" onkeyup="filterStudents()">
-                
-                <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+window.viewAllStudents = async function() {
+    const user = window.currentUser;
+    if (!user) return;
+
+    if (user.role === "teacher") {
+        return showTeacherClassOnly(user.class);
+    }
+
+    // Admin sees all students
+    document.getElementById("adminArea").innerHTML = `<p>Loading students...</p>`;
+    
+    try {
+        const snapshot = await getDocs(collection(db, "students"));
+        let html = `
+            <h3>All Students (${snapshot.size})</h3>
+            <input type="text" id="studentSearch" placeholder="Search by name..." 
+                   style="margin-bottom:15px; padding:12px; width:100%;" onkeyup="filterStudents()">
+            
+            <table style="width:100%; border-collapse:collapse; margin-top:10px;">
                 <tr style="background:#003366; color:white;">
                     <th style="padding:12px; text-align:left;">Student Name</th>
                     <th style="padding:12px; text-align:left;">Class</th>
                     <th style="padding:12px; text-align:left;">DOB</th>
                     <th style="padding:12px; text-align:center;">Actions</th>
                 </tr>`;
-                
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    html += `
-                    <tr style="border-bottom:1px solid #ddd;">
+
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            html += `
+                <tr style="border-bottom:1px solid #ddd;">
                     <td style="padding:12px;">${docSnap.id}</td>
                     <td style="padding:12px;">${data.class || '-'}</td>
                     <td style="padding:12px;">${data.dob || '-'}</td>
                     <td style="padding:12px; text-align:center;">
-                    <button onclick="editStudent('${docSnap.id}')" 
-                    style="background:#ffc107; color:black; margin:2px; padding:6px 12px; font-size:13px;">
-                    Edit
-                    </button>
-                    <button onclick="deleteStudent('${docSnap.id}')" 
-                    style="background:#dc3545; color:white; margin:2px; padding:6px 12px; font-size:13px;">
-                    Delete
-                    </button>
+                        <button onclick="editStudent('${docSnap.id}')" 
+                                style="background:#ffc107; color:black; margin:2px; padding:6px 12px; font-size:13px;">
+                            Edit
+                        </button>
+                        <button onclick="deleteStudent('${docSnap.id}')" 
+                                style="background:#dc3545; color:white; margin:2px; padding:6px 12px; font-size:13px;">
+                            Delete
+                        </button>
                     </td>
-                    </tr>`;
-                });
-                
-                html += `</table>`;
-                document.getElementById("adminArea").innerHTML = html;
-            
-            } catch (e) {
-                document.getElementById("adminArea").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
-            }
-        };
+                </tr>`;
+        });
+
+        html += `</table>`;
+        document.getElementById("adminArea").innerHTML = html;
+    } catch (e) {
+        document.getElementById("adminArea").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
+    }
+};
+        
             window.showTeacherClassOnly = async function(teacherClass) {
                 document.getElementById("adminArea").innerHTML = `<p>Loading ${teacherClass} students...</p>`;
                 
