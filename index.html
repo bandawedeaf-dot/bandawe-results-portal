@@ -343,38 +343,44 @@
                 
                 backBtn.onclick = backToSearch;
             }
-            
             document.getElementById("reportTitle").innerText =
-            `${data.term} ${data.year} Report Card`;
-            document.getElementById("rname").innerText = name;
-            document.getElementById("studentClass").innerHTML =
-            "<strong>Class:</strong> " + data.class;
-           
-            if (!data || !data.scores) {
-                
-                console.error("Invalid result data:", data);
-                
-                return alert("Result data is corrupted or incomplete.");
-            }
+                `${data.term} ${data.year} Report Card`;
             
-            document.getElementById("total").innerText = data.total || 0;
-
-            const maxTotal = subjects.length * 100;
-            const percentage = (data.total / maxTotal) * 100;
-            const passed = percentage >= 40;
-            const statusText = passed ? "PASSED" : "FAILED";
-
-            const avgScore = Math.round(data.total / subjects.length);
-            const overall = getGradeAndRemark(avgScore);
-            document.getElementById("overallGrade").innerText = overall.grade;
+            document.getElementById("rname").innerText =
+                name || "Unknown Student";
+            
+            document.getElementById("studentClass").innerHTML =
+                `<strong>Class:</strong> ${data.class || "-"}`;
+            
+            const total =
+                Number(data.total) || 0;
+            
+            document.getElementById("total").innerText =
+                total;
+            
+            const maxTotal =
+                subjects.length * 100;
+            
+            const percentage =
+                ((total / maxTotal) * 100);
+            
+            const passed =
+                percentage >= 40;
+            
+            document.getElementById("overallGrade").innerText =
+                passed ? "PASS" : "FAIL";
+            
             document.getElementById("resultStatus").innerHTML =
-            passed
-            ? '<span class="pass-badge">PASSED</span>'
-            : '<span class="fail-badge">FAILED</span>';
+                passed
+                ? '<span class="pass-badge">PASSED</span>'
+                : '<span class="fail-badge">FAILED</span>';
+            
+            
 
             // REAL POSITION CALCULATION
             
             getDocs(collection(db, "results")).then(snapshot => {
+                
                 let classResults = [];
             
             snapshot.forEach(docSnap => {
@@ -386,12 +392,12 @@
                 if (
                     d.class === data.class &&
                     d.term === data.term &&
-                    d.year == data.year
+                    String(d.year) == String(data.year)
                 ) {
                     
                     classResults.push({
                         name: docSnap.id,
-                        total: d.total || 0
+                        total: Number(d.total) || 0
                     });
                 }
             
