@@ -135,9 +135,16 @@
         };
 
         window.addStudent = function() {
+            
+            openAdminPage();
+            
             let classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
             document.getElementById("adminArea").innerHTML = `
-                <h3>Add New Student</h3>
+            <button onclick="backToDashboard()" style="margin-bottom:15px;">
+            ← Back to Dashboard
+            </button>
+            
+            <h3>Add New Student</h3>
                 <input id="sname" placeholder="Full Name">
                 <select id="sclass">
                     <option value="">—— Select Class ——</option>
@@ -173,8 +180,13 @@
         };
 
         window.enterResults = function() {
+            openAdminPage();
             let classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
-            let html = `<h3>Enter Results</h3>
+            let html = `
+            <button onclick="backToDashboard()" style="margin-bottom:15px;">
+            ← Back to Dashboard
+            </button>
+            <h3>Enter Results</h3>
                         <input id="rstudent" placeholder="Student Name">
                         <select id="rclass">
                             <option value="">—— Select Class ——</option>
@@ -197,8 +209,10 @@
                     </div>`;
             });
             html += `<button onclick="saveResults()">Save Results</button>`;
+            
             document.getElementById("adminArea").innerHTML = html;
-        };
+
+         };
 
         window.saveResults = async function() {
             
@@ -448,6 +462,9 @@
         // ================= PHASE 2: ENHANCED ADMIN DASHBOARD =================
         
 window.viewAllStudents = async function() {
+    
+    openAdminPage();
+
     const user = window.currentUser;
     if (!user) return;
 
@@ -461,6 +478,9 @@ window.viewAllStudents = async function() {
     try {
         const snapshot = await getDocs(collection(db, "students"));
         let html = `
+        <button onclick="backToDashboard()" style="margin-bottom:15px;">
+        ← Back to Dashboard
+        </button>
             <h3>All Students (${snapshot.size})</h3>
             <input type="text" id="studentSearch" placeholder="Search by name..." 
                    style="margin-bottom:15px; padding:12px; width:100%;" onkeyup="filterStudents()">
@@ -563,6 +583,8 @@ window.viewAllStudents = async function() {
         
         window.showBulkUpload = function() {
             
+            openAdminPage();
+
             const user = window.currentUser;
             if (!user) return;
             
@@ -586,6 +608,9 @@ window.viewAllStudents = async function() {
             }
             
             document.getElementById("adminArea").innerHTML = `
+            <button onclick="backToDashboard()" style="margin-bottom:15px;">
+            ← Back to Dashboard
+            </button>
             <h3>Bulk Results Upload</h3>
             <p style="color:#555;">Upload results for an entire class</p>
             
@@ -751,6 +776,7 @@ window.viewAllStudents = async function() {
         // ================= STUDENT EDIT & DELETE =================
         
         window.editStudent = async function(studentName) {
+            
             try {
                 const docSnap = await getDoc(doc(db, "students", studentName));
                 if (!docSnap.exists()) return alert("Student not found");
@@ -761,6 +787,9 @@ window.viewAllStudents = async function() {
                                               ).join('');
                 
                 document.getElementById("adminArea").innerHTML = `
+                <button onclick="backToDashboard()" style="margin-bottom:15px;">
+                ← Back to Dashboard
+                </button>
                 <h3>Edit Student: ${studentName}</h3>
                 <input id="editName" value="${studentName}" placeholder="Full Name" style="margin-bottom:10px;">
                 <select id="editClass" style="margin-bottom:10px;">${classOptions}</select>
@@ -840,7 +869,9 @@ window.viewAllStudents = async function() {
         };  
                // ================= PHASE 5: CLASS PERFORMANCE DASHBOARD + CHARTS =================
         window.showClassDashboard = async function(selectedTerm = "Term 3", selectedYear = "2026") {
-            document.getElementById("adminArea").innerHTML = `<p>Loading Class Performance...</p>`;
+            openAdminPage();
+            document.getElementById("adminArea").innerHTML = `
+            <p>Loading Class Performance...</p>`;
             
             try {
                 const snapshot = await getDocs(collection(db, "results"));
@@ -952,11 +983,16 @@ window.viewAllStudents = async function() {
                     });
                 }, 300);
             } catch (e) {
-        document.getElementById("adminArea").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
+        document.getElementById("adminArea").innerHTML = `
+        <button onclick="backToDashboard()" style="margin-bottom:15px;">
+            ← Back to Dashboard
+            </button> <p style="color:red;">Error: ${e.message}</p>`;
             }
         };
 
         window.showGradeSummary = async function() {
+            
+            openAdminPage();
             
             document.getElementById("adminArea").innerHTML = "";
             
@@ -1035,7 +1071,13 @@ window.viewAllStudents = async function() {
                 
                 // BUILD TABLE
                 let html = `
+                <button onclick="backToDashboard()"
+                style="margin-bottom:15px;">
+                ← Back to Dashboard
+                </button>
+                
                 <h3>Grade Summary Dashboard</h3>
+`;
                 
                 <table style="
                 width:100%;
@@ -1133,6 +1175,7 @@ window.viewAllStudents = async function() {
         };
         
         window.viewStudentHistory = async function(studentName) {
+            openAdminPage();
             document.getElementById("adminArea").innerHTML = `<p>Loading ${studentName}'s history...</p>`;
             
             try {
@@ -1155,6 +1198,10 @@ window.viewAllStudents = async function() {
                 history.sort((a, b) => b.year - a.year || b.term.localeCompare(a.term));
                 
                 let html = `
+                <button onclick="backToDashboard()" style="margin-bottom:15px;">
+                ← Back to Dashboard
+                </button>
+
                 <h3>Academic History - ${studentName}</h3>
                 <button onclick="viewAllStudents()" style="margin-bottom:15px;">← Back to Students</button>`;
                 
@@ -1350,6 +1397,7 @@ window.viewAllStudents = async function() {
             // ================= MANAGE USERS (Create Teachers) =================
             
             window.manageUsers = function() {
+                openAdminPage(); 
                 const user = window.currentUser;
                 if (user.role !== "admin") {
                     return alert("Only Administrators can manage users.");
@@ -1373,6 +1421,7 @@ window.viewAllStudents = async function() {
             };
             
             window.createTeacherAccount = async function() {
+                 manageUsers();
                 const email = document.getElementById("teacherEmail").value.trim();
                 const fullName = document.getElementById("teacherName").value.trim();
                 const assignedClass = document.getElementById("teacherClass").value;
@@ -1403,12 +1452,32 @@ window.viewAllStudents = async function() {
                     location.reload();
                     
                     // refresh the manage users view 
-                    manageUsers();
+                   
                 } catch (e) {
                     alert("Error creating account: " + e.message);
                 }
             };
-      
+        
+        window.openAdminPage = function() {
+            
+            // hide dashboard buttons
+            document.getElementById("dashboardMenu")
+                .style.display = "none";
+            // clear previous content
+            document.getElementById("adminArea")
+                .innerHTML = "";
+        };
+        
+        window.backToDashboard = function() {
+            
+            // show dashboard buttons again
+            document.getElementById("dashboardMenu")
+                .style.display = "flex";
+            
+            // clear page content
+            document.getElementById("adminArea")
+                .innerHTML = "";
+        };
     </script>
     
     <style>
@@ -2122,7 +2191,7 @@ window.viewAllStudents = async function() {
 <div id="adminPanel" class="hidden">
     <h2 style="color:#003366; text-align:center;">Admin Dashboard</h2>
     
-    <div style="margin:15px 0; display:flex; gap:10px; flex-wrap:wrap;">
+    <div id="dashboardMenu"style="margin:15px 0; display:flex; gap:10px; flex-wrap:wrap;">
         <button onclick="addStudent()"><i class="fa-solid fa-user-plus"></i> Add Student</button>
         <button onclick="enterResults()"><i class="fa-solid fa-pen-to-square"></i> Enter Single Result</button>
         <button onclick="viewAllStudents()"><i class="fa-solid fa-list"></i> View All Students</button>
