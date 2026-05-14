@@ -815,6 +815,16 @@ window.viewAllStudents = async function() {
                 <input id="editName" value="${studentName}" placeholder="Full Name" style="margin-bottom:10px;">
                 <select id="editClass" style="margin-bottom:10px;">${classOptions}</select>
                 <input id="editDob" value="${data.dob || ''}" placeholder="DOB dd/mm/yyyy">
+                <select id="editGender" style="margin-bottom:10px;"><option value="Male"
+                ${data.gender === "Male" ? "selected" : ""}>
+                Male
+                </option>
+                
+                <option value="Female"
+                ${data.gender === "Female" ? "selected" : ""}>
+                Female
+                </option>
+                </select>           
                 
                 <button onclick="saveEditedStudent('${studentName}')" style="background:#28a745;">Save Changes</button>
                 <button onclick="viewAllStudents()">Cancel</button>
@@ -828,17 +838,18 @@ window.viewAllStudents = async function() {
             const newName = document.getElementById("editName").value.trim();
             const sclass = document.getElementById("editClass").value;
             const sdob = document.getElementById("editDob").value.trim();
+            const sgender =document.getElementById("editGender").value;
             
             if (!newName || !sclass || !sdob) return alert("All fields are required!");
             
             try {
                 // If name changed, delete old and create new
                 if (newName !== oldName) {
-                    await setDoc(doc(db, "students", newName), { class: sclass, dob: sdob });
+                    await setDoc(doc(db, "students", newName), { class: sclass, dob: sdob, gender: sgender });
                     // Note: You may want to update results too, but keeping simple for now
                 
                 } else {
-                    await setDoc(doc(db, "students", oldName), { class: sclass, dob: sdob });
+                    await setDoc(doc(db, "students", oldName), { class: sclass, dob: sdob, gender: sgender });
                 }
                 
                 alert("Student updated successfully!");
