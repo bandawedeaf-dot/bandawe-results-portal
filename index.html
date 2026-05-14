@@ -1188,6 +1188,10 @@ window.viewAllStudents = async function() {
                     });
                     
                     alert(`✅ Teacher account created successfully!\n\nEmail: ${email}\nPassword: ${password}`);
+
+                    await signOut(auth);
+                    alert("Teacher created. Please login again as admin.");
+                    location.reload();
                     
                     // refresh the manage users view 
                     manageUsers();
