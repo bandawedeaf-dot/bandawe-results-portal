@@ -218,14 +218,27 @@
                 total += val;
             
             });
-            
+             
             try {
                 
                 const resultId =
                     `${rstudent}_${term}_${year}`;
                 
+                // CHECK IF RESULTS ALREADY EXIST
+                const existing = await getDoc(doc(db, "results", resultId));
+                
+                if (existing.exists()) {
+                    
+                    const overwrite = confirm(
+                        `${rstudent} already has results for ${term} ${year}.\nOverwrite?`
+                    );
+                    
+                    if (!overwrite) return;
+                }
+                
                 await setDoc(
                     doc(db, "results", resultId),
+            
                     {
                         scores: scores,
                         total: total,
@@ -679,10 +692,24 @@ window.viewAllStudents = async function() {
                         scores[subject] = score;
                         total += score;
                     });
-                    
+
                     try {
+                        
                         const resultId = `${studentName}_${term}_${year}`;
+                        // CHECK EXISTING RESULTS
+                        const existing = await getDoc(doc(db, "results", resultId));
+                        
+                        if (existing.exists()) {
+                            
+                            const overwrite = confirm(
+                                `${studentName} already has results for ${term} ${year}.\nOverwrite?`
+                            );
+                            
+                            if (!overwrite) continue;
+                        }
+                        
                         await setDoc(doc(db, "results", resultId), {
+                    
                             scores: scores,
                             total: total,
                             class: className,
