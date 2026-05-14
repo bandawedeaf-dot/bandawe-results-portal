@@ -503,6 +503,7 @@ window.viewAllStudents = async function() {
                     <th style="padding:12px; text-align:left;">Student Name</th>
                     <th style="padding:12px; text-align:left;">Class</th>
                     <th style="padding:12px; text-align:left;">DOB</th>
+                    <th style="padding:12px; text-align:left;">Gender</th>
                     <th style="padding:12px; text-align:center;">Actions</th>
                 </tr>`;
 
@@ -513,6 +514,7 @@ window.viewAllStudents = async function() {
                     <td style="padding:12px;">${docSnap.id}</td>
                     <td style="padding:12px;">${data.class || '-'}</td>
                     <td style="padding:12px;">${data.dob || '-'}</td>
+                    <td style="padding:12px;">${data.gender || '-'}</td>
                     <td style="padding:12px; text-align:center;">
                         <button onclick="editStudent('${docSnap.id}')" 
                                 style="background:#ffc107; color:black; margin:2px; padding:6px 12px; font-size:13px;">
@@ -734,9 +736,11 @@ window.viewAllStudents = async function() {
                     
                     let scores = {};
                     let total = 0;
+
+                    const gender = row[1] || "";
                     
                     subjects.forEach((subject, index) => {
-                        const score = parseInt(row[index + 1]) || 0;
+                        const score = parseInt(row[index + 2]) || 0;
                         scores[subject] = score;
                         total += score;
                     });
@@ -755,6 +759,12 @@ window.viewAllStudents = async function() {
                             
                             if (!overwrite) continue;
                         }
+                        const studentRef = doc(db, "students", studentName);
+                        
+                        await setDoc(studentRef, {
+                            class: className,
+                            gender: gender
+                        }, { merge: true });
                         
                         await setDoc(doc(db, "results", resultId), {
                     
@@ -861,16 +871,15 @@ window.viewAllStudents = async function() {
       
         window.downloadTemplate = function() {
             const wb = XLSX.utils.book_new();
-            const headers = ["StudentName", ...subjects];
-            
+            const headers = ["StudentName", "Gender", ...subjects];
             const sampleData = [
                 headers,
-                ["John Banda", 85, 78, 92, 88, 76, 94, 82, 89, 85],
-                ["Mary Phiri", 65, 70, 75, 68, 80, 72, 68, 75, 70],
-                ["Peter Mwale", 92, 88, 95, 90, 85, 96, 89, 91, 87],
-                ["Grace Manda", 45, 55, 60, 50, 65, 48, 52, 58, 55],
-                ["James Chawinga", 78, 82, 80, 85, 75, 88, 79, 83, 81]
-            ];
+                ["John Banda", "Male", 85, 78, 92, 88, 76, 94, 82, 89, 85],
+                ["Mary Phiri", "Female", 65, 70, 75, 68, 80, 72, 68, 75, 70],
+                ["Peter Mwale", "Male", 92, 88, 95, 90, 85, 96, 89, 91, 87],
+                ["Grace Manda", "Female", 45, 55, 60, 50, 65, 48, 52, 58, 55],
+                ["James Chawinga", "Male", 78, 82, 80, 85, 75, 88, 79, 83, 81]
+         ];
             
             const ws = XLSX.utils.aoa_to_sheet(sampleData);
             ws['!cols'] = headers.map(() => ({ wch: 18 }));
@@ -1407,6 +1416,115 @@ window.viewAllStudents = async function() {
             <hr style="margin-top:30px;">
             </div>`;
         }
+            window.exportResultsToExcel = async function() {
+                const term = prompt("Enter Term:", "Term 3");
+                const year = prompt("Enter Year:", "2026");
+                
+                if (!term || !year) return;
+                
+                try {
+                    
+                    const snapshot =
+                        await getDocs(collection(db, "results"));
+                    
+                    let excelData = [];
+                    // HEADERS
+                    const headers = [
+                        "Position",
+                        "Student Name",
+                        "Class",
+                        ...subjects,
+                        "Total",
+                        "Percentage",
+                        "Status"
+                    ];
+                    
+                    let resultsArray = [];
+                    snapshot.forEach(docSnap => {
+                        const d = docSnap.data();
+                        
+                        if (
+                            d.term === term &&
+                            String(d.year) === String(year)
+                        ) {
+                            
+                            const studentName =
+                                docSnap.id.split("_")[0];
+                            
+                            const total =
+                                d.total || 0;
+                            
+                            const percentage =
+                                ((total / (subjects.length * 100)) * 100)
+                                .toFixed(1);
+                            
+                            const status =
+                                percentage >= 40
+                                ? "PASSED"
+                                : "FAILED";
+                            
+                            resultsArray.push({
+                                name: studentName,
+                                class: d.class,
+                                scores: d.scores,
+                                total,
+                                percentage,
+                                status
+                            });
+                        }
+                    });
+                    
+                    // SORT POSITIONS
+                    resultsArray.sort((a, b) => b.total - a.total);
+                    
+                    resultsArray.forEach((student, index) => {
+                        
+                        let row = [
+                            index + 1,
+                            student.name,
+                            student.class
+                        ];
+                        
+                        subjects.forEach(sub => {
+                            row.push(
+                                student.scores?.[sub] || 0
+                            );
+                        });
+                        
+                        row.push(student.total);
+                        row.push(student.percentage + "%");
+                        row.push(student.status);
+                        excelData.push(row);
+                    });
+                    
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.aoa_to_sheet([
+                        
+                        headers,
+                        ...excelData
+                    ]);
+                    
+                    ws['!cols'] = headers.map(() => ({
+                        wch: 18
+                    
+                    }));
+                    
+                    XLSX.utils.book_append_sheet(
+                        wb,
+                        ws,
+                        `${term} ${year}`
+                    );
+                    
+                    XLSX.writeFile(
+                        wb,
+                        `Bandawe_Results_${term}_${year}.xlsx`
+                    );
+                } catch (e) {
+                    
+                    alert("Export Error: " + e.message);
+                }
+            };
+        
             // ================= MANAGE USERS (Create Teachers) =================
             
             window.manageUsers = function() {
@@ -2225,6 +2343,7 @@ window.viewAllStudents = async function() {
         <button onclick="viewAllStudents()"><i class="fa-solid fa-list"></i> View All Students</button>
         <button onclick="showBulkUpload()"><i class="fa-solid fa-file-excel"></i> Bulk Upload</button>
         <button onclick="showClassDashboard()"><i class="fa-solid fa-chart-bar"></i> Class Performance</button>
+        <button onclick="exportResultsToExcel()"><i class="fa-solid fa-file-export"></i>Export Results</button>
         <button onclick="showGradeSummary()"style="margin:5px;"><i class="fa-solid fa-chart-column"></i> Grade Summary</button>
         <button onclick="printAllReportCards()"><i class="fa-solid fa-print"></i> Print All Reports</button>
         <button onclick="manageUsers()"><i class="fa-solid fa-users"></i> Manage Users</button>
