@@ -144,6 +144,11 @@
                     ${classOptions}
                 </select>
                 <input id="sdob" placeholder="DOB dd/mm/yyyy">
+                <select id="sgender">
+                <option value="">—— Select Gender ——</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                </select>
                 <button onclick="saveStudent()">Save Student</button>
             `;
         };
@@ -152,12 +157,19 @@
             const sname = document.getElementById("sname").value.trim();
             const sclass = document.getElementById("sclass").value;
             const sdob = document.getElementById("sdob").value.trim();
-            if (!sname || !sclass || !sdob) return alert("All fields are required!");
+            const sgender = document.getElementById("sgender").value;
+            if (!sname || !sclass || !sdob || !sgender) return alert("All fields are required!");
             
             try {
-                await setDoc(doc(db, "students", sname), { class: sclass, dob: sdob });
+                
+                await setDoc(doc(db, "students", sname), {
+                    class: sclass,
+                    dob: sdob,
+                    gender: sgender
+                });           
                 alert("Student saved successfully!");
-            } catch (e) { alert("Error: " + e.message); }
+            } 
+            catch (e) { alert("Error: " + e.message); }
         };
 
         window.enterResults = function() {
@@ -943,8 +955,176 @@ window.viewAllStudents = async function() {
         document.getElementById("adminArea").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
             }
         };
+
+        window.showGradeSummary = async function() {
+            
+            document.getElementById("adminArea").innerHTML =
+                `<p>Loading Grade Summary...</p>`;
+            
+            try {
+                
+                const resultsSnapshot =
+                    await getDocs(collection(db, "results"));
+                
+                const studentsSnapshot =
+                    await getDocs(collection(db, "students"));
+                
+                // STORE STUDENT GENDERS
+                let studentGender = {};
+                
+                studentsSnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    
+                    studentGender[docSnap.id] =
+                        data.gender || "Unknown";
+                });
+                
+                let summary = {};
+                
+                resultsSnapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    
+                    const className = data.class || "Unknown";
+                    
+                    if (!summary[className]) {
+                        summary[className] = {
+                            boysSat: 0,
+                            girlsSat: 0,
+                            boysPassed: 0,
+                            girlsPassed: 0,
+                            boysFailed: 0,
+                            girlsFailed: 0
+                        };
+                    }
+                    
+                    const studentName =
+                        docSnap.id.split("_")[0];
+                    
+                    const gender =
+                        studentGender[studentName];
+                    
+                    const passed =
+                        ((data.total || 0) / (subjects.length * 100)) >= 0.4;
+                    
+                    // MALE
+                    if (gender === "Male") {
+                        
+                        summary[className].boysSat++;
+                        
+                        if (passed) {
+                            summary[className].boysPassed++;
+                        } else {
+                            summary[className].boysFailed++;
+                        }
+                    }
+                        
+                        // FEMALE
+                    else if (gender === "Female") {
+                        
+                        summary[className].girlsSat++;
+                        
+                        if (passed) {
+                            summary[className].girlsPassed++;
+                        } else {
+                            summary[className].girlsFailed++;
+                        }
+                    }
+                });
+                
+                // BUILD TABLE
+                let html = `
+                <h3>Grade Summary Dashboard</h3>
+                
+                <table style="
+                width:100%;
+                border-collapse:collapse;
+                margin-top:20px;
+                ">
+                
+                <tr style="
+                background:#003366;
+                color:white;
+                ">
+               
+                <th>Class</th>
+                <th>Boys Sat</th>
+                <th>Girls Sat</th>
+                <th>Total Sat</th>
+                <th>Boys Passed</th>
+                <th>Girls Passed</th>
+                <th>Total Passed</th>
+                <th>Pass Rate</th>
+                </tr>
+                `;
+                
+                Object.keys(summary).sort().forEach(cls => {
+                    
+                    const s = summary[cls];
+                    
+                    const totalSat =
+                        s.boysSat + s.girlsSat;
+                    
+                    const totalPassed =
+                        s.boysPassed + s.girlsPassed;
+                    
+                    const passRate =
+                        totalSat > 0
+                        ? ((totalPassed / totalSat) * 100).toFixed(1)
+                        : 0;
+                    
+                    html += `
+                    <tr style="border-bottom:1px solid #ddd;">
+                    <td style="padding:10px;"><strong>${cls}</strong></td>
+                    
+                    <td style="padding:10px; text-align:center;">
+                    ${s.boysSat}
+                    </td>
+                    
+                    <td style="padding:10px; text-align:center;">
+                    ${s.girlsSat}
+                    </td>
+
+                    <td style="padding:10px; text-align:center; font-weight:bold;">
+                    ${totalSat}
+                    </td>
+                    
+                    <td style="padding:10px; text-align:center; color:green;">
+                    ${s.boysPassed}
+                    </td>
+                    
+                    <td style="padding:10px; text-align:center; color:green;">
+                    ${s.girlsPassed}
+                    </td>
+                    
+                    <td style="padding:10px; text-align:center; font-weight:bold;">
+                    ${totalPassed}
+                    </td>
+                    
+                    <td style="
+                    padding:10px;
+                    text-align:center;
+                    font-weight:bold;
+                    color:#003366;
+                    ">
+                    ${passRate}%
+                    </td>
+                    </tr>
+                    `;
+                });
+               
+                html += `</table>`;
+                
+                document.getElementById("adminArea").innerHTML =
+                    html;
+            
+            } catch (e) {
+              
+                document.getElementById("adminArea").innerHTML =
+                    `<p style="color:red;">Error: ${e.message}</p>`;
+            }
+        };
         
-        window.refreshDashboard = function() {
+         window.refreshDashboard = function() {
             const term = document.getElementById("dashTerm").value;
             const year = document.getElementById("dashYear").value;
             showClassDashboard(term, year);
@@ -1946,6 +2126,7 @@ window.viewAllStudents = async function() {
         <button onclick="viewAllStudents()"><i class="fa-solid fa-list"></i> View All Students</button>
         <button onclick="showBulkUpload()"><i class="fa-solid fa-file-excel"></i> Bulk Upload</button>
         <button onclick="showClassDashboard()"><i class="fa-solid fa-chart-bar"></i> Class Performance</button>
+        <button onclick="showGradeSummary()"<i class="fa-solid fa-chart-column"></i>Grade Summary</button>
         <button onclick="printAllReportCards()"><i class="fa-solid fa-print"></i> Print All Reports</button>
         <button onclick="manageUsers()"><i class="fa-solid fa-users"></i> Manage Users</button>
         <button onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
