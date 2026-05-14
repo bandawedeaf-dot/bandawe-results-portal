@@ -349,6 +349,14 @@
             document.getElementById("rname").innerText = name;
             document.getElementById("studentClass").innerHTML =
             "<strong>Class:</strong> " + data.class;
+           
+            if (!data || !data.scores) {
+                
+                console.error("Invalid result data:", data);
+                
+                return alert("Result data is corrupted or incomplete.");
+            }
+            
             document.getElementById("total").innerText = data.total || 0;
 
             const maxTotal = subjects.length * 100;
@@ -415,7 +423,10 @@
                 </tr>`;
             
             subjects.forEach(sub => {
-                const score = data.scores?.[sub] ?? 0;
+               
+                const score = 
+                    Number(data.scores?.[sub]) || 0;
+                
                 const gr = getGradeAndRemark(score);
                 tableHtml += `
                     <tr>
@@ -427,7 +438,13 @@
             });
             document.getElementById("table").innerHTML = tableHtml;
 
-            document.getElementById("remark").innerHTML = `<strong>Teacher's Remark:</strong> ${getOverallRemark(data.total, maxTotal)}`;
+            document.getElementById("remark").innerHTML = `
+            <strong>Teacher's Remark:</strong> 
+            ${getOverallRemark(
+                Number(data.total) || 0,
+                maxTotal
+            )}
+            `;
         }
         
         window.downloadPDF = function() { 
@@ -1223,7 +1240,7 @@ window.viewAllStudents = async function() {
                             year: d.year,
                             total: d.total,
                             class: d.class,
-                            scores: d.scores
+                            scores: d.scores || {}
                         });
                     }
                 });
@@ -1260,17 +1277,40 @@ window.viewAllStudents = async function() {
                 alert("Error loading history: " + e.message);
             }
         };
-        
-        window.loadSingleResult = function(studentName, term, year) {
-            const resultId = `${studentName}_${term}_${year}`;
-            getDoc(doc(db, "results", resultId)).then(snap => {
-                if (snap.exists()) {
-                    document.getElementById("adminPanel").classList.add("hidden");
-                    document.getElementById("results").classList.remove("hidden");
-                    loadResults(studentName, snap.data());
+          
+        window.loadSingleResult = async function(studentName, term, year) {
+            
+            try {
+                
+                const resultId =
+                    `${studentName}_${term}_${year}`;
+                
+                const snap =
+                    await getDoc(doc(db, "results", resultId));
+                
+                if (!snap.exists()) {
+                    
+                    return alert("Result not found");
                 }
-            });
+                
+                document.getElementById("adminPanel")
+                    .classList.add("hidden");
+                
+                document.getElementById("results")
+                    .classList.remove("hidden");
+                
+                const data = snap.data();
+                
+                console.log("Loaded Result:", data);
+                
+                loadResults(studentName, data);
+           
+            } catch (e) {
+                
+                alert("Error loading report: " + e.message);
+            }
         };
+        
          // ================= PRINT ALL REPORT CARDS - CLEAN VERSION =================
         window.printAllReportCards = async function() {
             let term = prompt("Enter Term (e.g. Term 1, Term 2, Term 3):", "Term 3");
