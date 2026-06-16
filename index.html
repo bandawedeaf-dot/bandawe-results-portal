@@ -78,8 +78,18 @@
                     window.currentUser = { role: "admin", fullName: "Administrator" };
                 }
                 
-                document.getElementById("adminLogin").classList.add("hidden");
-                document.getElementById("adminPanel").classList.remove("hidden");
+       document.getElementById("public").classList.add("hidden");
+                
+       document.getElementById("searchPortal").classList.add("hidden");
+                
+       document.getElementById("results").classList.add("hidden");
+                
+       document.getElementById("adminLogin").classList.add("hidden");
+                
+       document.getElementById("adminPanel").classList.remove("hidden");
+                
+       document.getElementById("adminArea").innerHTML = "";
+                
                 updateAdminUI();
             }
         });
@@ -2113,7 +2123,7 @@ window.viewAllStudents = async function() {
 
    <h2>
        <i class="fa-solid fa-school"></i>
-       Bandawe School Results Portal
+        School Portal
    </h2>
    
     <!-- PUBLIC -->
