@@ -504,6 +504,17 @@
             document.getElementById("public").classList.remove("hidden");
             document.getElementById("adminArea").innerHTML = "";
         };
+
+        window.backToAdminResults = function(){
+            
+            document.getElementById("results")
+            .classList.add("hidden");
+
+            document.getElementById("adminPanel")
+            .classList.remove("hidden");
+
+   };
+        
         // ================= PHASE 2: ENHANCED ADMIN DASHBOARD =================
         
 window.viewAllStudents = async function() {
