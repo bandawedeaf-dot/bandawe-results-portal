@@ -13,7 +13,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, addDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
     // ================= FIREBASE CONFIG =================
@@ -136,14 +136,49 @@
             document.getElementById("adminLogin").classList.add("hidden");
         };
 
-        window.showNoticesPage = function(){
-            document.getElementById("public")
-                .classList.add("hidden");
+        window.showNoticesPage = async function(){
+            document.getElementById("public").classList.add("hidden");
+            document.getElementById("noticesPage").classList.remove("hidden");
             
-            document.getElementById("noticesPage")
-                .classList.remove("hidden");
+            const box =
+            document.getElementById("publicNotices");
+            
+            box.innerHTML =
+            "Loading notices...";
+            
+            const snap =
+            await getDocs(collection(db,"announcements"));
+            
+            let html="";
+            
+            snap.forEach(doc=>{
+            
+            const d=doc.data();
+            if(d.active){
+                
+            html += `
+            
+            <div class="notice-item"><strong>
+            ${d.title}
+            </strong>
+            
+            <br>
+            
+            ${d.message}
+            
+            </div>
+            
+            `;
+            
+            }
+            
+            });
+            
+            box.innerHTML = html ||
+            "No announcements available";
+        
         };
-
+     
         window.showCalendarPage = function(){
             document.getElementById("public")
                 .classList.add("hidden");
@@ -1747,6 +1782,52 @@ window.viewAllStudents = async function() {
             document.getElementById("adminArea")
                 .innerHTML = "";
         };
+
+        window.manageNotices = function(){
+            document.getElementById("adminArea").innerHTML = `
+            <h3>Manage School Notices</h3>
+            <input id="noticeTitle"
+            placeholder="Notice Title">
+            
+            <textarea id="noticeMessage"
+            placeholder="Notice Message"></textarea>
+            
+            <button onclick="saveNotice()">
+            Save Notice
+            </button>
+            
+            <div id="noticeList"></div>
+            
+            `;
+            
+            loadNoticesAdmin();
+        };
+
+        window.saveNotice = async function(){
+            
+            const title =
+                document.getElementById("noticeTitle").value.trim();
+            
+            const message =
+                document.getElementById("noticeMessage").value.trim();
+            
+            if(!title || !message)
+                return alert("Fill all fields");
+            
+            await addDoc(
+                collection(db,"announcements"),
+                
+                {
+                    title:title, 
+                    message:message,
+                    date:new Date(),
+                    active:true
+                }
+            );
+            
+            alert("Notice saved");
+            manageNotices();
+        };
         
         window.backToDashboard = function() {
             
@@ -2449,7 +2530,12 @@ window.viewAllStudents = async function() {
         Latest Announcements
     </h2>
     
-    <div class="notice-board">
+    <div id="publicNotices"
+    class="notice-board">
+        
+        Loading...
+    </div>
+    
         <div class="notice-item">
             📢 Term 2 Results Will be Available Soon.
         </div>
@@ -2465,8 +2551,7 @@ window.viewAllStudents = async function() {
         <div class="notice-item">
             👨‍👩‍👧 PTA Meeting Scheduled for 2026 Will be Communicated Soon.
         </div>
-    </div>
-</div>
+ </div>
 
      <!-- CALENDAR PAGE -->
 <div id="calendarPage" class="hidden">
@@ -2520,6 +2605,8 @@ window.viewAllStudents = async function() {
         <button onclick="showGradeSummary()"style="margin:5px;"><i class="fa-solid fa-chart-column"></i> Grade Summary</button>
         <button onclick="printAllReportCards()"><i class="fa-solid fa-print"></i> Print All Reports</button>
         <button onclick="manageUsers()"><i class="fa-solid fa-users"></i> Manage Users</button>
+        <button onclick="manageNotices()"><i class="fa-solid fa-bullhorn"></i> Manage Notices</button>
+        <button onclick="manageCalendar()"><i class="fa-solid fa-calendar-days"></i> Manage Calendar</button>
         <button onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
     </div>
 <div id="adminArea" style="margin-top:20px;"></div>
