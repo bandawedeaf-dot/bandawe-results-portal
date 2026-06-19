@@ -135,6 +135,33 @@
             document.getElementById("adminPanel").classList.add("hidden");
             document.getElementById("adminLogin").classList.add("hidden");
         };
+
+        window.showNoticesPage = function(){
+            document.getElementById("public")
+                .classList.add("hidden");
+            
+            document.getElementById("noticesPage")
+                .classList.remove("hidden");
+        };
+
+        window.showCalendarPage = function(){
+            document.getElementById("public")
+                .classList.add("hidden");
+            
+            document.getElementById("calendarPage")
+                .classList.remove("hidden");
+        };
+
+        window.backToPublicDashboard = function(){
+            document.getElementById("noticesPage")
+                .classList.add("hidden");
+            
+            document.getElementById("calendarPage")
+                .classList.add("hidden");
+            
+            document.getElementById("public")
+                .classList.remove("hidden");
+        };
         
         window.showAdmin = function() {
             console.log("showAdmin called");
@@ -2236,13 +2263,15 @@ window.viewAllStudents = async function() {
             <p>Check examination results and report cards</p>
         </div>
 
-        <div class="dashboard-card card-notices">
+        <div class="dashboard-card card-notices"
+        onclick="showNoticesPage()">
             <i class="fa-solid fa-bullhorn"></i>
             <h3>School Notices</h3>
             <p>Latest announcements and updates</p>
         </div>
 
-        <div class="dashboard-card card-dates">
+        <div class="dashboard-card card-dates"
+        onclick="showCalendarPage()">
             <i class="fa-solid fa-calendar-days"></i>
             <h3>Opening Dates</h3>
             <p>Academic calendar and reopening dates</p>
@@ -2255,92 +2284,6 @@ window.viewAllStudents = async function() {
         </div>
 
     </div>
-
-    <div class="notice-board">
-
-        <h3>
-            <i class="fa-solid fa-bell"></i>
-            Latest Announcements
-        </h3>
-
-        <div class="notice-item">
-            📢 Term 2 Results Will be Available Soon.
-        </div>
-
-        <div class="notice-item">
-            📅 Next Term Opens on 14 September 2026
-        </div>
-
-        <div class="notice-item">
-            🌽 All students should bring 20kg maize
-        </div>
-
-        <div class="notice-item">
-            👨‍👩‍👧 PTA Meeting Scheduled for 2026 will be communicated soon!
-        </div>
-
-    </div>
-        <div class="info-sections">
-
-    <div class="info-card">
-
-        <h3>
-            <i class="fa-solid fa-calendar-days"></i>
-            Academic Calendar
-        </h3>
-
-        <div class="calendar-item">
-            <span class="calendar-date">14 Sept 2026</span><br>
-            Term 1 Opens for 2026/2027 Academic Year
-        </div>
-
-        <div class="calendar-item">
-            <span class="calendar-date">10 Oct 2026</span><br>
-            Mid-Term Break
-        </div>
-
-        <div class="calendar-item">
-            <span class="calendar-date">20 Dec 2026</span><br>
-            Schools Close
-        </div>
-
-        <div class="calendar-item">
-            <span class="calendar-date">15 Jan 2027</span><br>
-            Public Holiday. Chilembwe Day.
-        </div>
-
-    </div>
-
-    <div class="info-card">
-
-        <h3>
-            <i class="fa-solid fa-circle-info"></i>
-            School Information
-        </h3>
-
-        <div class="notice-line">
-            🌽 Maize Contribution: 20kg
-        </div>
-
-        <div class="notice-line">
-            💰 Boarding Fee: MK70,000
-        </div>
-
-        <div class="notice-line">
-            👔 Full Uniform Required
-        </div>
-
-        <div class="notice-line">
-            📞 Contact: 0999191279 (Headteacher)
-        </div>
-
-        <div class="notice-line">
-            📍 Chintheche, Nkhata Bay
-        </div>
-
-    </div>
-
-</div>
 
 <div class="school-footer">
 
@@ -2492,6 +2435,75 @@ window.viewAllStudents = async function() {
     <button onclick="backToSearch()">
         <i class="fa-solid fa-arrow-left"></i> Back
     </button>
+</div>
+    <!-- NOTICES PAGE -->
+
+<div id="noticesPage" class="hidden">
+    <button onclick="backToPublicDashboard()">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back
+    </button>
+    
+    <h2 style="color:#003366;">
+        <i class="fa-solid fa-bullhorn"></i>
+        Latest Announcements
+    </h2>
+    
+    <div class="notice-board">
+        <div class="notice-item">
+            📢 Term 2 Results Will be Available Soon.
+        </div>
+        
+        <div class="notice-item">
+            📅 Next Term Opens on 14 September 2026
+        </div>
+        
+        <div class="notice-item">
+            🌽 All students should bring 20kg maize
+        </div>
+        
+        <div class="notice-item">
+            👨‍👩‍👧 PTA Meeting Scheduled for 2026 Will be Communicated Soon.
+        </div>
+    </div>
+</div>
+
+     <!-- CALENDAR PAGE -->
+<div id="calendarPage" class="hidden">
+    
+    <button onclick="backToPublicDashboard()">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back
+    </button>
+    
+    <h2 style="color:#003366;">
+        <i class="fa-solid fa-calendar-days"></i>
+        Academic Calendar
+    </h2>
+    
+    <div class="info-card">
+        
+        <div class="calendar-item">
+            <span class="calendar-date">
+                14 Sept 2026
+            </span><br>
+            Term 1 Opens for 2026/2027 Academic Year
+        </div>
+        
+        <div class="calendar-item">
+            <span class="calendar-date">
+                10 Oct 2026
+            </span><br>
+            Mid-Term Break
+        </div>
+        
+        <div class="calendar-item">
+            <span class="calendar-date">
+                20 Dec 2026
+            </span><br>
+            Schools Close
+        </div>
+    </div>
 </div>
 
    <!-- ADMIN PANEL -->
