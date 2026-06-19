@@ -344,14 +344,13 @@
            
             const backBtn =
                 document.getElementById("resultBackBtn");
-            
-            if (window.currentUser) {
-                
-                backBtn.onclick = backToAdminResults;
-            
-            } else {
-                
-                backBtn.onclick = backToSearch;
+
+            if (backBtn) {
+                if (window.currentUser) {
+                    backBtn.onclick = backToAdminResults;
+                } else {
+                    backBtn.onclick = backToSearch;
+                }
             }
             document.getElementById("reportTitle").innerText =
                 `${data.term} ${data.year} Report Card`;
@@ -2374,9 +2373,12 @@ window.viewAllStudents = async function() {
                 Download Professional PDF
             </button>
 
-            <button class="no-print" onclick="backToSearch()">
-                <i class="fa-solid fa-arrow-left"></i>
-                Back
+            <button 
+            id="resultBackBtn" 
+            class="no-print">
+
+            <i class="fa-solid fa-arrow-left"></i>
+            Back
             </button>
 
         </div>
