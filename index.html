@@ -460,6 +460,41 @@
                 maxTotal
             )}
             `;
+
+            let headteacherRemark = "";
+            
+            const percentageValue =
+            ((total / maxTotal) * 100);
+
+
+           if (percentageValue >= 80) {
+               
+               headteacherRemark =
+               "Excellent performance. Continue maintaining this high standard. Your hard work and commitment are highly commendable.";
+           }
+           
+           else if (percentageValue >= 60) {
+               
+               headteacherRemark =
+               "Good performance. Continue working hard and focus on improving areas where more effort is needed.";
+
+            }
+           
+           else if (percentageValue >= 40) {
+           headteacherRemark =
+           "Satisfactory performance. More effort, regular revision and determination will help improve future results.";
+
+           }
+           
+           else {
+           headteacherRemark =
+           "Performance needs improvement. The learner is encouraged to work harder and seek support in challenging areas.";
+
+          }
+            
+            document.getElementById("headRemark").innerHTML =
+            headteacherRemark;
+            
         }
         
         window.downloadPDF = function() { 
@@ -2148,7 +2183,21 @@ window.viewAllStudents = async function() {
         .no-print {
             margin-top:15px;
         }
-    </style>
+
+        .headteacher-remark,
+        .teacher-remark {
+            margin-top:20px;
+            padding:10px;
+            border-top:1px solid black;
+        }
+        
+        .headteacher-remark h3,
+        .teacher-remark h3 {
+            font-size:16px;
+            margin-bottom:5px;
+        }
+
+   </style>
 </head>
 <body>
 
@@ -2396,7 +2445,17 @@ window.viewAllStudents = async function() {
             </h3>
 
             <p id="remark"></p>
-        </div>
+       </div>
+        
+       <div class="headteacher-remark">
+           
+           <h3>
+               <i class="fa-solid fa-user-tie"></i>
+               Headteacher's Remark
+           </h3>
+           
+           <p id="headRemark"></p>
+       </div>
 
         <div style="margin-top:25px; text-align:center;">
 
