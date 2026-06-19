@@ -454,8 +454,7 @@
             document.getElementById("table").innerHTML = tableHtml;
 
             document.getElementById("remark").innerHTML = `
-            <strong>Teacher's Remark:</strong> 
-            ${getOverallRemark(
+             ${getOverallRemark(
                 Number(data.total) || 0,
                 maxTotal
             )}
@@ -519,7 +518,7 @@
                     orientation: 'portrait' 
                 },
                 pagebreak: { 
-                    mode: ['avoid-all', 'css', 'legacy'] 
+                    mode: ['css']
                 }
             };
             
@@ -1511,15 +1510,26 @@ window.viewAllStudents = async function() {
             
             <table style="width:100%; border-collapse:collapse; margin:15px 0;">${tableHtml}</table>
             
-            <div style="background:#eef4ff; padding:15px; border-left:6px solid #003366; margin:20px 0;">
-            <strong>Teacher's Remark:</strong><br>
+            <div class="teacher-remark">
+            
+            <h3>
+            Teacher's Remark
+            </h3>
+
+            <p>
             ${getOverallRemark(total, maxTotal)}
+            </p>
+
+            <h3>
+            Headteacher's Remark
+            </h3>
+
+            <p>
+            ${headteacherRemark}
+            </p>
+
             </div>
             
-            <div style="background:#f8f9ff; padding:15px; border-left:6px solid #28a745; margin:20px 0;">
-            <strong>Headteacher's Remark:</strong><br>
-            ${headteacherRemark}
-            </div>
             
             <div style="margin-top:25px; padding:12px; text-align:center; background:#f0f0f0; border-radius:8px;">
             <strong>Next Term Opens:</strong> <strong>${nextTermDate}</strong>
@@ -2032,24 +2042,19 @@ window.viewAllStudents = async function() {
         }
         
         .teacher-remark {
-            margin-top: 8px;
-            background: #eef4ff;
-            padding: 10px;
-            border-radius: 16px;
-            border-left: 6px solid #003366;
+            margin-top:10px;
+            padding:8px;
+            border-top:1px solid #333;
+            font-size:14px;
         }
-
+        
         .teacher-remark h3 {
-            margin: 0 0 5px 0;
+            margin:5px 0;
+            font-size:15px;
         }
         
         .teacher-remark p {
-            margin: 0;
-            line-height: 1.4;
-        }
-
-        .teacher-remark p {
-            margin: 5px 0;
+            margin:4px 0;
         }
        
         #reportCard {
@@ -2443,19 +2448,15 @@ window.viewAllStudents = async function() {
                 <i class="fa-solid fa-comments"></i>
                 Teacher's Remark
             </h3>
-
             <p id="remark"></p>
-       </div>
+            
+            <h3 style="margin-top:10px;">
+                <i class="fa-solid fa-user-tie"></i>
+                Headteacher's Remark
+            </h3>
+            <p id="headRemark"></p>
         
-       <div class="headteacher-remark">
-           
-           <h3>
-               <i class="fa-solid fa-user-tie"></i>
-               Headteacher's Remark
-           </h3>
-           
-           <p id="headRemark"></p>
-       </div>
+        </div>
 
         <div style="margin-top:25px; text-align:center;">
 
