@@ -2127,6 +2127,27 @@ window.viewAllStudents = async function() {
         .pdf-mode #table th {
             padding: 8px 6px !important;
         }
+        #reportCard {
+            width: 700px;
+            margin:auto;
+            font-family: Arial, sans-serif;
+        }
+        
+        #reportCard table {
+            width:100%;
+            border-collapse:collapse;
+        }
+        
+        #reportCard th,
+        #reportCard td {
+            border:1px solid black;
+            padding:8px;
+        
+        }
+        
+        .no-print {
+            margin-top:15px;
+        }
     </style>
 </head>
 <body>
@@ -2325,7 +2346,7 @@ window.viewAllStudents = async function() {
     <!-- RESULTS -->
 <div id="results" class="hidden">
 
-<div id="reportCard" class="report-card">
+<div id="reportCard">
 
         <div class="student-header">
             
