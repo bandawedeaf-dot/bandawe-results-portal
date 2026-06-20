@@ -1934,6 +1934,20 @@ window.viewAllStudents = async function() {
                 <strong>${d.date}</strong>
                 <br>
                 ${d.activity}
+
+                <br><br>
+                
+                <button onclick="editCalendar('${docSnap.id}')"
+                style="background:#ffc107;color:black;"><i class="fa-solid fa-pen"></i>
+                Edit
+                </button>
+                
+                <button onclick="deleteCalendar('${docSnap.id}')"
+                style="background:#dc3545;color:white;">
+                <i class="fa-solid fa-trash"></i>
+                Delete
+                </button>
+                
                 </div>
                 
                 `;
@@ -1943,7 +1957,78 @@ window.viewAllStudents = async function() {
             box.innerHTML =
                 html || "No calendar events added yet.";
         }
+       
+        window.editCalendar = async function(id){
+            const snap =
+                await getDoc(doc(db,"calendar",id));
+            if(!snap.exists()){
+                return alert("Calendar item not found");
+            }
+            
+            const data=snap.data();
+            document.getElementById("adminArea").innerHTML = `
+            <h3>Edit Calendar Event</h3><input id="editCalendarDate"
+            value="${data.date}"
+            style="width:100%;margin-bottom:10px;"
+            >
+            
+            <input 
+            id="editCalendarActivity"
+            value="${data.activity}"
+            style="width:100%;margin-bottom:10px;"
+            >
+            
+            <button onclick="updateCalendar('${id}')">
+            Save Changes
+            </button>
+            
+            <button onclick="manageCalendar()">
+            Cancel
+            </button>
+            `;
+        };
 
+        window.updateCalendar = async function(id){
+            
+            const date =
+                document.getElementById("editCalendarDate").value.trim();
+            
+            const activity =
+                document.getElementById("editCalendarActivity").value.trim();
+            
+            if(!date || !activity){
+                return alert("All fields required");
+            }
+            
+            await setDoc(
+                doc(db,"calendar",id),
+                {
+                    date:date,
+                    activity:activity,
+                    active:true
+                }
+            );
+            
+            alert("Calendar updated");
+            manageCalendar();
+        
+        };
+
+        window.deleteCalendar = async function(id){
+            const confirmDelete =
+                confirm(
+                    "Delete this calendar event?"
+                );
+            
+            if(!confirmDelete) return;
+            await deleteDoc(
+                doc(db,"calendar",id)
+            );
+            
+            alert("Calendar event deleted");
+            manageCalendar();
+        };
+        
         window.backToDashboard = function() {
             
             // show dashboard buttons again
