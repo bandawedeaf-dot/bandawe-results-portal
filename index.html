@@ -179,12 +179,40 @@
         
         };
      
-        window.showCalendarPage = function(){
+        window.showCalendarPage = async function(){
             document.getElementById("public")
                 .classList.add("hidden");
             
             document.getElementById("calendarPage")
                 .classList.remove("hidden");
+            
+            const box =
+                document.getElementById("publicCalendar");
+            box.innerHTML="Loading calendar...";
+            
+            const snapshot =
+                await getDocs(collection(db,"calendar"));
+            let html="";
+            
+            snapshot.forEach(docSnap=>{
+                const d=docSnap.data();
+                
+                if(d.active){
+                    html += `
+                    <div class="calendar-item"><span class="calendar-date">
+                    ${d.date}
+                    </span>
+                    
+                    <br>
+                    
+                    ${d.activity}
+                    </div>
+                    `;
+                }
+            });
+            
+            box.innerHTML = 
+                html || "No academic calendar available.";
         };
 
         window.backToPublicDashboard = function(){
@@ -1828,7 +1856,94 @@ window.viewAllStudents = async function() {
             alert("Notice saved");
             manageNotices();
         };
-        
+
+        window.manageCalendar = function(){
+            document.getElementById("adminArea").innerHTML = `
+            
+            <h3><i class="fa-solid fa-calendar-days"></i> 
+            Manage Academic Calendar
+            </h3>
+            
+            <input 
+            id="calendarDate"
+            placeholder="Date e.g. 14 September 2026"
+            style="width:100%; margin-bottom:10px;"
+            >
+            
+            <input 
+            id="calendarActivity"
+            placeholder="Activity e.g. Term Opens"
+            style="width:100%; margin-bottom:10px;"
+            >
+            
+            <button onclick="saveCalendarEvent()">
+            Save Calendar Event
+            </button>
+            
+            <div id="calendarList" style="margin-top:20px;"></div>
+            `;
+            
+            loadCalendarAdmin();
+        };
+        window.saveCalendarEvent = async function(){
+            const date =
+                document.getElementById("calendarDate").value.trim();
+            
+            const activity =
+                document.getElementById("calendarActivity").value.trim();
+            
+            if(!date || !activity){
+                return alert("Please fill all fields");
+            }
+            
+            try{
+                await addDoc(
+                    collection(db,"calendar"),
+                    {
+                        date:date,
+                        activity:activity,
+                        active:true,
+                        createdAt:new Date()
+                    }
+                );
+                
+                alert("Calendar event saved");
+                manageCalendar();
+            }
+            
+            catch(e){
+                alert("Error: "+e.message);
+            }
+        };
+
+        async function loadCalendarAdmin(){
+            const box =
+                document.getElementById("calendarList");
+            box.innerHTML="Loading...";
+            
+            const snapshot =
+                await getDocs(collection(db,"calendar"));
+            let html="";
+            
+            snapshot.forEach(docSnap=>{
+                
+                const d=docSnap.data();
+                html += `
+                <div style=" padding:15px; border-bottom:1px solid #ddd;
+                ">
+                <strong>${d.date}</strong>
+                <br>
+                ${d.activity}
+                </div>
+                
+                `;
+            
+            });
+            
+            box.innerHTML =
+                html || "No calendar events added yet.";
+        }
+
         window.backToDashboard = function() {
             
             // show dashboard buttons again
@@ -2535,22 +2650,6 @@ window.viewAllStudents = async function() {
         
         Loading...
     </div>
-    
-        <div class="notice-item">
-            📢 Term 2 Results Will be Available Soon.
-        </div>
-        
-        <div class="notice-item">
-            📅 Next Term Opens on 14 September 2026
-        </div>
-        
-        <div class="notice-item">
-            🌽 All students should bring 20kg maize
-        </div>
-        
-        <div class="notice-item">
-            👨‍👩‍👧 PTA Meeting Scheduled for 2026 Will be Communicated Soon.
-        </div>
  </div>
 
      <!-- CALENDAR PAGE -->
@@ -2567,26 +2666,10 @@ window.viewAllStudents = async function() {
     </h2>
     
     <div class="info-card">
-        
-        <div class="calendar-item">
-            <span class="calendar-date">
-                14 Sept 2026
-            </span><br>
-            Term 1 Opens for 2026/2027 Academic Year
-        </div>
-        
-        <div class="calendar-item">
-            <span class="calendar-date">
-                10 Oct 2026
-            </span><br>
-            Mid-Term Break
-        </div>
-        
-        <div class="calendar-item">
-            <span class="calendar-date">
-                20 Dec 2026
-            </span><br>
-            Schools Close
+       
+        <div id="publicCalendar">
+            
+            Loading calendar...
         </div>
     </div>
 </div>
