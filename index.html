@@ -1830,7 +1830,7 @@ window.viewAllStudents = async function() {
             
             loadNoticesAdmin();
         };
-
+        
         window.saveNotice = async function(){
             
             const title =
@@ -1854,6 +1854,132 @@ window.viewAllStudents = async function() {
             );
             
             alert("Notice saved");
+            manageNotices();
+        };
+       
+        async function loadNoticesAdmin(){
+            const box =
+                document.getElementById("noticeList");
+            
+            box.innerHTML="Loading notices...";
+            
+            const snapshot =
+                await getDocs(query(collection(db,"announcements"),orderBy("date","desc")
+                                    )
+                              );
+            let html="";
+            
+            snapshot.forEach(docSnap=>{
+                
+                const d = docSnap.data();
+                html += `
+                
+                <div style="
+                padding:15px;
+                border-bottom:1px solid #ddd;
+                margin-bottom:10px;
+                ">
+                
+                <h4 style="margin:0;">
+                ${d.title}
+                </h4>
+                
+                <p>
+                ${d.message}
+                </p>
+                
+                <button 
+                onclick="editNotice('${docSnap.id}')"
+                style="
+                background:#ffc107;
+                color:black;
+                "><i class="fa-solid fa-pen"></i>
+                Edit
+                </button>
+                
+                <button 
+                onclick="deleteNotice('${docSnap.id}')"
+                style="
+                background:#dc3545;
+                color:white;
+                "><i class="fa-solid fa-trash"></i>
+                Delete
+                </button>
+                </div>
+                `;
+            });
+            
+            box.innerHTML =
+                html || "No notices available.";
+        }
+
+        window.editNotice = async function(id){
+            const snap =
+                await getDoc(
+                    doc(db,"announcements",id)
+                );
+            
+            if(!snap.exists()){
+                return alert("Notice not found");
+            }
+            
+            const data =
+                snap.data();
+            document.getElementById("adminArea").innerHTML = `
+            
+            <h3>Edit Notice</h3><input id="editNoticeTitle"value="${data.title}"
+            style="width:100%;margin-bottom:10px;"
+            ><textarea
+            id="editNoticeMessage"
+            style="width:100%;height:100px;margin-bottom:10px;"
+            >${data.message}</textarea>
+            
+            <button onclick="updateNotice('${id}')">
+            Save Changes
+            </button>
+            
+            <button onclick="manageNotices()">
+            Cancel
+            </button>
+            
+            `;
+        };
+
+        window.updateNotice = async function(id){
+            const title =
+                document.getElementById("editNoticeTitle").value.trim();
+            
+            const message =
+                document.getElementById("editNoticeMessage").value.trim();
+            
+            if(!title || !message){
+                return alert("All fields required");
+            }
+            
+            await setDoc(
+                doc(db,"announcements",id),
+                {
+                    title:title,
+                    message:message,
+                    active:true
+                }
+            );
+            
+            alert("Notice updated successfully");
+            manageNotices();
+        };
+        
+        window.deleteNotice = async function(id){
+            const confirmDelete =
+                confirm(
+                    "Delete this notice?"
+                );
+            if(!confirmDelete) return;
+            await deleteDoc(
+                doc(db,"announcements",id)
+            );
+            
+            alert("Notice deleted");
             manageNotices();
         };
 
@@ -1885,6 +2011,7 @@ window.viewAllStudents = async function() {
             
             loadCalendarAdmin();
         };
+        
         window.saveCalendarEvent = async function(){
             const date =
                 document.getElementById("calendarDate").value.trim();
