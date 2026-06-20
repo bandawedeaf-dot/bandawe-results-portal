@@ -1955,12 +1955,19 @@ window.viewAllStudents = async function() {
             if(!title || !message){
                 return alert("All fields required");
             }
-            
+            const oldDoc =
+                await getDoc(
+                    doc(db,"announcements",id)
+                );
+            const oldData =
+                oldDoc.data();
+
             await setDoc(
                 doc(db,"announcements",id),
                 {
                     title:title,
                     message:message,
+                    date: oldData.date || new Date(),
                     active:true
                 }
             );
