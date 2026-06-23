@@ -2233,6 +2233,18 @@ window.viewAllStudents = async function() {
             document.getElementById("adminArea").innerHTML="";
         };
 
+        window.manageStudents = function(){
+            document.getElementById("adminPanel").classList.add("hidden");
+            document.getElementById("adminStudentPage").classList.remove("hidden");
+            document.getElementById("adminStudentContent").innerHTML = `
+            
+            <h2><i class="fa-solid fa-users"></i>Manage Students</h2>
+            
+            <button onclick="addStudent()"><i class="fa-solid fa-user-plus"></i> Add Student</button>
+            <button onclick="viewAllStudents()"><i class="fa-solid fa-list"></i> View All Students</button>
+            `;
+        };
+
         window.backToAdminResults = function() {
             
             document.getElementById("results")
@@ -2992,7 +3004,7 @@ window.viewAllStudents = async function() {
     <div id="dashboardMenu"style="margin:15px 0; display:flex; gap:10px; flex-wrap:wrap;">
        <div class="admin-grid">
            
-           <div class="admin-card" onclick="viewAllStudents()"><i class="fa-solid fa-user-graduate"></i>
+           <div class="admin-card" onclick="manageStudents()"><i class="fa-solid fa-user-graduate"></i>
                <h3>Students</h3>
                <p>Add, edit and manage learners</p>
            </div>
@@ -3055,6 +3067,12 @@ window.viewAllStudents = async function() {
         <h2 style="color:#003366;"><i class="fa-solid fa-calendar-days"></i>Manage Academic Calendar</h2>
         <div id="adminCalendarContent"></div>
         
+        <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
+    </div>
+    <!-- ADMIN STUDENT PAGE -->
+    <div id="adminStudentPage" class="hidden">
+        <h2>Student Management</h2>
+        <div id="adminStudentContent"></div>
         <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
     </div>
 </body>
