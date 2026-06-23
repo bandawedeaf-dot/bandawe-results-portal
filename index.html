@@ -145,38 +145,48 @@
             
             box.innerHTML =
             "Loading notices...";
+
+            try {
+                const snap =
+                    await getDocs(collection(db,"announcements"));
+                let html="";
             
-            const snap =
-            await getDocs(collection(db,"announcements"));
-            
-            let html="";
-            
-            snap.forEach(doc=>{
-            
-            const d=doc.data();
-            if(d.active !== true){
+            snap.forEach(docSnap=>{
+                const d = docSnap.data();
+                console.log("PUBLIC NOTICE:", d);
+
+        // show only active notices
+                if(d.active !== false){
+                    
+                    html += `
+                    
+                <div class="notice-item">
+                    
+                    <strong>
+                    ${d.title || "Announcement"}
+                    </strong>
+                    
+                    <br>
+                    
+                    ${d.message || ""}
+                    
+                </div>
                 
-            html += `
-            
-            <div class="notice-item"><strong>
-            ${d.title}
-            </strong>
-            
-            <br>
-            
-            ${d.message}
-            
-            </div>
-            
-            `;
-            
-            }
+                `;
+                
+                }
             
             });
             
-            box.innerHTML = html ||
-            "No announcements available";
-        
+            box.innerHTML = 
+                html || "No announcements available";
+            
+            } catch(error){
+                console.error(error);
+
+                box.innerHTML = "Failed loading announcement.";
+
+            }
         };
      
         window.showCalendarPage = async function(){
