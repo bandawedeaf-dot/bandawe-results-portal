@@ -2028,35 +2028,50 @@ window.viewAllStudents = async function() {
         };
 
         window.manageCalendar = function(){
-            document.getElementById("adminArea").innerHTML = `
+            document.getElementById("adminPanel").classList.add("hidden");
+            document.getElementById("adminCalendarPage").classList.remove("hidden");
+            document.getElementById("adminCalendarContent").innerHTML = `
             
-            <h3><i class="fa-solid fa-calendar-days"></i> 
-            Manage Academic Calendar
-            </h3>
+            <div style="
+            background:#f8f9ff;
+            padding:20px;
+            border-radius:12px;
+            ">
             
-            <input 
-            id="calendarDate"
+            <h3>Add Calendar Event</h3>
+            
+            <input id="calendarDate"
             placeholder="Date e.g. 14 September 2026"
-            style="width:100%; margin-bottom:10px;"
-            >
+            style="width:100%;padding:10px;margin-bottom:10px;">
             
-            <input 
-            id="calendarActivity"
-            placeholder="Activity e.g. Term Opens"
-            style="width:100%; margin-bottom:10px;"
-            >
+            <textarea id="calendarEvent"
+            placeholder="Event description"
+            style="
+            width:100%;
+            height:100px;
+            padding:10px;
+            ">
+            </textarea>
             
-            <button onclick="saveCalendarEvent()">
-            Save Calendar Event
-            </button>
+            <br><br>
             
-            <div id="calendarList" style="margin-top:20px;"></div>
+            <button onclick="saveCalendarEvent()"><i class="fa-solid fa-save"></i> Save Calendar</button>
+            </div>
+            
+            <hr>
+            
+            <h3>Existing Calendar</h3>
+            
+            <div id="calendarList">
+            Loading...
+            </div>
+            
             `;
             
             loadCalendarAdmin();
         };
-        
-        window.saveCalendarEvent = async function(){
+
+       window.saveCalendarEvent = async function(){
             const date =
                 document.getElementById("calendarDate").value.trim();
             
@@ -2966,6 +2981,13 @@ window.viewAllStudents = async function() {
     </div>
     
     <!-- ADMIN CALENDAR PAGE -->
+    <div id="adminCalendarPage" class="hidden">
+        <h2 style="color:#003366;"><i class="fa-solid fa-calendar-days"></i>Manage Academic Calendar</h2>
+        <div id="adminCalendarContent"></div>
+        
+        <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
+    </div>
+    
     <div id="adminCalendarPage" class="hidden">
         <h2 style="color:#003366;"><i class="fa-solid fa-calendar-days"></i>Manage Academic Calendar</h2>
         <div id="adminCalendarContent"></div>
