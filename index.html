@@ -2216,21 +2216,40 @@ window.viewAllStudents = async function() {
         };
         
         window.backToDashboard = function() {
-            
             // show dashboard buttons again
-            document.getElementById("dashboardMenu")
-                .style.display = "flex";
-            
+            document.getElementById("dashboardMenu").style.display = "flex";
             // clear page content
-            document.getElementById("adminArea")
-                .innerHTML = "";
+            document.getElementById("adminArea").innerHTML = "";
         };
 
         window.backToDashboard = function(){
-            document.getElementById("adminNoticesPage").classList.add("hidden");
-            document.getElementById("adminCalendarPage").classList.add("hidden");
-            document.getElementById("adminPanel").classList.remove("hidden");
-            document.getElementById("adminArea").innerHTML="";
+            // hide separate admin pages
+            const pages = [
+                "adminNoticesPage",
+                "adminCalendarPage",
+                "adminStudentPage"
+            ];
+            
+            pages.forEach(id=>{
+                const page =
+                    document.getElementById(id);
+                if(page){
+                    page.classList.add("hidden");
+                }
+            });
+            // hide results/search pages if open
+            const results =
+                document.getElementById("results");
+            if(results){
+                results.classList.add("hidden");
+            }
+            const search =
+                document.getElementById("searchPortal");
+            if(search){
+                search.classList.add("hidden");
+            }
+            // show admin dashboard
+                document.getElementById("adminPanel").classList.remove("hidden");
         };
 
         window.manageStudents = function(){
