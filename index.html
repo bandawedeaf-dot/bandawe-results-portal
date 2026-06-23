@@ -154,7 +154,7 @@
             snap.forEach(doc=>{
             
             const d=doc.data();
-            if(d.active !== false){
+            if(d.active !== true){
                 
             html += `
             
@@ -1864,15 +1864,34 @@ window.viewAllStudents = async function() {
             box.innerHTML="Loading notices...";
             
             const snapshot =
-                await getDocs(query(collection(db,"announcements"),orderBy("date","desc")
-                                    )
-                              );
-            let html="";
+                await getDocs(collection(db,"announcements"));
+
+            let notices = [];
             
             snapshot.forEach(docSnap=>{
                 
                 const d = docSnap.data();
-                html += `
+
+                notices.push({
+                    id: docSnap.id,
+                    ...d
+                });
+            });
+        // Sort safely even if some documents have no date
+            notices.sort((a,b)=>{
+
+                const dateA = a.date?.seconds || 0;
+                const dateB = b.date?.seconds || 0;
+
+                return dateB - dateA;
+
+            });
+
+            let html="";
+
+            notices.forEach(notice=>{
+
+                html +=`
                 
                 <div style="
                 padding:15px;
@@ -1881,15 +1900,15 @@ window.viewAllStudents = async function() {
                 ">
                 
                 <h4 style="margin:0;">
-                ${d.title}
+                ${notice.title}
                 </h4>
                 
                 <p>
-                ${d.message}
+                ${notice.message}
                 </p>
                 
                 <button 
-                onclick="editNotice('${docSnap.id}')"
+                onclick="editNotice('${notice.id}')"
                 style="
                 background:#ffc107;
                 color:black;
@@ -1898,7 +1917,7 @@ window.viewAllStudents = async function() {
                 </button>
                 
                 <button 
-                onclick="deleteNotice('${docSnap.id}')"
+                onclick="deleteNotice('${notice.id}')"
                 style="
                 background:#dc3545;
                 color:white;
