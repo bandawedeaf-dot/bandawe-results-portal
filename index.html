@@ -1822,25 +1822,33 @@ window.viewAllStudents = async function() {
         };
 
         window.manageNotices = function(){
-            document.getElementById("adminArea").innerHTML = `
-            <h3>Manage School Notices</h3>
+            document.getElementById("adminPanel").classList.add("hidden");
+            document.getElementById("adminNoticesPage").classList.remove("hidden");
+            document.getElementById("adminNoticeContent").innerHTML = `
             <input id="noticeTitle"
-            placeholder="Notice Title">
+            placeholder="Notice Title"
+            style="width:100%;padding:10px;margin-bottom:10px;">
             
             <textarea id="noticeMessage"
-            placeholder="Notice Message"></textarea>
+            placeholder="Notice Message"
+            style="width:100%;height:120px;padding:10px;">
+            </textarea>
             
             <button onclick="saveNotice()">
+            <i class="fa-solid fa-save"></i>
             Save Notice
             </button>
+            
+            <hr>
             
             <div id="noticeList"></div>
             
             `;
             
             loadNoticesAdmin();
+
         };
-        
+            
         window.saveNotice = async function(){
             
             const title =
@@ -2201,6 +2209,13 @@ window.viewAllStudents = async function() {
             // clear page content
             document.getElementById("adminArea")
                 .innerHTML = "";
+        };
+
+        window.backToDashboard = function(){
+            document.getElementById("adminNoticesPage").classList.add("hidden");
+            document.getElementById("adminCalendarPage").classList.add("hidden");
+            document.getElementById("adminPanel").classList.remove("hidden");
+            document.getElementById("adminArea").innerHTML="";
         };
 
         window.backToAdminResults = function() {
@@ -2941,6 +2956,21 @@ window.viewAllStudents = async function() {
         <button onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
     </div>
 <div id="adminArea" style="margin-top:20px;"></div>
+    <!-- ADMIN NOTICES PAGE -->
+    <div id="adminNoticesPage" class="hidden">
+        <h2 style="color:#003366;"><i class="fa-solid fa-bullhorn"></i>Manage School Notices</h2>
+        <div id="adminNoticeContent"></div>
+        
+        <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
+    </div>
+    
+    <!-- ADMIN CALENDAR PAGE -->
+    <div id="adminCalendarPage" class="hidden">
+        <h2 style="color:#003366;"><i class="fa-solid fa-calendar-days"></i>Manage Academic Calendar</h2>
+        <div id="adminCalendarContent"></div>
+        
+        <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
+    </div>
 </div>
 </body>
     </html>
