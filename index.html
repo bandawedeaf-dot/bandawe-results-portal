@@ -77,18 +77,12 @@
                 } catch (e) {
                     window.currentUser = { role: "admin", fullName: "Administrator" };
                 }
-                
-       document.getElementById("public").classList.add("hidden");
-                
-       document.getElementById("searchPortal").classList.add("hidden");
-                
-       document.getElementById("results").classList.add("hidden");
-                
-       document.getElementById("adminLogin").classList.add("hidden");
-                
-       document.getElementById("adminPanel").classList.remove("hidden");
-                
-       document.getElementById("adminArea").innerHTML = "";
+                document.getElementById("public").classList.add("hidden");
+                document.getElementById("searchPortal").classList.add("hidden");
+                document.getElementById("results").classList.add("hidden");
+                document.getElementById("adminLogin").classList.add("hidden");
+                document.getElementById("adminPanel").classList.remove("hidden");
+                document.getElementById("adminArea").innerHTML = "";
                 
                 updateAdminUI();
             }
@@ -269,6 +263,7 @@
                 <option value="Female">Female</option>
                 </select>
                 <button onclick="saveStudent()">Save Student</button>
+                <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i>Back to Dashboard</button>
             `;
         };
 
@@ -320,7 +315,9 @@
                         <input class="score" data-subject="${sub}" type="number" min="0" max="100" style="width:100%">
                     </div>`;
             });
-            html += `<button onclick="saveResults()">Save Results</button>`;
+            html += `<button onclick="saveResults()">Save Results</button>
+            <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i>Back to Dashboard</button>
+            `;
             
             document.getElementById("adminArea").innerHTML = html;
 
@@ -632,6 +629,19 @@
                     document.body.classList.remove("pdf-mode");
                 });
         };
+        // RETURN TO ADMIN DASHBOARD
+        window.backToDashboard = function(){
+            
+            document.getElementById("public").classList.add("hidden");
+            document.getElementById("searchPortal").classList.add("hidden");
+            document.getElementById("results").classList.add("hidden");
+            document.getElementById("adminLogin").classList.add("hidden");
+            document.getElementById("adminPanel").classList.remove("hidden");
+            
+            // clear previous page content
+            document.getElementById("adminArea").innerHTML = "";
+        };
+       
         window.backToSearch = function() {
             document.getElementById("results").classList.add("hidden");
             document.getElementById("adminPanel").classList.add("hidden");
@@ -670,9 +680,9 @@ window.viewAllStudents = async function() {
     try {
         const snapshot = await getDocs(collection(db, "students"));
         let html = `
-        <button onclick="backToDashboard()" style="margin-bottom:15px;">
-        ← Back to Dashboard
-        </button>
+        <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i>
+        Back to Dashboard
+        </button> 
             <h3>All Students (${snapshot.size})</h3>
             <input type="text" id="studentSearch" placeholder="Search by name..." 
                    style="margin-bottom:15px; padding:12px; width:100%;" onkeyup="filterStudents()">
@@ -1771,7 +1781,7 @@ window.viewAllStudents = async function() {
                 <input id="teacherPassword" type="password" placeholder="Password (min 6 chars)" style="margin-bottom:15px;">
                 <button onclick="createTeacherAccount()" style="background:#28a745;">Create Teacher Account</button>
                 </div>
-                <button onclick="viewAllStudents()" style="margin-top:15px;">Back</button>
+                <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i>Back to Dashboard</button>
                 `;
             };
             
