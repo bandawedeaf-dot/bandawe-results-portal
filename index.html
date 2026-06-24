@@ -2217,43 +2217,41 @@ window.viewAllStudents = async function() {
             manageCalendar();
         };
         
-        window.backToDashboard = function() {
-            // show dashboard buttons again
-            document.getElementById("dashboardMenu").style.display = "flex";
-            // clear page content
-            document.getElementById("adminArea").innerHTML = "";
-        };
-
         window.backToDashboard = function(){
-            // hide separate admin pages
+            // hide all admin sub pages
             const pages = [
-                "adminNoticesPage",
+                "adminStudentPage",
                 "adminCalendarPage",
-                "adminStudentPage"
+                "adminNoticesPage"
+               
             ];
             
-            pages.forEach(id=>{
-                const page =
-                    document.getElementById(id);
-                if(page){
-                    page.classList.add("hidden");
+            pages.forEach(page=>{
+                const el=document.getElementById(page);
+                if(el){
+                    el.classList.add("hidden");
                 }
             });
-            // hide results/search pages if open
+            // hide other sections
             const results =
                 document.getElementById("results");
             if(results){
                 results.classList.add("hidden");
             }
-            const search =
-                document.getElementById("searchPortal");
-            if(search){
-                search.classList.add("hidden");
+            // Show admin dashboard
+            const admin =
+                document.getElementById("adminPanel");
+            if(admin){
+                admin.classList.remove("hidden");
             }
-            // show admin dashboard
-                document.getElementById("adminPanel").classList.remove("hidden");
-        };
+            else{
+                console.error(
+                    "adminPanel not found"
+                    );
+            }
 
+        };
+            
         window.manageStudents = function(){
             document.getElementById("adminPanel").classList.add("hidden");
             document.getElementById("adminStudentPage").classList.remove("hidden");
