@@ -245,11 +245,13 @@
         };
 
         window.addStudent = function() {
+            document.getElementById("adminPanel").classList.add("hidden");
+            document.getElementById("adminStudentPage").classList.remove("hidden");
             
             openAdminPage();
             
             let classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
-            document.getElementById("adminArea").innerHTML = `
+            document.getElementById("adminStudentContent").innerHTML = `
             <button onclick="backToDashboard()" style="margin-bottom:15px;">
             ← Back to Dashboard
             </button>
