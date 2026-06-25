@@ -210,6 +210,7 @@
             "adminStudentPage",
             "adminCalendarPage",
             "adminNoticesPage"
+            "adminViewStudentsPage"
         ];
         
         pages.forEach(page=>{
@@ -282,6 +283,7 @@
     window.manageStudents = function(){
         console.log("manageStudents called");
         document.getElementById("adminPanel").classList.add("hidden");
+        document.getElementById("adminViewStudentsPage").classList.add("hidden");
         document.getElementById("adminStudentPage").classList.remove("hidden");
         document.getElementById("adminStudentContent").innerHTML = `
             <h2><i class="fa-solid fa-users"></i> Manage Students</h2>
@@ -577,107 +579,143 @@
     };
 
     // ================= VIEW ALL STUDENTS =================
-    window.viewAllStudents = async function() {
-        console.log("viewAllStudents called - Starting...");
-        
-        // Make sure we're in the right context
-        const adminArea = document.getElementById("adminArea");
-        if (!adminArea) {
-            console.error("adminArea not found!");
-            return;
-        }
-        
-        // Show loading state
-        adminArea.innerHTML = `<p>Loading students...</p>`;
-        
-        try {
-            const user = window.currentUser;
-            if (!user) {
-                adminArea.innerHTML = `<p style="color:red;">Error: User not authenticated. Please login again.</p>`;
+        window.viewAllStudents = async function(showInPage = true) {
+            console.log("viewAllStudents called - Starting...");
+            
+            // If showInPage is true, open the separate page
+            if (showInPage) {
+                // Hide everything and show the view students page
+                document.getElementById("adminPanel").classList.add("hidden");
+                document.getElementById("adminStudentPage").classList.add("hidden");
+                document.getElementById("adminViewStudentsPage").classList.remove("hidden");
+            }
+            
+            // Determine where to render content
+                const contentArea = showInPage 
+                    ? document.getElementById("adminViewStudentsContent")  // Separate page
+                    : document.getElementById("adminArea");               // Dashboard area
+            
+            if (!contentArea) {
+                console.error("Content area not found!");
                 return;
             }
             
-            // Teacher view
-            if (user.role === "teacher") {
-                console.log("Teacher role detected - showing only their class");
-                return showTeacherClassOnly(user.class);
-            }
+            // Show loading state
+            contentArea.innerHTML = `<p style="text-align:center; padding:20px;">Loading students...</p>`;
             
-            // Admin view - get all students
-            console.log("Fetching all students from database...");
-            const snapshot = await getDocs(collection(db, "students"));
-            console.log(`Found ${snapshot.size} students`);
-            
-            if (snapshot.size === 0) {
-                adminArea.innerHTML = `
-                    <h3>All Students (0)</h3>
-                    <p style="color:#666;">No students found in the database.</p>
-                    <button onclick="addStudent()" style="background:#28a745;">Add First Student</button>
-                    `;
-                return;
-            }
-            
-            // Build the HTML table
-            let html = `
-                <h3>All Students (${snapshot.size})</h3>
-                <input type="text" id="studentSearch" placeholder="🔍 Search by name..." 
-                       style="margin-bottom:15px; padding:12px; width:100%; border-radius:10px; border:1px solid #ccc;" 
-                       onkeyup="filterStudents()">
-                       
+            try {
+                const user = window.currentUser;
+                if (!user) {
+                    contentArea.innerHTML = `<p style="color:red;">Error: User not authenticated. Please login again.</p>`;
+                    return;
+                    
+                    // Teacher view
+                    if (user.role === "teacher") {
+                        return loadTeacherStudentsView(user.class);
+                    }
+                    
+                    // Admin view - get all students
+                    console.log("Fetching all students from database...");
+                    const snapshot = await getDocs(collection(db, "students"));
+                    console.log(`Found ${snapshot.size} students`);
+                    
+                    if (snapshot.size === 0) {
+                        contentArea.innerHTML = `
+                            <div style="text-align:center; padding:40px;">
+                                <i class="fa-solid fa-users" style="font-size:48px; color:#ccc;"></i>
+                                
+                                <h3>No Students Found</h3>
+                                <p style="color:#666;">There are no students in the database yet.</p>
+                                
+                                <button onclick="addStudent()" style="background:#28a745; margin-top:10px;">
+                                    <i class="fa-solid fa-user-plus"></i> Add First Student
+                                </button>
+                            </div>
+                            `;
+                        return;
+                    }
+                    
+                // Build the HTML table - same as before but with different button handlers
+                let html = `
+                    <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <span style="font-size:16px; color:#666;">Total: <strong>${snapshot.size}</strong> students</span>
+                    <div>
+                    
+                        <input type="text" id="studentSearchView" placeholder="🔍 Search by name..." style="padding:10px; border-radius:8px; border:1px solid #ccc; width:250px;" onkeyup="filterStudentsView()">
+                    </div>
+                </div>
+                
                 <div style="overflow-x:auto;">
-                    <table style="width:100%; border-collapse:collapse; margin-top:10px; font-size:14px;">
-                    <thead>
-                        <tr style="background:#003366; color:white;">
-                            <th style="padding:12px; text-align:left;">Student Name</th>
-                            <th style="padding:12px; text-align:left;">Class</th>
-                            <th style="padding:12px; text-align:left;">DOB</th>
-                            <th style="padding:12px; text-align:left;">Gender</th>
-                            <th style="padding:12px; text-align:center;">Actions</th>
-                        </tr>
-                    </thead>
+                    <table style="width:100%; border-collapse:collapse; margin-top:10px; font-size:14px;"> 
+                         <thead>
+                             <tr style="background:#003366; color:white;">
+                                 <th style="padding:12px; text-align:left;">#</th>
+                                 <th style="padding:12px; text-align:left;">Student Name</th
+                                 <th style="padding:12px; text-align:left;">Class</th>
+                                 <th style="padding:12px; text-align:left;">DOB</th>
+                                 <th style="padding:12px; text-align:left;">Gender</th>
+                                 <th style="padding:12px; text-align:center;">Actions</th>
+                            </tr>
+                        </thead>
                     <tbody>`;
-            snapshot.forEach(docSnap => {
-                const data = docSnap.data();
-                html += `
-                <tr style="border-bottom:1px solid #ddd; transition:0.2s;" onmouseover="this.style.background='#f5f8ff'" onmouseout="this.style.background=''">
-                    <td style="padding:12px;"><strong>${docSnap.id}</strong></td>
-                    <td style="padding:12px;">${data.class || '-'}</td>
-                    <td style="padding:12px;">${data.dob || '-'}</td>
-                    <td style="padding:12px;">${data.gender || '-'}</td>
-                    <td style="padding:12px; text-align:center;">
-                        <button onclick="editStudent('${docSnap.id}')" 
-                                style="background:#ffc107; color:black; margin:2px; padding:6px 12px; font-size:13px; border:none; border-radius:5px; cursor:pointer;">
-                            <i class="fa-solid fa-pen"></i> Edit
-                        </button>
-                        <button onclick="deleteStudent('${docSnap.id}')" 
-                                style="background:#dc3545; color:white; margin:2px; padding:6px 12px; font-size:13px; border:none; border-radius:5px; cursor:pointer;">
-                            <i class="fa-solid fa-trash"></i> Delete
-                        </button>
-                    </td>
-                </tr>`;
-        });
-
-        html += `
+                    
+                    let count = 1;
+                    snapshot.forEach(docSnap => {
+                        const data = docSnap.data();
+                        html += `
+                            <tr style="border-bottom:1px solid #eee; transition:0.2s;" 
+                                onmouseover="this.style.background='#f5f8ff'" 
+                                onmouseout="this.style.background=''">
+                                <td style="padding:12px; text-align:center;">${count}</td>
+                                <td style="padding:12px;"><strong>${docSnap.id}</strong></td>
+                                <td style="padding:12px;">
+                                <span style="background:#e8f0fe; padding:4px 12px; border-radius:12px; font-size:12px;">
+                                
+                                ${data.class || '-'}
+                                </span>
+                                </td>
+                                <td style="padding:12px;">${data.dob || '-'}</td>
+                                <td style="padding:12px;">
+                                    <span style="color:${data.gender === 'Male' ? '#0055aa' : '#d63384'};">
+                                    ${data.gender || '-'}
+                                    </span>
+                                </td>
+                                
+                                <td style="padding:12px; text-align:center;"><button onclick="editStudent('${docSnap.id}')" style="background:#ffc107; color:black; margin:2px; padding:6px 12px; font-size:12px; border:none; border-radius:5px; cursor:pointer;">
+                                <i class="fa-solid fa-pen"></i></button>
+                                <button onclick="viewStudentResults('${docSnap.id}')" style="background:#17a2b8; color:white; margin:2px; padding:6px 12px; font-size:12px; border:none; border-radius:5px; cursor:pointer;">
+                                <i class="fa-solid fa-file-lines"></i></button>
+                                <button onclick="deleteStudent('${docSnap.id}')" style="background:#dc3545; color:white; margin:2px; padding:6px 12px; font-size:12px; border:none; border-radius:5px; cursor:pointer;">
+                                <i class="fa-solid fa-trash"></i></button>
+                                </td>
+                        </tr>`;
+                        
+                        count++;
+                    });
+                    
+                    html += `
+                    
                     </tbody>
                 </table>
             </div>
-            <div style="margin-top:15px; text-align:center; color:#666; font-size:13px;">
-                Showing ${snapshot.size} student(s)
-            </div>
-        `;
-        
-        adminArea.innerHTML = html;
-        console.log("Student list rendered successfully!");
-        
-        } catch (error) {
-            console.error("Error loading students:", error);
-            adminArea.innerHTML = `
-            <p style="color:red;"><strong>Error loading students:</strong> ${error.message}</p>
-            <button onclick="viewAllStudents()" style="margin-top:10px;">Retry</button>
             `;
-        }
-    };
-
+                    
+                    contentArea.innerHTML = html;
+                    console.log("Student list rendered successfully!");
+                
+                } catch (error) {
+                console.error("Error loading students:", error);
+                contentArea.innerHTML = `
+                
+            <div style="text-align:center; padding:40px; color:red;"><i class="fa-solid fa-circle-exclamation" style="font-size:48px;"></i>
+                <h3>Error Loading Students</h3>
+                <p>${error.message}</p>
+                <button onclick="viewAllStudents()" style="margin-top:10px;">Retry</button>
+            </div>
+            `;
+            }
+        };
+   
         window.showTeacherClassOnly = async function(teacherClass) {
             console.log(`Loading students for teacher class: ${teacherClass}`);
             const adminArea = document.getElementById("adminArea");
@@ -718,34 +756,21 @@
             }
         };
 
-        window.filterStudents = function() {
-            const searchTerm = document.getElementById("studentSearch");
-            if (!searchTerm) return;
-            
-            const term = searchTerm.value.toLowerCase().trim();
-            const rows = document.querySelectorAll("#adminArea table tbody tr");
-            
-            let visibleCount = 0;
-            rows.forEach((row) => {
-                const nameCell = row.cells[0];
-                if (nameCell) {
-                    const name = nameCell.textContent.toLowerCase();
-                    if (name.includes(term)) {
-                        row.style.display = "";
-                        visibleCount++;
-                    } else {
-                        row.style.display = "none";
-                    }
-                }
-            });
-            
-            // Update count
-            const countDiv = document.querySelector("#adminArea > div:last-child");
-            if (countDiv && countDiv.textContent.includes("Showing")) {
-                countDiv.textContent = `Showing ${visibleCount} student(s)`;
-            }
-        };
-   
+       window.filterStudentsView = function() {
+           const searchTerm = document.getElementById("studentSearchView");
+           if (!searchTerm) return;
+           
+           const term = searchTerm.value.toLowerCase().trim();
+           const rows = document.querySelectorAll("#adminViewStudentsContent table tbody tr");
+           
+           rows.forEach((row) => {
+               const nameCell = row.cells[1]; // Name is in column 2 (index 1)
+               if (nameCell) {
+                   const name = nameCell.textContent.toLowerCase();
+                   row.style.display = name.includes(term) ? "" : "none";
+               }
+           });
+       };
      window.viewStudentResults = async function(studentName) {
         const term = prompt("Enter Term (Term 1 / Term 2 / Term 3):", "Term 3");
         const year = prompt("Enter Year:", "2026");
