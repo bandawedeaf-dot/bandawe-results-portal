@@ -287,7 +287,6 @@
             <h2><i class="fa-solid fa-users"></i> Manage Students</h2>
             <button onclick="addStudent()"><i class="fa-solid fa-user-plus"></i> Add Student</button>
             <button onclick="viewAllStudents()"><i class="fa-solid fa-list"></i> View All Students</button>
-            <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
         `;
     };
 
@@ -316,7 +315,6 @@
                 <option value="Female">Female</option>
             </select>
             <button onclick="saveStudent()">Save Student</button>
-            <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
         `;
     };
 
@@ -334,7 +332,7 @@
                 gender: sgender
             });           
             alert("Student saved successfully!");
-            backToDashboard();
+            manageStudent();
         } 
         catch (e) { alert("Error: " + e.message); }
     };
@@ -372,7 +370,6 @@
         });
         html += `
             <button onclick="saveResults()">Save Results</button>
-            <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
         `;
         
         document.getElementById("adminArea").innerHTML = html;
@@ -597,7 +594,6 @@
         try {
             const snapshot = await getDocs(collection(db, "students"));
             let html = `
-                <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button> 
                 <h3>All Students (${snapshot.size})</h3>
                 <input type="text" id="studentSearch" placeholder="Search by name..." 
                        style="margin-bottom:15px; padding:12px; width:100%;" onkeyup="filterStudents()">
@@ -631,9 +627,7 @@
                     </tr>`;
             });
 
-            html += `</table>
-                <button onclick="backToDashboard()" style="margin-top:20px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
-            `;
+            html += `</table>`;
             document.getElementById("adminArea").innerHTML = html;
         } catch (e) {
             document.getElementById("adminArea").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
@@ -646,7 +640,6 @@
         try {
             const snapshot = await getDocs(collection(db, "students"));
             let html = `
-                <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
                 <h3>${teacherClass} Students</h3>`;
             
             let found = false;
@@ -662,7 +655,6 @@
                 }
             });
             
-            html += `<button onclick="backToDashboard()" style="margin-top:20px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>`;
             document.getElementById("adminArea").innerHTML = html || `<p>No students found in ${teacherClass}.</p>`;
         } catch (e) {
             alert("Error: " + e.message);
@@ -719,9 +711,6 @@
         }
         
         document.getElementById("adminArea").innerHTML = `
-            <button onclick="backToDashboard()" style="margin-bottom:15px;">
-                ← Back to Dashboard
-            </button>
             <h3>Bulk Results Upload</h3>
             <p style="color:#555;">Upload results for an entire class</p>
             
@@ -749,7 +738,6 @@
             <button onclick="processBulkUpload()" style="background:#003366; padding:12px 25px;">
                 Process & Save Results
             </button>
-            <button onclick="backToDashboard()" style="margin-top:10px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
             
             <div id="uploadStatus" style="margin-top:20px;"></div>
         `;
@@ -858,9 +846,6 @@
             ).join('');
             
             document.getElementById("adminArea").innerHTML = `
-                <button onclick="backToDashboard()" style="margin-bottom:15px;">
-                    ← Back to Dashboard
-                </button>
                 <h3>Edit Student: ${studentName}</h3>
                 <input id="editName" value="${studentName}" placeholder="Full Name" style="margin-bottom:10px;">
                 <select id="editClass" style="margin-bottom:10px;">${classOptions}</select>
@@ -960,9 +945,7 @@
             });
             
             let html = `
-                <button onclick="backToDashboard()" style="margin-bottom:15px;">
-                    ← Back to Dashboard
-                </button>
+                
                 <h3>Class Performance Dashboard</h3>
                 <div style="margin:15px 0; padding:15px; background:#f8f9ff; border-radius:10px;">
                     <select id="dashTerm" onchange="refreshDashboard()" style="padding:10px; margin-right:10px;">
@@ -1021,7 +1004,6 @@
                 html += `<p>No results found for ${selectedTerm} ${selectedYear}.</p>`;
             }
             
-            html += `<button onclick="backToDashboard()" style="margin-top:20px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>`;
             document.getElementById("adminArea").innerHTML = html;
             
             setTimeout(() => {
@@ -1108,9 +1090,6 @@
             });
             
             let html = `
-                <button onclick="backToDashboard()" style="margin-bottom:15px;">
-                    ← Back to Dashboard
-                </button>
                 <h3>Grade Summary Dashboard</h3>
                 <table style="width:100%; border-collapse:collapse; margin-top:20px;">
                     <tr style="background:#003366; color:white;">
@@ -1143,10 +1122,7 @@
                     </tr>`;
             });
            
-            html += `</table>
-                <button onclick="backToDashboard()" style="margin-top:20px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
-            `;
-            
+            html += `</table>`;
             document.getElementById("adminArea").innerHTML = html;
         
         } catch (e) {
@@ -1184,9 +1160,6 @@
             history.sort((a, b) => b.year - a.year || b.term.localeCompare(a.term));
             
             let html = `
-                <button onclick="backToDashboard()" style="margin-bottom:15px;">
-                    ← Back to Dashboard
-                </button>
                 <h3>Academic History - ${studentName}</h3>
                 <button onclick="viewAllStudents()" style="margin-bottom:15px;">← Back to Students</button>`;
             
@@ -1206,7 +1179,6 @@
                 });
             }
             
-            html += `<button onclick="backToDashboard()" style="margin-top:20px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>`;
             document.getElementById("adminArea").innerHTML = html;
         
         } catch (e) {
@@ -1448,9 +1420,6 @@
         }
         
         document.getElementById("adminArea").innerHTML = `
-            <button onclick="backToDashboard()" style="margin-bottom:15px;">
-                ← Back to Dashboard
-            </button>
             <h3>Manage Users (Admin Only)</h3>
             <div style="background:#f8f9ff; padding:20px; border-radius:12px;">
                 <h4>Create New Teacher Account</h4>
@@ -1463,7 +1432,6 @@
                 <input id="teacherPassword" type="password" placeholder="Password (min 6 chars)" style="margin-bottom:15px;">
                 <button onclick="createTeacherAccount()" style="background:#28a745;">Create Teacher Account</button>
             </div>
-            <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
         `;
     };
     
@@ -1504,9 +1472,6 @@
         document.getElementById("adminPanel").classList.add("hidden");
         document.getElementById("adminNoticesPage").classList.remove("hidden");
         document.getElementById("adminNoticeContent").innerHTML = `
-            <button onclick="backToDashboard()" style="margin-bottom:15px;">
-                ← Back to Dashboard
-            </button>
             <h3>Add New Notice</h3>
             <input id="noticeTitle" placeholder="Notice Title" style="width:100%;padding:10px;margin-bottom:10px;">
             <textarea id="noticeMessage" placeholder="Notice Message" style="width:100%;height:120px;padding:10px;"></textarea>
@@ -1626,10 +1591,7 @@
         document.getElementById("adminPanel").classList.add("hidden");
         document.getElementById("adminCalendarPage").classList.remove("hidden");
         document.getElementById("adminCalendarContent").innerHTML = `
-            <button onclick="backToDashboard()" style="margin-bottom:15px;">
-                ← Back to Dashboard
-            </button>
-            <div style="background:#f8f9ff; padding:20px; border-radius:12px;">
+           <div style="background:#f8f9ff; padding:20px; border-radius:12px;">
                 <h3>Add Calendar Event</h3>
                 <input id="calendarDate" placeholder="Date e.g. 14 September 2026" style="width:100%;padding:10px;margin-bottom:10px;">
                 <textarea id="calendarEvent" placeholder="Event description" style="width:100%;height:100px;padding:10px;"></textarea>
