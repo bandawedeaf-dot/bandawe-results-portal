@@ -299,9 +299,6 @@
         
         let classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
         document.getElementById("adminStudentContent").innerHTML = `
-            <button onclick="backToDashboard()" style="margin-bottom:15px;">
-                ← Back to Dashboard
-            </button>
             <h3>Add New Student</h3>
             <input id="sname" placeholder="Full Name">
             <select id="sclass">
@@ -738,6 +735,7 @@
             <button onclick="processBulkUpload()" style="background:#003366; padding:12px 25px;">
                 Process & Save Results
             </button>
+            <button onclick="backToDashboard()" style="margin-top:10px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
             
             <div id="uploadStatus" style="margin-top:20px;"></div>
         `;
@@ -944,9 +942,8 @@
                 }
             });
             
-            let html = `
-                
-                <h3>Class Performance Dashboard</h3>
+            let html = ` <button onclick="backToDashboard()" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard </button>
+                 <h3>Class Performance Dashboard</h3>
                 <div style="margin:15px 0; padding:15px; background:#f8f9ff; border-radius:10px;">
                     <select id="dashTerm" onchange="refreshDashboard()" style="padding:10px; margin-right:10px;">
                         <option value="Term 1" ${selectedTerm === "Term 1" ? "selected" : ""}>Term 1</option>
@@ -1033,7 +1030,8 @@
                 });
             }, 300);
         } catch (e) {
-            document.getElementById("adminArea").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
+            document.getElementById("adminArea").innerHTML = `<p style="color:red;">Error: ${e.message}</p>
+            `;
         }
     };
 
@@ -1432,6 +1430,7 @@
                 <input id="teacherPassword" type="password" placeholder="Password (min 6 chars)" style="margin-bottom:15px;">
                 <button onclick="createTeacherAccount()" style="background:#28a745;">Create Teacher Account</button>
             </div>
+            <button onclick="backToDashbaord()"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard </button>
         `;
     };
     
