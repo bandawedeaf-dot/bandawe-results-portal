@@ -767,8 +767,18 @@
             alert("Error: " + e.message);
         }
     };
-    
-    // ================= BULK UPLOAD =================
+        window.openViewStudents = function(){
+            console.log("openViewStudents called");
+           // Hide all pages
+            document.getElementById("adminPanel").classList.add("hidden");
+            document.getElementById("adminStudentPage").classList.add("hidden");
+            document.getElementById("adminViewStudentsPage").classList.remove("hidden");
+            
+            // Load the students data
+            loadAllStudentsView();
+        };
+ 
+        // ================= BULK UPLOAD =================
     window.showBulkUpload = function() {
         openAdminPage();
         const user = window.currentUser;
@@ -2600,6 +2610,15 @@
         <h2>Student Management</h2>
         <div id="adminStudentContent"></div>
         <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
+    </div>
+   
+    <!-- ADMIN VIEW ALL STUDENTS PAGE -->
+    <div id="adminViewStudentsPage" class="hidden">
+        <h2><i class="fa-solid fa-users"></i> All Students</h2>
+        <div id="adminViewStudentsContent"></div>
+        <button onclick="backToDashboard()" style="margin-top:20px;">
+            <i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard
+        </button>
     </div>
 </body>
     </html>
