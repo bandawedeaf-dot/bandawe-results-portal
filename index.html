@@ -636,22 +636,32 @@ function loadResults(name, data) {
         }
     }
     
+    // Set header
     document.getElementById("reportTitle").innerText = `${data.term} ${data.year} Report Card`;
     document.getElementById("rname").innerText = name || "Unknown Student";
     document.getElementById("studentClass").innerHTML = `<strong>Class:</strong> ${data.class || "-"}`;
     
+    // Calculate totals
     const total = Number(data.total) || 0;
-    document.getElementById("total").innerText = total;
-    
     const maxTotal = subjects.length * 100;
     const percentage = ((total / maxTotal) * 100);
     const passed = percentage >= 40;
     
-    document.getElementById("overallGrade").innerText = passed ? "PASS" : "FAIL";
+    // Get grade number (1-4)
+    let gradeNumber = 1;
+    if (percentage >= 80) gradeNumber = 4;
+    else if (percentage >= 60) gradeNumber = 3;
+    else if (percentage >= 40) gradeNumber = 2;
+    else gradeNumber = 1;
+    
+    // Update summary
+    document.getElementById("total").innerText = `${total} / ${maxTotal}`;
+    document.getElementById("overallGrade").innerHTML = `<span style="font-size:24px;">${gradeNumber}</span>`;
     document.getElementById("resultStatus").innerHTML = passed
-        ? '<span class="pass-badge">PASSED</span>'
-        : '<span class="fail-badge">FAILED</span>';
-
+        ? '<span style="background:#28a745; color:white; padding:2px 15px; border-radius:15px; font-size:14px;">PASSED</span>'
+        : '<span style="background:#dc3545; color:white; padding:2px 15px; border-radius:15px; font-size:14px;">FAILED</span>';
+    
+    // Position calculation
     getDocs(collection(db, "results")).then(snapshot => {
         let classResults = [];
         
@@ -668,63 +678,66 @@ function loadResults(name, data) {
         classResults.sort((a, b) => b.total - a.total);
         const position = classResults.findIndex(student => student.name.startsWith(name)) + 1;
         
-        document.getElementById("position").innerText = `${position} out of ${classResults.length}`;
+        document.getElementById("position").innerText = `${position} / ${classResults.length}`;
     });
     
-    let tableHtml = `
-        <tr>
-            <th>Subject</th>
-            <th>Score</th>
-            <th>Grade</th>
-            <th>Remark</th>
-        </tr>`;
+    // Build table with signature column
+    let tableHtml = '';
     
     subjects.forEach(sub => {
         const score = Number(data.scores?.[sub]) || 0;
         const gr = getGradeAndRemark(score);
         tableHtml += `
             <tr>
-                <td><strong>${sub}</strong></td>
-                <td>${score}</td>
-                <td>${gr.grade}</td>
-                <td>${gr.remark}</td>
+                <td class="subject-cell">${sub}</td>
+                <td class="score-cell">${score}</td>
+                <td class="grade-cell">${gr.grade}</td>
+                <td class="remark-cell">${gr.remark}</td>
+                <td style="text-align:center; font-size:10px; color:#999;">__________</td>
             </tr>`;
     });
-    document.getElementById("table").innerHTML = tableHtml;
+    document.querySelector("#table tbody").innerHTML = tableHtml;
 
+    // Teacher's Remark
     document.getElementById("remark").innerHTML = getOverallRemark(Number(data.total) || 0, maxTotal);
 
+    // Headteacher's Remark - Dynamic
     let headteacherRemark = "";
-    const percentageValue = ((total / maxTotal) * 100);
-
-    if (percentageValue >= 80) {
-        headteacherRemark = "Excellent performance. Continue maintaining this high standard. Your hard work and commitment are highly commendable.";
-    } else if (percentageValue >= 60) {
-        headteacherRemark = "Good performance. Continue working hard and focus on improving areas where more effort is needed.";
-    } else if (percentageValue >= 40) {
-        headteacherRemark = "Satisfactory performance. More effort, regular revision and determination will help improve future results.";
+    if (percentage >= 80) {
+        headteacherRemark = "Excellent performance! You have excelled this term. Keep up this outstanding work.";
+    } else if (percentage >= 70) {
+        headteacherRemark = "Very good results. Continue with this positive attitude and you will achieve even more.";
+    } else if (percentage >= 60) {
+        headteacherRemark = "Good performance. With more focus on weak areas, you can do even better next term.";
+    } else if (percentage >= 40) {
+        headteacherRemark = "Satisfactory performance. More consistent effort and extra practice is recommended.";
     } else {
-        headteacherRemark = "Performance needs improvement. The learner is encouraged to work harder and seek support in challenging areas.";
+        headteacherRemark = "Needs significant improvement. Please seek extra support and work harder next term.";
     }
-    
     document.getElementById("headRemark").innerHTML = headteacherRemark;
+    
+    // Get dynamic next term date from calendar
+    getNextTermDate();
+    
+    // Get dynamic boarding fee from notices
+    getBoardingFee();
 }
-
-window.downloadPDF = function() { 
+ window.downloadPDF = function() { 
     const element = document.getElementById("reportCard");
     document.body.classList.add("pdf-mode");
     
     const studentName = document.getElementById("rname").innerText.replace(/\s+/g, '_');
     
     const opt = {
-        margin: [0.4, 0.3, 0.4, 0.3],
+        margin: [0.3, 0.2, 0.3, 0.2],  // Top, Right, Bottom, Left (in inches)
         filename: `${studentName}_Report_Card.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
+        image: { type: 'jpeg', quality: 0.95 },
         html2canvas: { 
-            scale: 3,
+            scale: 2,
             useCORS: true,
             letterRendering: true,
-            scrollY: 0
+            scrollY: 0,
+            width: 800
         },
         jsPDF: { 
             unit: 'in', 
@@ -732,7 +745,7 @@ window.downloadPDF = function() {
             orientation: 'portrait' 
         },
         pagebreak: { 
-            mode: ['css']
+            mode: ['avoid-all', 'css']
         }
     };
     
@@ -2101,6 +2114,113 @@ window.deleteStudent = async function(studentName) {
         alert("Calendar event deleted");
         manageCalendar();
     };
+        // ================= GET NEXT TERM DATE FROM CALENDAR =================
+async function getNextTermDate() {
+    try {
+        const snapshot = await getDocs(collection(db, "calendar"));
+        let nextTermDate = "14 September 2026"; // Default fallback
+        
+        // Look for events with "term" or "opening" in the activity
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const activity = data.activity?.toLowerCase() || "";
+            if (activity.includes("term") || activity.includes("opening") || activity.includes("reopen")) {
+                // If date exists and is in the future, use it
+                if (data.date) {
+                    nextTermDate = data.date;
+                }
+            }
+        });
+        
+        document.getElementById("nextTermDate").innerText = nextTermDate;
+    } catch (e) {
+        console.error("Error fetching next term date:", e);
+        document.getElementById("nextTermDate").innerText = "14 September 2026";
+    }
+}
+
+// ================= GET BOARDING FEE FROM NOTICES =================
+async function getBoardingFee() {
+    try {
+        const snapshot = await getDocs(collection(db, "announcements"));
+        let boardingFee = "MWK 45,000"; // Default fallback
+        
+        // Look for announcements with "fee" or "boarding" in the title or message
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const title = data.title?.toLowerCase() || "";
+            const message = data.message?.toLowerCase() || "";
+            
+            if (title.includes("fee") || title.includes("boarding") || 
+                message.includes("fee") || message.includes("boarding")) {
+                // Extract the fee amount from the message
+                const feeMatch = message.match(/([\d,]+)/);
+                if (feeMatch) {
+                    boardingFee = `MWK ${feeMatch[1]}`;
+                } else if (data.message) {
+                    // If no number found, use the whole message (but keep it short)
+                    const shortMsg = data.message.substring(0, 50);
+                    boardingFee = shortMsg;
+                }
+            }
+        });
+        
+        document.getElementById("boardingFee").innerText = boardingFee;
+    } catch (e) {
+        console.error("Error fetching boarding fee:", e);
+        document.getElementById("boardingFee").innerText = "MWK 45,000";
+    }
+}
+
+// ================= UPDATE CALENDAR FUNCTION =================
+// Update this function to include a "term opening" event
+window.saveCalendarEvent = async function(){
+    const date = document.getElementById("calendarDate").value.trim();
+    const activity = document.getElementById("calendarEvent").value.trim();
+    
+    if(!date || !activity){
+        return alert("Please fill all fields");
+    }
+    
+    try{
+        await addDoc(collection(db,"calendar"), {
+            date: date,
+            activity: activity,
+            active: true,
+            createdAt: new Date()
+        });
+        
+        alert("Calendar event saved");
+        manageCalendar();
+    }
+    catch(e){
+        alert("Error: "+e.message);
+    }
+};
+
+// ================= UPDATE NOTICE FUNCTION =================
+// Update this to include boarding fee announcements
+window.saveNotice = async function(){
+    const title = document.getElementById("noticeTitle").value.trim();
+    const message = document.getElementById("noticeMessage").value.trim();
+    
+    if(!title || !message) return alert("Fill all fields");
+    
+    await addDoc(collection(db,"announcements"), {
+        title: title, 
+        message: message,
+        date: new Date(),
+        active: true
+    });
+    
+    alert("Notice saved");
+    manageNotices();
+};
+
+// ================= PRINT FUNCTION =================
+window.printReport = function() {
+    window.print();
+};
 </script>
     
     <style>
@@ -2389,262 +2509,669 @@ window.deleteStudent = async function(studentName) {
         .school-footer p {
             margin: 8px 0;
         }
-              
-        .report-card {
+       /* ================= COMPACT REPORT CARD ================= */
+        #reportCard {
+            width: 100%;
+            max-width: 210mm;
+            margin: 0 auto;
             background: white;
-            border-radius: 22px;
-            padding: 18px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-            margin-top: 20px;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 12px;
+            padding: 15px 20px;
+            box-sizing: border-box;
         }
-        
-        .student-header {
-            background: linear-gradient(to right, #003366, #0055aa);
-            color: white;
-            padding: 10px;
-            border-radius: 18px;
+        /* Report Header */
+        .report-header {
             text-align: center;
-            margin-bottom: 25px;
+            border-bottom: 2px solid #003366;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
         }
         
-        .student-header h2 {
-            margin: 4px 0;
+        .report-header .school-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #003366;
+            letter-spacing: 1px;
+            margin: 0;
         }
         
-
-        .student-header p {
+        .report-header .report-title {
+            font-size: 14px;
+            font-weight: bold;
             margin: 2px 0;
         }
         
-        .student-header h2 {
-            color: white;
-            margin: 10px 0;
+        .report-header .student-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-top: 5px;
+            padding: 0 5px;
+        }
+        /* Student Header */
+        .student-header {
+            background: #f0f4f8;
+            padding: 8px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
         }
         
+        .student-header .name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #003366;
+        }
+        .student-header .class {
+            font-size: 13px;
+            color: #333;
+        }
+        
+        /* Summary Grid - COMPACT */
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
-            gap: 10px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 10px;
         }
-        
         .summary-box {
-            background: #f5f8ff;
-            padding: 10px;
-            border-radius: 16px;
+            background: #f8f9fa;
+            padding: 5px 8px;
+            border-radius: 4px;
             text-align: center;
-            border-left: 6px solid #003366;
+            border-left: 3px solid #003366;
         }
-        
-        .summary-box h3 {
+        .summary-box h4 {
             margin: 0;
-            color: #003366;
-            font-size: 16px;
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        
         .summary-box p {
-            font-size: 18px;
+            margin: 2px 0 0;
+            font-size: 16px;
             font-weight: bold;
-            margin-top: 10px;
+            color: #003366;
         }
         
-        .pass-badge {
-            background: #28a745;
-            color: white;
-            padding: 10px 18px;
-            border-radius: 30px;
-            display: inline-block;
-            font-weight: bold;
+        .summary-box .grade-value {
+            font-size: 20px;
         }
-        
-        .fail-badge {
-            background: #dc3545;
-            color: white;
-            padding: 10px 18px;
-            border-radius: 30px;
-            display: inline-block;
-            font-weight: bold;
-        }
-        
+        /* Table - COMPACT */
         #table {
-            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+            font-size: 11px;
         }
         
         #table th {
             background: #003366;
             color: white;
-            padding: 14px;
+            padding: 5px 6px;
+            text-align: left;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         #table td {
-            padding: 12px;
+            padding: 4px 6px;
+            border-bottom: 1px solid #e0e0e0;
         }
-        
         #table tr:nth-child(even) {
-            background: #f8f9fc;
+            background: #f8f9fa;
         }
         
-        .teacher-remark {
-            margin-top:10px;
-            padding:8px;
-            border-top:1px solid #333;
-            font-size:14px;
+        #table .subject-cell {
+            font-weight: 600;
         }
         
-        .teacher-remark h3 {
-            margin:5px 0;
-            font-size:15px;
+        #table .score-cell {
+            text-align: center;
+            font-weight: 500;
+        }
+        #table .grade-cell {
+            text-align: center;
+        }
+        #table .remark-cell {
+            font-size: 10px;
+        }
+        /* Remarks Section - COMPACT */
+        .remarks-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 8px 0;
+            padding: 8px 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .remarks-section .remark-box {
+            font-size: 11px;
+        }
+        .remarks-section .remark-box strong {
+            font-size: 10px;
+            color: #003366;
+            display: block;
+            margin-bottom: 2px;
         }
         
-        .teacher-remark p {
-            margin:4px 0;
+        .remarks-section .remark-box p {
+            margin: 0;
+            line-height: 1.3;
         }
-       
-        #reportCard {
-            width: 100%;
-            max-width: 190mm;
-            margin: auto;
-            background: white;
+        /* Requirements Section - COMPACT */
+        .requirements-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 20px;
+            margin: 8px 0;
+            padding: 8px 12px;
+            background: #fff8e7;
+            border-radius: 4px;
+            border: 1px solid #f0e0c0;
+            font-size: 11px;
         }
-        
-        #reportCard table {
-            page-break-inside: avoid;
+        .requirements-section .req-title {
+            font-weight: bold;
+            color: #003366;
+            font-size: 10px;
+            text-transform: uppercase;
+            grid-column: 1 / -1;
+            margin-bottom: 2px;
         }
-        
-        #reportCard tr,
-        #reportCard td,
-        #reportCard th {
-            page-break-inside: avoid;
+        .requirements-section ul {
+            margin: 0;
+            padding-left: 18px;
+            list-style-type: none;
         }
-        
-        .teacher-remark,
-        .summary-grid,
-        .student-header {
-            page-break-inside: avoid;
+        .requirements-section ul li {
+            padding: 1px 0;
+            position: relative;
         }
-
-        .no-print {
-            display: inline-block;
+        .requirements-section ul li::before {
+            content: "•";
+            color: #003366;
+            font-weight: bold;
+            position: absolute;
+            left: -14px;
+        }
+        /* Footer Info - COMPACT */
+        .footer-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid #ddd;
+            font-size: 10px;
+            color: #555;
+        }
+        .footer-info .next-term {
+            color: #003366;
+            font-weight: bold;
+        }
+        .footer-info .boarding-fee {
+            color: #c0392b;
+            font-weight: bold;
+        }
+        /* Signature Section */
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid #ddd;
+            font-size: 11px;
+        }
+        .signature-section .signature-line {
+            text-align: center;
+            min-width: 120px;
+        }
+        .signature-section .signature-line .line {
+            border-bottom: 1px solid #333;
+            width: 120px;
+            margin: 20px auto 2px;
+        }
+        /* ================= PRINT STYLES ================= */
+        @media print {
+            body {
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            
+            #reportCard {
+                padding: 10px 15px !important;
+                max-width: 100% !important;
+                font-size: 11px !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            #table th, #table td {
+                padding: 3px 5px !important;
+            }
+            .summary-box {
+                padding: 3px 6px !important;
+            }
+            .summary-box p {
+                font-size: 14px !important;
+            }
+            .requirements-section {
+                padding: 6px 10px !important;
+            }
+            
+            .remarks-section {
+                padding: 6px 10px !important;
+            }
+            
+            .student-header {
+                padding: 5px 12px !important;
+            }
+            .signature-section .signature-line .line {
+                width: 80px !important;
+            }
+        }
+        /* PDF Mode - for download */
+        .pdf-mode #reportCard {
+            padding: 10px 15px !important;
+            max-width: 100% !important;
+            font-size: 11px !important;
         }
         
         .pdf-mode .no-print {
             display: none !important;
         }
-
-        .school-logo {
-            width: 120px;
-            height: 120px;
-            object-fit: contain;
-            background: white;
-            padding: 8px;
-            border-radius: 50%;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-            margin-bottom: 15px;
-        }
-
-        .report-logo {
-            width: 85px;
-            height: 85px;
-            object-fit: contain;
-            background: white;
-            padding: 5px;
-            border-radius: 50%;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.25);
-        }
-
-        .student-header h1 {
-            margin: 10px 0 5px;
-            font-size: 28px;
-            color: white;
-        }
-
-        /* === PDF OPTIMIZATION === */
-        .pdf-mode #reportCard {
-            padding: 20px !important;
-            max-width: 190mm;
-            margin: 0 auto;
-        }
         
-        .pdf-mode .student-header {
-            padding: 12px 15px !important;
-            margin-bottom: 15px !important;
+        .pdf-mode #table th, 
+        .pdf-mode #table td {
+            padding: 3px 5px !important;
         }
-        
-        .pdf-mode .report-logo {
-            width: 65px !important;
-            height: 65px !important;
-            margin-bottom: 8px !important;
-        }
-        
-        .pdf-mode .student-header h1 {
-            font-size: 24px !important;
-            margin: 5px 0 3px 0 !important;
-        }
-        
-        .pdf-mode .student-header h2 {
-            font-size: 18px !important;
-            margin: 3px 0 !important;
-        }
-        
-        .pdf-mode .student-header p {
-            font-size: 15px !important;
-            margin: 2px 0 !important;
-        }
-        
-        .pdf-mode .summary-grid {
-            gap: 8px !important;
-            margin-bottom: 18px !important;
-        }
-        
         .pdf-mode .summary-box {
-            padding: 8px !important;
+            padding: 3px 6px !important;
         }
-        
-        .pdf-mode .teacher-remark {
-            margin-top: 15px !important;
-            padding: 12px !important;
+        .pdf-mode .summary-box p {
+            font-size: 14px !important;
         }
-        /* Reduce table padding slightly in PDF */
-        .pdf-mode #table td,
-        .pdf-mode #table th {
-            padding: 8px 6px !important;
+        /* Mobile Responsive */
+        @media (max-width: 600px) {
+            #reportCard {
+                padding: 10px !important;
+            }
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            
+            .remarks-section {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .requirements-section {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .student-header {
+                flex-direction: column !important;
+                text-align: center !important;
+            }
+            .footer-info {
+                flex-direction: column !important;
+                gap: 5px !important;
+                text-align: center !important;
+            }
         }
-        #reportCard {
-            width: 700px;
-            margin:auto;
-            font-family: Arial, sans-serif;
         }
-        
-        #reportCard table {
-            width:100%;
-            border-collapse:collapse;
-        }
-        
-        #reportCard th,
-        #reportCard td {
-            border:1px solid black;
-            padding:8px;
-        
-        }
-        
-        .no-print {
-            margin-top:15px;
-        }
-
-        .headteacher-remark,
-        .teacher-remark {
-            margin-top:20px;
-            padding:10px;
-            border-top:1px solid black;
-        }
-        
-        .headteacher-remark h3,
-        .teacher-remark h3 {
-            font-size:16px;
-            margin-bottom:5px;
+        /* Report Header */
+        .report-header {
+            text-align: center;
+            border-bottom: 2px solid #003366;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
         }
 
+.report-header .school-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #003366;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+.report-header .report-title {
+    font-size: 14px;
+    font-weight: bold;
+    margin: 2px 0;
+}
+
+.report-header .student-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-top: 5px;
+    padding: 0 5px;
+}
+
+/* Student Header */
+.student-header {
+    background: #f0f4f8;
+    padding: 8px 15px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.student-header .name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #003366;
+}
+
+.student-header .class {
+    font-size: 13px;
+    color: #333;
+}
+
+/* Summary Grid - COMPACT */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.summary-box {
+    background: #f8f9fa;
+    padding: 5px 8px;
+    border-radius: 4px;
+    text-align: center;
+    border-left: 3px solid #003366;
+}
+
+.summary-box h4 {
+    margin: 0;
+    font-size: 10px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.summary-box p {
+    margin: 2px 0 0;
+    font-size: 16px;
+    font-weight: bold;
+    color: #003366;
+}
+
+.summary-box .grade-value {
+    font-size: 20px;
+}
+
+/* Table - COMPACT */
+#table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 11px;
+}
+
+#table th {
+    background: #003366;
+    color: white;
+    padding: 5px 6px;
+    text-align: left;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#table td {
+    padding: 4px 6px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+#table tr:nth-child(even) {
+    background: #f8f9fa;
+}
+
+#table .subject-cell {
+    font-weight: 600;
+}
+
+#table .score-cell {
+    text-align: center;
+    font-weight: 500;
+}
+
+#table .grade-cell {
+    text-align: center;
+}
+
+#table .remark-cell {
+    font-size: 10px;
+}
+
+/* Remarks Section - COMPACT */
+.remarks-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 8px 0;
+    padding: 8px 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.remarks-section .remark-box {
+    font-size: 11px;
+}
+
+.remarks-section .remark-box strong {
+    font-size: 10px;
+    color: #003366;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.remarks-section .remark-box p {
+    margin: 0;
+    line-height: 1.3;
+}
+
+/* Requirements Section - COMPACT */
+.requirements-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 20px;
+    margin: 8px 0;
+    padding: 8px 12px;
+    background: #fff8e7;
+    border-radius: 4px;
+    border: 1px solid #f0e0c0;
+    font-size: 11px;
+}
+
+.requirements-section .req-title {
+    font-weight: bold;
+    color: #003366;
+    font-size: 10px;
+    text-transform: uppercase;
+    grid-column: 1 / -1;
+    margin-bottom: 2px;
+}
+
+.requirements-section ul {
+    margin: 0;
+    padding-left: 18px;
+    list-style-type: none;
+}
+
+.requirements-section ul li {
+    padding: 1px 0;
+    position: relative;
+}
+
+.requirements-section ul li::before {
+    content: "•";
+    color: #003366;
+    font-weight: bold;
+    position: absolute;
+    left: -14px;
+}
+
+/* Footer Info - COMPACT */
+.footer-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #ddd;
+    font-size: 10px;
+    color: #555;
+}
+
+.footer-info .next-term {
+    color: #003366;
+    font-weight: bold;
+}
+
+.footer-info .boarding-fee {
+    color: #c0392b;
+    font-weight: bold;
+}
+
+/* Signature Section */
+.signature-section {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #ddd;
+    font-size: 11px;
+}
+
+.signature-section .signature-line {
+    text-align: center;
+    min-width: 120px;
+}
+
+.signature-section .signature-line .line {
+    border-bottom: 1px solid #333;
+    width: 120px;
+    margin: 20px auto 2px;
+}
+
+/* ================= PRINT STYLES ================= */
+@media print {
+    body {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    #reportCard {
+        padding: 10px 15px !important;
+        max-width: 100% !important;
+        font-size: 11px !important;
+    }
+    
+    .no-print {
+        display: none !important;
+    }
+    
+    #table th, #table td {
+        padding: 3px 5px !important;
+    }
+    
+    .summary-box {
+        padding: 3px 6px !important;
+    }
+    
+    .summary-box p {
+        font-size: 14px !important;
+    }
+    
+    .requirements-section {
+        padding: 6px 10px !important;
+    }
+    
+    .remarks-section {
+        padding: 6px 10px !important;
+    }
+    
+    .student-header {
+        padding: 5px 12px !important;
+    }
+    
+    .signature-section .signature-line .line {
+        width: 80px !important;
+    }
+}
+
+/* PDF Mode - for download */
+.pdf-mode #reportCard {
+    padding: 10px 15px !important;
+    max-width: 100% !important;
+    font-size: 11px !important;
+}
+
+.pdf-mode .no-print {
+    display: none !important;
+}
+
+.pdf-mode #table th, 
+.pdf-mode #table td {
+    padding: 3px 5px !important;
+}
+
+.pdf-mode .summary-box {
+    padding: 3px 6px !important;
+}
+
+.pdf-mode .summary-box p {
+    font-size: 14px !important;
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+    #reportCard {
+        padding: 10px !important;
+    }
+    
+    .summary-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .remarks-section {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .requirements-section {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .student-header {
+        flex-direction: column !important;
+        text-align: center !important;
+    }
+    
+    .footer-info {
+        flex-direction: column !important;
+        gap: 5px !important;
+        text-align: center !important;
+    }
+}
+        
         .admin-grid{
             display:grid;
             grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
@@ -3076,6 +3603,13 @@ window.deleteStudent = async function(studentName) {
         <div id="adminNoticeContent"></div>
         
         <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
+    </div>
+    <!-- Admin Notice Form - Add field for boarding fee -->
+    <div style="background:#f8f9ff; padding:20px; border-radius:12px;">
+        <h4>Add School Notice</h4>
+        <input id="noticeTitle" placeholder="Notice Title" style="width:100%;padding:10px;margin-bottom:10px;">
+        <textarea id="noticeMessage" placeholder="Notice Message (e.g., 'Boarding Fee: MWK 45,000')" style="width:100%;height:120px;padding:10px;"></textarea>
+        <button onclick="saveNotice()"><i class="fa-solid fa-save"></i> Save Notice</button>
     </div>
     
     <!-- ADMIN CALENDAR PAGE -->
