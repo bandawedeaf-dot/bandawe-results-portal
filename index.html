@@ -2835,342 +2835,287 @@ window.printReport = function() {
             padding-bottom: 8px;
             margin-bottom: 10px;
         }
-
-.report-header .school-name {
-    font-size: 18px;
-    font-weight: bold;
-    color: #003366;
-    letter-spacing: 1px;
-    margin: 0;
-}
-
-.report-header .report-title {
-    font-size: 14px;
-    font-weight: bold;
-    margin: 2px 0;
-}
-
-.report-header .student-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    margin-top: 5px;
-    padding: 0 5px;
-}
-
-/* Student Header */
-.student-header {
-    background: #f0f4f8;
-    padding: 8px 15px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.student-header .name {
-    font-size: 16px;
-    font-weight: bold;
-    color: #003366;
-}
-
-.student-header .class {
-    font-size: 13px;
-    color: #333;
-}
-
-/* Summary Grid - COMPACT */
-.summary-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-    margin-bottom: 10px;
-}
-
-.summary-box {
-    background: #f8f9fa;
-    padding: 5px 8px;
-    border-radius: 4px;
-    text-align: center;
-    border-left: 3px solid #003366;
-}
-
-.summary-box h4 {
-    margin: 0;
-    font-size: 10px;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.summary-box p {
-    margin: 2px 0 0;
-    font-size: 16px;
-    font-weight: bold;
-    color: #003366;
-}
-
-.summary-box .grade-value {
-    font-size: 20px;
-}
-
-/* Table - COMPACT */
-#table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 8px 0;
-    font-size: 11px;
-}
-
-#table th {
-    background: #003366;
-    color: white;
-    padding: 5px 6px;
-    text-align: left;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-#table td {
-    padding: 4px 6px;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-#table tr:nth-child(even) {
-    background: #f8f9fa;
-}
-
-#table .subject-cell {
-    font-weight: 600;
-}
-
-#table .score-cell {
-    text-align: center;
-    font-weight: 500;
-}
-
-#table .grade-cell {
-    text-align: center;
-}
-
-#table .remark-cell {
-    font-size: 10px;
-}
-
-/* Remarks Section - COMPACT */
-.remarks-section {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin: 8px 0;
-    padding: 8px 10px;
-    background: #f8f9fa;
-    border-radius: 4px;
-}
-
-.remarks-section .remark-box {
-    font-size: 11px;
-}
-
-.remarks-section .remark-box strong {
-    font-size: 10px;
-    color: #003366;
-    display: block;
-    margin-bottom: 2px;
-}
-
-.remarks-section .remark-box p {
-    margin: 0;
-    line-height: 1.3;
-}
-
-/* Requirements Section - COMPACT */
-.requirements-section {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px 20px;
-    margin: 8px 0;
-    padding: 8px 12px;
-    background: #fff8e7;
-    border-radius: 4px;
-    border: 1px solid #f0e0c0;
-    font-size: 11px;
-}
-
-.requirements-section .req-title {
-    font-weight: bold;
-    color: #003366;
-    font-size: 10px;
-    text-transform: uppercase;
-    grid-column: 1 / -1;
-    margin-bottom: 2px;
-}
-
-.requirements-section ul {
-    margin: 0;
-    padding-left: 18px;
-    list-style-type: none;
-}
-
-.requirements-section ul li {
-    padding: 1px 0;
-    position: relative;
-}
-
-.requirements-section ul li::before {
-    content: "•";
-    color: #003366;
-    font-weight: bold;
-    position: absolute;
-    left: -14px;
-}
-
-/* Footer Info - COMPACT */
-.footer-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid #ddd;
-    font-size: 10px;
-    color: #555;
-}
-
-.footer-info .next-term {
-    color: #003366;
-    font-weight: bold;
-}
-
-.footer-info .boarding-fee {
-    color: #c0392b;
-    font-weight: bold;
-}
-
-/* Signature Section */
-.signature-section {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid #ddd;
-    font-size: 11px;
-}
-
-.signature-section .signature-line {
-    text-align: center;
-    min-width: 120px;
-}
-
-.signature-section .signature-line .line {
-    border-bottom: 1px solid #333;
-    width: 120px;
-    margin: 20px auto 2px;
-}
-
-/* ================= PRINT STYLES ================= */
-@media print {
-    body {
-        background: white !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-    
-    #reportCard {
-        padding: 10px 15px !important;
-        max-width: 100% !important;
-        font-size: 11px !important;
-    }
-    
-    .no-print {
-        display: none !important;
-    }
-    
-    #table th, #table td {
-        padding: 3px 5px !important;
-    }
-    
-    .summary-box {
-        padding: 3px 6px !important;
-    }
-    
-    .summary-box p {
-        font-size: 14px !important;
-    }
-    
-    .requirements-section {
-        padding: 6px 10px !important;
-    }
-    
-    .remarks-section {
-        padding: 6px 10px !important;
-    }
-    
-    .student-header {
-        padding: 5px 12px !important;
-    }
-    
-    .signature-section .signature-line .line {
-        width: 80px !important;
-    }
-}
-
-/* PDF Mode - for download */
-.pdf-mode #reportCard {
-    padding: 10px 15px !important;
-    max-width: 100% !important;
-    font-size: 11px !important;
-}
-
-.pdf-mode .no-print {
-    display: none !important;
-}
-
-.pdf-mode #table th, 
-.pdf-mode #table td {
-    padding: 3px 5px !important;
-}
-
-.pdf-mode .summary-box {
-    padding: 3px 6px !important;
-}
-
-.pdf-mode .summary-box p {
-    font-size: 14px !important;
-}
-
-/* Mobile Responsive */
-@media (max-width: 600px) {
-    #reportCard {
-        padding: 10px !important;
-    }
-    
-    .summary-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
-    
-    .remarks-section {
-        grid-template-columns: 1fr !important;
-    }
-    
-    .requirements-section {
-        grid-template-columns: 1fr !important;
-    }
-    
-    .student-header {
-        flex-direction: column !important;
-        text-align: center !important;
-    }
-    
-    .footer-info {
-        flex-direction: column !important;
-        gap: 5px !important;
-        text-align: center !important;
-    }
-}
+        .report-header .school-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #003366;
+        letter-spacing: 1px;
+            margin: 0;
+        }
+        .report-header .report-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 2px 0;
+        }
+        .report-header .student-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-top: 5px;
+            padding: 0 5px;
+        }
+        /* Student Header */
+        .student-header {
+            background: #f0f4f8;
+            padding: 8px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .student-header .name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #003366;
+        }
+        .student-header .class {
+            font-size: 13px;
+            color: #333;
+        }
+        /* Summary Grid - COMPACT */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .summary-box {
+            background: #f8f9fa;
+            padding: 5px 8px;
+            border-radius: 4px;
+            text-align: center;
+            border-left: 3px solid #003366;
+        }
+        .summary-box h4 {
+            margin: 0;
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .summary-box p {
+            margin: 2px 0 0;
+            font-size: 16px;
+            font-weight: bold;
+            color: #003366;
+        }
+        .summary-box .grade-value {
+            font-size: 20px;
+        }
+        /* Table - COMPACT */
+        #table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+            font-size: 11px;
+        }
+        #table th {
+            background: #003366;
+            color: white;
+            padding: 5px 6px;
+            text-align: left;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        #table td {
+            padding: 4px 6px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        #table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        #table .subject-cell {
+            font-weight: 600;
+        }
+        #table .score-cell {
+            text-align: center;
+            font-weight: 500;
+        }
+        #table .grade-cell {
+            text-align: center;
+        }
+        #table .remark-cell {
+            font-size: 10px;
+        }
+        /* Remarks Section - COMPACT */
+        .remarks-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 8px 0;
+            padding: 8px 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .remarks-section .remark-box {
+            font-size: 11px;
+        }
+        .remarks-section .remark-box strong {
+            font-size: 10px;
+            color: #003366;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .remarks-section .remark-box p {
+            margin: 0;
+            line-height: 1.3;
+        }
+        /* Requirements Section - COMPACT */
+        .requirements-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 20px;
+            margin: 8px 0;
+            padding: 8px 12px;
+            background: #fff8e7;
+            border-radius: 4px;
+            border: 1px solid #f0e0c0;
+            font-size: 11px;
+        }
+        .requirements-section .req-title {
+            font-weight: bold;
+            color: #003366;
+            font-size: 10px;
+            text-transform: uppercase;
+            grid-column: 1 / -1;
+            margin-bottom: 2px;
+        }
+        .requirements-section ul {
+            margin: 0;
+            padding-left: 18px;
+            list-style-type: none;
+        }
+        .requirements-section ul li {
+            padding: 1px 0;
+            position: relative;
+        }
+        .requirements-section ul li::before {
+            content: "•";
+            color: #003366;
+            font-weight: bold;
+            position: absolute;
+            left: -14px;
+        }
+        /* Footer Info - COMPACT */
+        .footer-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid #ddd;
+            font-size: 10px;
+            color: #555;
+        }
+        .footer-info .next-term {
+            color: #003366;
+            font-weight: bold;
+        }
+        .footer-info .boarding-fee {
+            color: #c0392b;
+            font-weight: bold;
+        }
+        /* Signature Section */
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid #ddd;
+            font-size: 11px;
+        }
+        .signature-section .signature-line {
+            text-align: center;
+            min-width: 120px;
+        }
+        .signature-section .signature-line .line {
+            border-bottom: 1px solid #333;
+            width: 120px;
+            margin: 20px auto 2px;
+        }
+        /* ================= PRINT STYLES ================= */
+        @media print {
+            body {
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            #reportCard {
+                padding: 10px 15px !important;
+                max-width: 100% !important;
+                font-size: 11px !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            #table th, #table td {
+                padding: 3px 5px !important;
+            }
+            .summary-box {
+                padding: 3px 6px !important;
+            }
+            .summary-box p {
+                font-size: 14px !important;
+            }
+            .requirements-section {
+                padding: 6px 10px !important;
+            }
+            .remarks-section {
+                padding: 6px 10px !important;
+            }
+            .student-header {
+                padding: 5px 12px !important;
+            }
+            .signature-section .signature-line .line {
+                width: 80px !important;
+            }
+        }
+        /* PDF Mode - for download */
+        .pdf-mode #reportCard {
+            padding: 10px 15px !important;
+            max-width: 100% !important;
+            font-size: 11px !important;
+        }
+        .pdf-mode .no-print {
+            display: none !important;
+        }
+        .pdf-mode #table th, 
+        .pdf-mode #table td {
+            padding: 3px 5px !important;
+        }
+        .pdf-mode .summary-box {
+            padding: 3px 6px !important;
+        }
+        .pdf-mode .summary-box p {
+            font-size: 14px !important;
+        }
+        /* Mobile Responsive */
+        @media (max-width: 600px) {
+            #reportCard {
+                padding: 10px !important;
+            }
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .remarks-section {
+                grid-template-columns: 1fr !important;
+            }
+            .requirements-section {
+                grid-template-columns: 1fr !important;
+            }
+            .student-header {
+                flex-direction: column !important;
+                text-align: center !important;
+            }
+            .footer-info {
+                flex-direction: column !important;
+                gap: 5px !important;
+                text-align: center !important;
+            }
+        }
         
         .admin-grid{
             display:grid;
@@ -3604,14 +3549,7 @@ window.printReport = function() {
         
         <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
     </div>
-    <!-- Admin Notice Form - Add field for boarding fee -->
-    <div style="background:#f8f9ff; padding:20px; border-radius:12px;">
-        <h4>Add School Notice</h4>
-        <input id="noticeTitle" placeholder="Notice Title" style="width:100%;padding:10px;margin-bottom:10px;">
-        <textarea id="noticeMessage" placeholder="Notice Message (e.g., 'Boarding Fee: MWK 45,000')" style="width:100%;height:120px;padding:10px;"></textarea>
-        <button onclick="saveNotice()"><i class="fa-solid fa-save"></i> Save Notice</button>
-    </div>
-    
+
     <!-- ADMIN CALENDAR PAGE -->
     <div id="adminCalendarPage" class="hidden">
         <h2 style="color:#003366;"><i class="fa-solid fa-calendar-days"></i>Manage Academic Calendar</h2>
