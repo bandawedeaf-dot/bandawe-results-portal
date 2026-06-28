@@ -625,8 +625,9 @@ window.search = async function() {
         alert("Error: " + e.message);
     }
 };
-
-function loadResults(name, data) {
+ function loadResults(name, data) {
+    console.log("Loading results for:", name, data);
+    
     const backBtn = document.getElementById("resultBackBtn");
     if (backBtn) {
         if (window.currentUser) {
@@ -681,22 +682,28 @@ function loadResults(name, data) {
         document.getElementById("position").innerText = `${position} / ${classResults.length}`;
     });
     
-    // Build table with signature column
+    // Build table with signature column - FIXED: using tbody
     let tableHtml = '';
-    
     subjects.forEach(sub => {
         const score = Number(data.scores?.[sub]) || 0;
         const gr = getGradeAndRemark(score);
         tableHtml += `
             <tr>
-                <td class="subject-cell">${sub}</td>
-                <td class="score-cell">${score}</td>
-                <td class="grade-cell">${gr.grade}</td>
-                <td class="remark-cell">${gr.remark}</td>
-                <td style="text-align:center; font-size:10px; color:#999;">__________</td>
+                <td style="padding:4px 6px; font-weight:600;">${sub}</td>
+                <td style="padding:4px 6px; text-align:center; font-weight:500;">${score}</td>
+                <td style="padding:4px 6px; text-align:center;">${gr.grade}</td>
+                <td style="padding:4px 6px; font-size:10px;">${gr.remark}</td>
+                <td style="padding:4px 6px; text-align:center; font-size:10px; color:#999;">__________</td>
             </tr>`;
     });
-    document.querySelector("#table tbody").innerHTML = tableHtml;
+    
+    // FIXED: Using getElementById and tbody
+    const tbody = document.getElementById("resultsTableBody");
+    if (tbody) {
+        tbody.innerHTML = tableHtml;
+    } else {
+        console.error("resultsTableBody not found!");
+    }
 
     // Teacher's Remark
     document.getElementById("remark").innerHTML = getOverallRemark(Number(data.total) || 0, maxTotal);
@@ -721,7 +728,12 @@ function loadResults(name, data) {
     
     // Get dynamic boarding fee from notices
     getBoardingFee();
-}
+        }
+        // ================= PRINT REPORT =================
+window.printReport = function() {
+    window.print();
+};
+
  window.downloadPDF = function() { 
     const element = document.getElementById("reportCard");
     document.body.classList.add("pdf-mode");
@@ -3387,88 +3399,132 @@ window.printReport = function() {
         </div>
     </div>
 
-    <!-- RESULTS -->
+  <!-- RESULTS -->
 <div id="results" class="hidden">
-
-<div id="reportCard">
-
-        <div class="student-header">
-            
-            <img src="logo.png"
-                class="report-logo"
-                alt="School Logo">
-            
-            <h1>Bandawe School for the Deaf</h1>
-            <h2 id="reportTitle"></h2>
-            <div style="margin: 8px 0 4px 0;">
-                <strong id="rname" style="font-size: 22px;"></strong>
-            </div>
-            <p id="studentClass"></p>
-        
+    <div id="reportCard">
+        <!-- Header -->
+        <div class="report-header" style="text-align:center; border-bottom:2px solid #003366; padding-bottom:8px; margin-bottom:10px;">
+            <img src="logo.png" style="width:60px; height:60px; display:block; margin:0 auto 5px; border-radius:50%;">
+            <h1 style="font-size:18px; color:#003366; margin:0; letter-spacing:1px;">BANDAWE SCHOOL FOR THE DEAF</h1>
+            <div style="font-size:14px; font-weight:bold; margin:2px 0;" id="reportTitle">Term 3 2026 Report Card</div>
         </div>
 
-        <div class="summary-grid">
-
-            <div class="summary-box">
-                <h3>Total Score</h3>
-                <p id="total"></p>
-            </div>
-
-            <div class="summary-box">
-                <h3>Overall Grade</h3>
-                <p id="overallGrade"></p>
-            </div>
-
-            <div class="summary-box">
-                <h3>Position</h3>
-                <p id="position"></p>
-            </div>
-
-            <div class="summary-box">
-                <h3>Result</h3>
-                <p id="resultStatus"></p>
-            </div>
-
+        <!-- Student Info -->
+        <div style="background:#f0f4f8; padding:6px 15px; border-radius:5px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+            <span style="font-size:16px; font-weight:bold; color:#003366;" id="rname">Student Name</span>
+            <span style="font-size:13px; color:#333;" id="studentClass">Class: Standard 5</span>
         </div>
 
-        <table id="table"></table>
-
-        <div class="teacher-remark">
-            <h3>
-                <i class="fa-solid fa-comments"></i>
-                Teacher's Remark
-            </h3>
-            <p id="remark"></p>
-            
-            <h3 style="margin-top:10px;">
-                <i class="fa-solid fa-user-tie"></i>
-                Headteacher's Remark
-            </h3>
-            <p id="headRemark"></p>
-        
+        <!-- Summary Grid -->
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:8px;">
+            <div style="background:#f8f9fa; padding:4px 8px; border-radius:4px; text-align:center; border-left:3px solid #003366;">
+                <h4 style="margin:0; font-size:10px; color:#666; text-transform:uppercase;">Total Score</h4>
+                <p style="margin:2px 0 0; font-size:16px; font-weight:bold; color:#003366;" id="total">0</p>
+            </div>
+            <div style="background:#f8f9fa; padding:4px 8px; border-radius:4px; text-align:center; border-left:3px solid #003366;">
+                <h4 style="margin:0; font-size:10px; color:#666; text-transform:uppercase;">Grade</h4>
+                <p style="margin:2px 0 0; font-size:20px; font-weight:bold; color:#003366;" id="overallGrade">-</p>
+            </div>
+            <div style="background:#f8f9fa; padding:4px 8px; border-radius:4px; text-align:center; border-left:3px solid #003366;">
+                <h4 style="margin:0; font-size:10px; color:#666; text-transform:uppercase;">Position</h4>
+                <p style="margin:2px 0 0; font-size:16px; font-weight:bold; color:#003366;" id="position">-</p>
+            </div>
+            <div style="background:#f8f9fa; padding:4px 8px; border-radius:4px; text-align:center; border-left:3px solid #003366;">
+                <h4 style="margin:0; font-size:10px; color:#666; text-transform:uppercase;">Result</h4>
+                <p style="margin:2px 0 0; font-size:14px; font-weight:bold;" id="resultStatus">-</p>
+            </div>
         </div>
 
-        <div style="margin-top:25px; text-align:center;">
+        <!-- Results Table -->
+        <table style="width:100%; border-collapse:collapse; margin:6px 0; font-size:11px;">
+            <thead>
+                <tr>
+                    <th style="background:#003366; color:white; padding:4px 6px; text-align:left; font-size:10px; text-transform:uppercase; width:30%;">Subject</th>
+                    <th style="background:#003366; color:white; padding:4px 6px; text-align:center; font-size:10px; text-transform:uppercase; width:12%;">Score</th>
+                    <th style="background:#003366; color:white; padding:4px 6px; text-align:center; font-size:10px; text-transform:uppercase; width:12%;">Grade</th>
+                    <th style="background:#003366; color:white; padding:4px 6px; text-align:left; font-size:10px; text-transform:uppercase; width:30%;">Remark</th>
+                    <th style="background:#003366; color:white; padding:4px 6px; text-align:center; font-size:10px; text-transform:uppercase; width:16%;">Signature</th>
+                </tr>
+            </thead>
+            <tbody id="resultsTableBody">
+                <!-- Rows will be populated by JavaScript -->
+            </tbody>
+        </table>
 
-            <button class="no-print" onclick="downloadPDF()">
-                <i class="fa-solid fa-file-pdf"></i>
-                Download Professional PDF
-            </button>
-
-            <button 
-            id="resultBackBtn" 
-            class="no-print">
-
-            <i class="fa-solid fa-arrow-left"></i>
-            Back
-            </button>
-
+        <!-- Remarks -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:6px 0; padding:6px 10px; background:#f8f9fa; border-radius:4px;">
+            <div style="font-size:11px;">
+                <strong style="font-size:10px; color:#003366; display:block; margin-bottom:2px;">📝 Teacher's Remark</strong>
+                <p style="margin:0; line-height:1.3;" id="remark">Loading...</p>
+            </div>
+            <div style="font-size:11px;">
+                <strong style="font-size:10px; color:#003366; display:block; margin-bottom:2px;">📋 Headteacher's Remark</strong>
+                <p style="margin:0; line-height:1.3;" id="headRemark">Loading...</p>
+            </div>
         </div>
 
+        <!-- Requirements -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 20px; margin:6px 0; padding:6px 12px; background:#fff8e7; border-radius:4px; border:1px solid #f0e0c0; font-size:11px;">
+            <div style="font-weight:bold; color:#003366; font-size:10px; text-transform:uppercase; grid-column:1/-1; margin-bottom:2px;">📦 Boarding Requirements</div>
+            <ul style="margin:0; padding-left:18px; list-style:none; grid-column:1/2;">
+                <li style="padding:1px 0; position:relative;"><span style="position:absolute; left:-14px; color:#003366;">•</span> <strong>Maize:</strong> 20kg bag (or cash)</li>
+                <li style="padding:1px 0; position:relative;"><span style="position:absolute; left:-14px; color:#003366;">•</span> <strong>Bedding:</strong> Blanket, Mattress, Sheets</li>
+                <li style="padding:1px 0; position:relative;"><span style="position:absolute; left:-14px; color:#003366;">•</span> <strong>Plates:</strong> 2 Dinner plates</li>
+                <li style="padding:1px 0; position:relative;"><span style="position:absolute; left:-14px; color:#003366;">•</span> <strong>Cups:</strong> 2 Drinking cups</li>
+                <li style="padding:1px 0; position:relative;"><span style="position:absolute; left:-14px; color:#003366;">•</span> <strong>Spoons:</strong> 2 Spoons</li>
+                <li style="padding:1px 0; position:relative;"><span style="position:absolute; left:-14px; color:#003366;">•</span> <strong>Pail:</strong> 1 Plastic pail (10L)</li>
+            </ul>
+            <ul style="margin:0; padding-left:18px; list-style:none; grid-column:2/3;">
+                <li style="padding:1px 0; position:relative;"><span style="position:absolute; left:-14px; color:#003366;">•</span> <strong>Uniform:</strong> 2 Sets</li>
+                <li style="padding:1px 0; position:relative;"><span style="position:absolute; left:-14px; color:#003366;">•</span> <strong>Toiletries:</strong> Soap, Toothbrush, Paste</li>
+                <li style="padding:1px 0; position:relative;"><span style="position:absolute; left:-14px; color:#003366;">•</span> <strong>Mosquito Net:</strong> 1 Treated net</li>
+                <li style="padding:1px 0; position:relative;"><span style="position:absolute; left:-14px; color:#003366;">•</span> <strong>School Bag:</strong> 1 Bag</li>
+                <li style="padding:1px 0; position:relative;"><span style="position:absolute; left:-14px; color:#003366;">•</span> <strong>Exercise Books:</strong> 6 Books</li>
+                <li style="padding:1px 0; position:relative;"><span style="position:absolute; left:-14px; color:#003366;">•</span> <strong>Stationery:</strong> Pens, Pencils, Eraser</li>
+            </ul>
+        </div>
+
+        <!-- Footer Info -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; padding-top:6px; border-top:1px solid #ddd; font-size:10px; color:#555; flex-wrap:wrap;">
+            <span style="color:#003366; font-weight:bold;">
+                <i class="fa-regular fa-calendar"></i> Next Term Opens: <span id="nextTermDate">14 September 2026</span>
+            </span>
+            <span style="color:#c0392b; font-weight:bold;">
+                <i class="fa-solid fa-wallet"></i> Boarding Support Fee: <span id="boardingFee">MWK 45,000</span>
+            </span>
+        </div>
+
+        <!-- Signatures -->
+        <div style="display:flex; justify-content:space-between; margin-top:8px; padding-top:6px; border-top:1px solid #ddd; font-size:11px;">
+            <div style="text-align:center; min-width:100px;">
+                <div style="border-bottom:1px solid #333; width:100px; margin:15px auto 2px;"></div>
+                <span style="font-size:10px;">Class Teacher</span>
+            </div>
+            <div style="text-align:center; min-width:100px;">
+                <div style="border-bottom:1px solid #333; width:100px; margin:15px auto 2px;"></div>
+                <span style="font-size:10px;">Headteacher</span>
+            </div>
+            <div style="text-align:center; min-width:100px;">
+                <div style="border-bottom:1px solid #333; width:100px; margin:15px auto 2px;"></div>
+                <span style="font-size:10px;">Parent/Guardian</span>
+            </div>
+        </div>
     </div>
 
+    <!-- Buttons -->
+    <div style="text-align:center; margin-top:15px;" class="no-print">
+        <button onclick="downloadPDF()" style="background:#28a745; padding:10px 25px; margin:5px; border:none; border-radius:8px; color:white; cursor:pointer;">
+            <i class="fa-solid fa-file-pdf"></i> Download PDF
+        </button>
+        <button onclick="printReport()" style="background:#003366; padding:10px 25px; margin:5px; border:none; border-radius:8px; color:white; cursor:pointer;">
+            <i class="fa-solid fa-print"></i> Print
+        </button>
+        <button id="resultBackBtn" style="background:#6c757d; padding:10px 25px; margin:5px; border:none; border-radius:8px; color:white; cursor:pointer;">
+            <i class="fa-solid fa-arrow-left"></i> Back
+        </button>
     </div>
-
+            </div>
+    
     <!-- ADMIN LOGIN -->
 <div id="adminLogin" class="hidden">
     <div style="max-width:400px; margin:auto; background:white; padding:30px; border-radius:20px; box-shadow:0 4px 20px rgba(0,0,0,0.15);">
