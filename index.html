@@ -780,6 +780,9 @@ window.search = async function() {
     } else {
         console.error("resultsTableBody not found!");
     }
+     
+    // Teacher's Remark - using dynamic percentage
+    document.getElementById("remark").innerHTML = getOverallRemark(total, maxTotal);
 
    // Headteacher's Remark - Dynamic based on percentage
     let headteacherRemark = "";
