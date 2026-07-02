@@ -781,10 +781,7 @@ window.search = async function() {
         console.error("resultsTableBody not found!");
     }
 
-    // Teacher's Remark - using dynamic percentage
-    document.getElementById("remark").innerHTML = getOverallRemark(total, maxTotal);
-
-    // Headteacher's Remark - Dynamic based on percentage
+   // Headteacher's Remark - Dynamic based on percentage
     let headteacherRemark = "";
     if (percentage >= 80) {
         headteacherRemark = "Excellent performance! You have excelled this term. Keep up this outstanding work.";
