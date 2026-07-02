@@ -495,17 +495,15 @@ window.saveStudent = async function() {
 };
 
       // ================= ENTER RESULTS =================
-window.enterResults = function() {
+  window.enterResults = function() {
     openAdminPage();
     
     const user = window.currentUser;
     let classOptions = '';
     
     if (user && user.role === "teacher") {
-        // Teachers only see their class
         classOptions = `<option value="${user.class}" selected>${user.class}</option>`;
     } else {
-        // Admins see all classes
         classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
     }
     
@@ -514,6 +512,11 @@ window.enterResults = function() {
             ← Back to Dashboard
         </button>
         <h3>Enter Results</h3>
+        <div style="background:#e8f0fe; padding:12px; border-radius:8px; margin-bottom:15px; font-size:13px; color:#555;">
+            <i class="fa-solid fa-info-circle" style="color:#003366;"></i>
+            <strong>Note:</strong> Only enter scores for subjects the student took. 
+            Leave blank or 0 for subjects not taken. The system will automatically calculate based on subjects with scores.
+        </div>
         <input id="rstudent" placeholder="Student Name">
         <select id="rclass">
             <option value="">—— Select Class ——</option>
@@ -527,17 +530,24 @@ window.enterResults = function() {
             <option value="Term 3" selected>Term 3</option>
         </select>
         <input id="year" type="number" value="2026" placeholder="Year">
+        <div style="margin:15px 0; padding:15px; background:#f8f9ff; border-radius:10px;">
+            <p style="margin:0 0 10px; font-weight:bold; color:#003366;">
+                <i class="fa-solid fa-pencil"></i> Subject Scores (leave 0 for subjects not taken)
+            </p>
     `;
 
     subjects.forEach(sub => {
         html += `
-            <div style="margin:12px 0">
-                <label><strong>${sub}:</strong></label><br>
-                <input class="score" data-subject="${sub}" type="number" min="0" max="100" style="width:100%">
+            <div style="margin:8px 0; display:flex; align-items:center; gap:10px;">
+                <label style="min-width:120px; font-weight:500;"><strong>${sub}:</strong></label>
+                <input class="score" data-subject="${sub}" type="number" min="0" max="100" style="flex:1; padding:8px;">
             </div>`;
     });
     html += `
-        <button onclick="saveResults()">Save Results</button>
+        </div>
+        <button onclick="saveResults()" style="background:#28a745; padding:12px 25px;">
+            <i class="fa-solid fa-save"></i> Save Results
+        </button>
     `;
     
     document.getElementById("adminArea").innerHTML = html;
@@ -556,12 +566,22 @@ window.saveResults = async function() {
     
     let scores = {};
     let total = 0;
+    let subjectCount = 0;
     
     document.querySelectorAll(".score").forEach(i => {
         const val = parseInt(i.value) || 0;
-        scores[i.dataset.subject] = val;
-        total += val;
+        const subject = i.dataset.subject;
+        scores[subject] = val;
+        if (val > 0) {
+            total += val;
+            subjectCount++;
+        }
     });
+
+    //If no scores entered, warn the user
+    if (subjectCount === 0) {
+        return alert("Please enter at least one subject score!");
+    }
      
     try {
         const resultId = `${rstudent}_${term}_${year}`;
@@ -579,9 +599,10 @@ window.saveResults = async function() {
             classSize: classSize,
             term: term,
             year: year
+            subjectCount: subjectCount // Store the number of subjects with scores
         });
         
-        alert("Results saved successfully!");
+        alert(`Results saved successfully! (${subjectCount} subjects entered)`);
         backToDashboard();
     } catch (e) {
         alert("Error: " + e.message);
@@ -625,6 +646,7 @@ window.search = async function() {
         alert("Error: " + e.message);
     }
 };
+
  function loadResults(name, data) {
     console.log("Loading results for:", name, data);
     
@@ -642,36 +664,76 @@ window.search = async function() {
     document.getElementById("rname").innerText = name || "Unknown Student";
     document.getElementById("studentClass").innerHTML = `<strong>Class:</strong> ${data.class || "-"}`;
     
-    // Calculate totals
-    const total = Number(data.total) || 0;
-    const maxTotal = subjects.length * 100;
-    const percentage = ((total / maxTotal) * 100);
+    // ========== DYNAMIC SUBJECT COUNT ==========
+    // Count only subjects that have scores entered (not 0 or undefined)
+    const scores = data.scores || {};
+    let total = 0;
+    let subjectsWithScores = [];
+    
+    // Loop through all subjects and count only those with scores > 0
+    subjects.forEach(sub => {
+        const score = Number(scores[sub]) || 0;
+        if (score > 0) {
+            subjectsWithScores.push(sub);
+            total += score;
+        }
+    });
+    
+    // If no scores found, use all subjects (fallback)
+    if (subjectsWithScores.length === 0) {
+        subjectsWithScores = subjects;
+        total = Number(data.total) || 0;
+    }
+    
+    const subjectCount = subjectsWithScores.length;
+    const maxTotal = subjectCount * 100;
+    const percentage = subjectCount > 0 ? ((total / maxTotal) * 100) : 0;
     const passed = percentage >= 40;
     
-    // Get grade number (1-4)
+    console.log(`Dynamic calculation: ${subjectCount} subjects, Total: ${total}, Max: ${maxTotal}, Percentage: ${percentage}%`);
+    
+    // Get grade number (1-4) based on dynamic percentage
     let gradeNumber = 1;
     if (percentage >= 80) gradeNumber = 4;
     else if (percentage >= 60) gradeNumber = 3;
     else if (percentage >= 40) gradeNumber = 2;
     else gradeNumber = 1;
     
-    // Update summary
+    // Update summary with dynamic values
     document.getElementById("total").innerText = `${total} / ${maxTotal}`;
     document.getElementById("overallGrade").innerHTML = `<span style="font-size:24px;">${gradeNumber}</span>`;
     document.getElementById("resultStatus").innerHTML = passed
         ? '<span style="background:#28a745; color:white; padding:2px 15px; border-radius:15px; font-size:14px;">PASSED</span>'
         : '<span style="background:#dc3545; color:white; padding:2px 15px; border-radius:15px; font-size:14px;">FAILED</span>';
     
-    // Position calculation
+    // Position calculation - using dynamic total
     getDocs(collection(db, "results")).then(snapshot => {
         let classResults = [];
         
         snapshot.forEach(docSnap => {
             const d = docSnap.data();
             if (d.class === data.class && d.term === data.term && String(d.year) == String(data.year)) {
+                // Calculate dynamic total for each student
+                const studentScores = d.scores || {};
+                let studentTotal = 0;
+                let studentSubjectCount = 0;
+                
+                subjects.forEach(sub => {
+                    const score = Number(studentScores[sub]) || 0;
+                    if (score > 0) {
+                        studentSubjectCount++;
+                        studentTotal += score;
+                    }
+                });
+                
+                // If no scores found, use stored total
+                if (studentSubjectCount === 0) {
+                    studentTotal = Number(d.total) || 0;
+                }
+                
                 classResults.push({
                     name: docSnap.id,
-                    total: Number(d.total) || 0
+                    total: studentTotal
                 });
             }
         });
@@ -682,22 +744,36 @@ window.search = async function() {
         document.getElementById("position").innerText = `${position} / ${classResults.length}`;
     });
     
-    // Build table with signature column - FIXED: using tbody
+    // Build table with signature column - Show only subjects with scores
     let tableHtml = '';
-    subjects.forEach(sub => {
+    let hasAnyScores = false;
+    
+    subjectsWithScores.forEach(sub => {
         const score = Number(data.scores?.[sub]) || 0;
-        const gr = getGradeAndRemark(score);
-        tableHtml += `
-            <tr>
-                <td style="padding:4px 6px; font-weight:600;">${sub}</td>
-                <td style="padding:4px 6px; text-align:center; font-weight:500;">${score}</td>
-                <td style="padding:4px 6px; text-align:center;">${gr.grade}</td>
-                <td style="padding:4px 6px; font-size:10px;">${gr.remark}</td>
-                <td style="padding:4px 6px; text-align:center; font-size:10px; color:#999;">__________</td>
-            </tr>`;
+        if (score > 0) {
+            hasAnyScores = true;
+            const gr = getGradeAndRemark(score);
+            tableHtml += `
+                <tr>
+                    <td style="padding:4px 6px; font-weight:600;">${sub}</td>
+                    <td style="padding:4px 6px; text-align:center; font-weight:500;">${score}</td>
+                    <td style="padding:4px 6px; text-align:center;">${gr.grade}</td>
+                    <td style="padding:4px 6px; font-size:10px;">${gr.remark}</td>
+                    <td style="padding:4px 6px; text-align:center; font-size:10px; color:#999;">__________</td>
+                </tr>`;
+        }
     });
     
-    // FIXED: Using getElementById and tbody
+    // If no subjects have scores, show a message
+    if (!hasAnyScores) {
+        tableHtml = `
+            <tr>
+                <td colspan="5" style="text-align:center; padding:20px; color:#999;">
+                    No subject scores entered for this student.
+                </td>
+            </tr>`;
+    }
+    
     const tbody = document.getElementById("resultsTableBody");
     if (tbody) {
         tbody.innerHTML = tableHtml;
@@ -705,10 +781,10 @@ window.search = async function() {
         console.error("resultsTableBody not found!");
     }
 
-    // Teacher's Remark
-    document.getElementById("remark").innerHTML = getOverallRemark(Number(data.total) || 0, maxTotal);
+    // Teacher's Remark - using dynamic percentage
+    document.getElementById("remark").innerHTML = getOverallRemark(total, maxTotal);
 
-    // Headteacher's Remark - Dynamic
+    // Headteacher's Remark - Dynamic based on percentage
     let headteacherRemark = "";
     if (percentage >= 80) {
         headteacherRemark = "Excellent performance! You have excelled this term. Keep up this outstanding work.";
@@ -728,7 +804,25 @@ window.search = async function() {
     
     // Get dynamic boarding fee from notices
     getBoardingFee();
-        }
+}
+
+function getGradeAndRemark(score) {
+    // For infant classes (Standard 1-2), you might want different grading
+    // But keeping the same for consistency
+    if (score >= 80) return { grade: 4, remark: "Excellent" };
+    if (score >= 60) return { grade: 3, remark: "Good" };
+    if (score >= 40) return { grade: 2, remark: "Average" };
+    return { grade: 1, remark: "Need Support" };
+}
+
+function getOverallRemark(total, maxTotal) {
+    const percentage = maxTotal > 0 ? (total / maxTotal) * 100 : 0;
+    if (percentage >= 80) return "Outstanding performance! Keep it up.";
+    if (percentage >= 70) return "Very good work. Continue improving.";
+    if (percentage >= 60) return "Good performance. Aim higher next term.";
+    if (percentage >= 40) return "Satisfactory. More effort needed in weak areas.";
+    return "Needs significant improvement. Extra support recommended.";
+}
         // ================= PRINT REPORT =================
 window.printReport = function() {
     window.print();
