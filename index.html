@@ -647,7 +647,7 @@ window.search = async function() {
     }
 };
 
- function loadResults(name, data) {
+ window.loadResults = function(name, data) { 
     console.log("Loading results for:", name, data);
     
     const backBtn = document.getElementById("resultBackBtn");
@@ -804,7 +804,7 @@ window.search = async function() {
     
     // Get dynamic boarding fee from notices
     getBoardingFee();
-}
+};
 
 function getGradeAndRemark(score) {
     // For infant classes (Standard 1-2), you might want different grading
