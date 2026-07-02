@@ -48,7 +48,22 @@
         "Standard 5", "Standard 6", "Standard 7", "Standard 8"
     ];
 
-     // ================= AUTHENTICATION + ROLES =================
+    function getGradeAndRemark(score) {
+        if (score >= 80) return { grade: 4, remark: "Excellent" };
+        if (score >= 60) return { grade: 3, remark: "Good" };
+        if (score >= 40) return { grade: 2, remark: "Average" };
+        return { grade: 1, remark: "Need Support" };
+    }
+
+    function getOverallRemark(total, maxTotal) {
+        const percentage = (total / maxTotal) * 100;
+        if (percentage >= 80) return "Outstanding performance! Keep it up.";
+        if (percentage >= 70) return "Very good work. Continue improving.";
+        if (percentage >= 60) return "Good performance. Aim higher next term.";
+        if (percentage >= 40) return "Satisfactory. More effort needed in weak areas.";
+        return "Needs significant improvement. Extra support recommended.";
+    }
+        // ================= AUTHENTICATION + ROLES =================
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
@@ -480,15 +495,17 @@ window.saveStudent = async function() {
 };
 
       // ================= ENTER RESULTS =================
-  window.enterResults = function() {
+window.enterResults = function() {
     openAdminPage();
     
     const user = window.currentUser;
     let classOptions = '';
     
     if (user && user.role === "teacher") {
+        // Teachers only see their class
         classOptions = `<option value="${user.class}" selected>${user.class}</option>`;
     } else {
+        // Admins see all classes
         classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
     }
     
@@ -497,11 +514,6 @@ window.saveStudent = async function() {
             ← Back to Dashboard
         </button>
         <h3>Enter Results</h3>
-        <div style="background:#e8f0fe; padding:12px; border-radius:8px; margin-bottom:15px; font-size:13px; color:#555;">
-            <i class="fa-solid fa-info-circle" style="color:#003366;"></i>
-            <strong>Note:</strong> Only enter scores for subjects the student took. 
-            Leave blank or 0 for subjects not taken. The system will automatically calculate based on subjects with scores.
-        </div>
         <input id="rstudent" placeholder="Student Name">
         <select id="rclass">
             <option value="">—— Select Class ——</option>
@@ -515,24 +527,17 @@ window.saveStudent = async function() {
             <option value="Term 3" selected>Term 3</option>
         </select>
         <input id="year" type="number" value="2026" placeholder="Year">
-        <div style="margin:15px 0; padding:15px; background:#f8f9ff; border-radius:10px;">
-            <p style="margin:0 0 10px; font-weight:bold; color:#003366;">
-                <i class="fa-solid fa-pencil"></i> Subject Scores (leave 0 for subjects not taken)
-            </p>
     `;
 
     subjects.forEach(sub => {
         html += `
-            <div style="margin:8px 0; display:flex; align-items:center; gap:10px;">
-                <label style="min-width:120px; font-weight:500;"><strong>${sub}:</strong></label>
-                <input class="score" data-subject="${sub}" type="number" min="0" max="100" style="flex:1; padding:8px;">
+            <div style="margin:12px 0">
+                <label><strong>${sub}:</strong></label><br>
+                <input class="score" data-subject="${sub}" type="number" min="0" max="100" style="width:100%">
             </div>`;
     });
     html += `
-        </div>
-        <button onclick="saveResults()" style="background:#28a745; padding:12px 25px;">
-            <i class="fa-solid fa-save"></i> Save Results
-        </button>
+        <button onclick="saveResults()">Save Results</button>
     `;
     
     document.getElementById("adminArea").innerHTML = html;
@@ -551,22 +556,12 @@ window.saveResults = async function() {
     
     let scores = {};
     let total = 0;
-    let subjectCount = 0;
     
     document.querySelectorAll(".score").forEach(i => {
         const val = parseInt(i.value) || 0;
-        const subject = i.dataset.subject;
-        scores[subject] = val;
-        if (val > 0) {
-            total += val;
-            subjectCount++;
-        }
+        scores[i.dataset.subject] = val;
+        total += val;
     });
-
-    //If no scores entered, warn the user
-    if (subjectCount === 0) {
-        return alert("Please enter at least one subject score!");
-    }
      
     try {
         const resultId = `${rstudent}_${term}_${year}`;
@@ -583,11 +578,10 @@ window.saveResults = async function() {
             class: rclass,
             classSize: classSize,
             term: term,
-            year: year,
-            subjectCount: subjectCount // Store the number of subjects with scores
+            year: year
         });
         
-        alert(`Results saved successfully! (${subjectCount} subjects entered)`);
+        alert("Results saved successfully!");
         backToDashboard();
     } catch (e) {
         alert("Error: " + e.message);
@@ -626,13 +620,12 @@ window.search = async function() {
         document.getElementById("searchPortal").classList.add("hidden");
         document.getElementById("results").classList.remove("hidden");
        
-        window.loadResults(found, resultSnap.data());
+        loadResults(found, resultSnap.data());
     } catch (e) {
         alert("Error: " + e.message);
     }
 };
-
- window.loadResults = function(name, data) { 
+ function loadResults(name, data) {
     console.log("Loading results for:", name, data);
     
     const backBtn = document.getElementById("resultBackBtn");
@@ -649,76 +642,36 @@ window.search = async function() {
     document.getElementById("rname").innerText = name || "Unknown Student";
     document.getElementById("studentClass").innerHTML = `<strong>Class:</strong> ${data.class || "-"}`;
     
-    // ========== DYNAMIC SUBJECT COUNT ==========
-    // Count only subjects that have scores entered (not 0 or undefined)
-    const scores = data.scores || {};
-    let total = 0;
-    let subjectsWithScores = [];
-    
-    // Loop through all subjects and count only those with scores > 0
-    subjects.forEach(sub => {
-        const score = Number(scores[sub]) || 0;
-        if (score > 0) {
-            subjectsWithScores.push(sub);
-            total += score;
-        }
-    });
-    
-    // If no scores found, use all subjects (fallback)
-    if (subjectsWithScores.length === 0) {
-        subjectsWithScores = subjects;
-        total = Number(data.total) || 0;
-    }
-    
-    const subjectCount = subjectsWithScores.length;
-    const maxTotal = subjectCount * 100;
-    const percentage = subjectCount > 0 ? ((total / maxTotal) * 100) : 0;
+    // Calculate totals
+    const total = Number(data.total) || 0;
+    const maxTotal = subjects.length * 100;
+    const percentage = ((total / maxTotal) * 100);
     const passed = percentage >= 40;
     
-    console.log(`Dynamic calculation: ${subjectCount} subjects, Total: ${total}, Max: ${maxTotal}, Percentage: ${percentage}%`);
-    
-    // Get grade number (1-4) based on dynamic percentage
+    // Get grade number (1-4)
     let gradeNumber = 1;
     if (percentage >= 80) gradeNumber = 4;
     else if (percentage >= 60) gradeNumber = 3;
     else if (percentage >= 40) gradeNumber = 2;
     else gradeNumber = 1;
     
-    // Update summary with dynamic values
+    // Update summary
     document.getElementById("total").innerText = `${total} / ${maxTotal}`;
     document.getElementById("overallGrade").innerHTML = `<span style="font-size:24px;">${gradeNumber}</span>`;
     document.getElementById("resultStatus").innerHTML = passed
         ? '<span style="background:#28a745; color:white; padding:2px 15px; border-radius:15px; font-size:14px;">PASSED</span>'
         : '<span style="background:#dc3545; color:white; padding:2px 15px; border-radius:15px; font-size:14px;">FAILED</span>';
     
-    // Position calculation - using dynamic total
+    // Position calculation
     getDocs(collection(db, "results")).then(snapshot => {
         let classResults = [];
         
         snapshot.forEach(docSnap => {
             const d = docSnap.data();
             if (d.class === data.class && d.term === data.term && String(d.year) == String(data.year)) {
-                // Calculate dynamic total for each student
-                const studentScores = d.scores || {};
-                let studentTotal = 0;
-                let studentSubjectCount = 0;
-                
-                subjects.forEach(sub => {
-                    const score = Number(studentScores[sub]) || 0;
-                    if (score > 0) {
-                        studentSubjectCount++;
-                        studentTotal += score;
-                    }
-                });
-                
-                // If no scores found, use stored total
-                if (studentSubjectCount === 0) {
-                    studentTotal = Number(d.total) || 0;
-                }
-                
                 classResults.push({
                     name: docSnap.id,
-                    total: studentTotal
+                    total: Number(d.total) || 0
                 });
             }
         });
@@ -729,47 +682,33 @@ window.search = async function() {
         document.getElementById("position").innerText = `${position} / ${classResults.length}`;
     });
     
-    // Build table with signature column - Show only subjects with scores
+    // Build table with signature column - FIXED: using tbody
     let tableHtml = '';
-    let hasAnyScores = false;
-    
-    subjectsWithScores.forEach(sub => {
+    subjects.forEach(sub => {
         const score = Number(data.scores?.[sub]) || 0;
-        if (score > 0) {
-            hasAnyScores = true;
-            const gr = getGradeAndRemark(score);
-            tableHtml += `
-                <tr>
-                    <td style="padding:4px 6px; font-weight:600;">${sub}</td>
-                    <td style="padding:4px 6px; text-align:center; font-weight:500;">${score}</td>
-                    <td style="padding:4px 6px; text-align:center;">${gr.grade}</td>
-                    <td style="padding:4px 6px; font-size:10px;">${gr.remark}</td>
-                    <td style="padding:4px 6px; text-align:center; font-size:10px; color:#999;">__________</td>
-                </tr>`;
-        }
+        const gr = getGradeAndRemark(score);
+        tableHtml += `
+            <tr>
+                <td style="padding:4px 6px; font-weight:600;">${sub}</td>
+                <td style="padding:4px 6px; text-align:center; font-weight:500;">${score}</td>
+                <td style="padding:4px 6px; text-align:center;">${gr.grade}</td>
+                <td style="padding:4px 6px; font-size:10px;">${gr.remark}</td>
+                <td style="padding:4px 6px; text-align:center; font-size:10px; color:#999;">__________</td>
+            </tr>`;
     });
     
-    // If no subjects have scores, show a message
-    if (!hasAnyScores) {
-        tableHtml = `
-            <tr>
-                <td colspan="5" style="text-align:center; padding:20px; color:#999;">
-                    No subject scores entered for this student.
-                </td>
-            </tr>`;
-    }
-    
+    // FIXED: Using getElementById and tbody
     const tbody = document.getElementById("resultsTableBody");
     if (tbody) {
         tbody.innerHTML = tableHtml;
     } else {
         console.error("resultsTableBody not found!");
     }
-     
-    // Teacher's Remark - using dynamic percentage
-    document.getElementById("remark").innerHTML = getOverallRemark(total, maxTotal);
 
-   // Headteacher's Remark - Dynamic based on percentage
+    // Teacher's Remark
+    document.getElementById("remark").innerHTML = getOverallRemark(Number(data.total) || 0, maxTotal);
+
+    // Headteacher's Remark - Dynamic
     let headteacherRemark = "";
     if (percentage >= 80) {
         headteacherRemark = "Excellent performance! You have excelled this term. Keep up this outstanding work.";
@@ -785,30 +724,16 @@ window.search = async function() {
     document.getElementById("headRemark").innerHTML = headteacherRemark;
     
     // Get dynamic next term date from calendar
-    window.getNextTermDate();
+    getNextTermDate();
     
     // Get dynamic boarding fee from notices
-    window.getBoardingFee();
+    getBoardingFee();
+        }
+        // ================= PRINT REPORT =================
+window.printReport = function() {
+    window.print();
 };
 
-function getGradeAndRemark(score) {
-    // For infant classes (Standard 1-2), you might want different grading
-    // But keeping the same for consistency
-    if (score >= 80) return { grade: 4, remark: "Excellent" };
-    if (score >= 60) return { grade: 3, remark: "Good" };
-    if (score >= 40) return { grade: 2, remark: "Average" };
-    return { grade: 1, remark: "Need Support" };
-}
-
-function getOverallRemark(total, maxTotal) {
-    const percentage = maxTotal > 0 ? (total / maxTotal) * 100 : 0;
-    if (percentage >= 80) return "Outstanding performance! Keep it up.";
-    if (percentage >= 70) return "Very good work. Continue improving.";
-    if (percentage >= 60) return "Good performance. Aim higher next term.";
-    if (percentage >= 40) return "Satisfactory. More effort needed in weak areas.";
-    return "Needs significant improvement. Extra support recommended.";
-}
-    
  window.downloadPDF = function() { 
     const element = document.getElementById("reportCard");
     document.body.classList.add("pdf-mode");
@@ -1070,7 +995,7 @@ window.viewStudentResults = async function(studentName) {
             document.getElementById("adminViewStudentsPage").classList.add("hidden");
             document.getElementById("adminPanel").classList.add("hidden");
             document.getElementById("results").classList.remove("hidden");
-            window.loadResults(studentName, resultSnap.data());
+            loadResults(studentName, resultSnap.data());
         } else {
             alert("No results found for this student in the selected term/year.");
         } 
@@ -1196,7 +1121,7 @@ window.deleteStudent = async function(studentName) {
 };
 
     
-     // ================= BULK UPLOAD =================
+        // ================= BULK UPLOAD =================
     window.showBulkUpload = function() {
         openAdminPage();
         const user = window.currentUser;
@@ -1335,6 +1260,76 @@ window.deleteStudent = async function(studentName) {
         }
     };
 
+    // ================= STUDENT EDIT & DELETE =================
+    window.editStudent = async function(studentName) {
+        try {
+            const docSnap = await getDoc(doc(db, "students", studentName));
+            if (!docSnap.exists()) return alert("Student not found");
+            
+            const data = docSnap.data();
+            let classOptions = classes.map(cls => 
+                `<option value="${cls}" ${cls === data.class ? 'selected' : ''}>${cls}</option>`
+            ).join('');
+            
+            document.getElementById("adminArea").innerHTML = `
+                <h3>Edit Student: ${studentName}</h3>
+                <input id="editName" value="${studentName}" placeholder="Full Name" style="margin-bottom:10px;">
+                <select id="editClass" style="margin-bottom:10px;">${classOptions}</select>
+                <input id="editDob" value="${data.dob || ''}" placeholder="DOB dd/mm/yyyy">
+                <select id="editGender" style="margin-bottom:10px;">
+                    <option value="Male" ${data.gender === "Male" ? "selected" : ""}>Male</option>
+                    <option value="Female" ${data.gender === "Female" ? "selected" : ""}>Female</option>
+                </select>           
+                <button onclick="saveEditedStudent('${studentName}')" style="background:#28a745;">Save Changes</button>
+                <button onclick="viewAllStudents()">Cancel</button>
+            `;
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+    };
+    
+    window.saveEditedStudent = async function(oldName) {
+        const newName = document.getElementById("editName").value.trim();
+        const sclass = document.getElementById("editClass").value;
+        const sdob = document.getElementById("editDob").value.trim();
+        const sgender = document.getElementById("editGender").value;
+        
+        if (!newName || !sclass || !sdob) return alert("All fields are required!");
+        
+        try {
+            if (newName !== oldName) {
+                await setDoc(doc(db, "students", newName), { class: sclass, dob: sdob, gender: sgender });
+            } else {
+                await setDoc(doc(db, "students", oldName), { class: sclass, dob: sdob, gender: sgender });
+            }
+            
+            alert("Student updated successfully!");
+            viewAllStudents();
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+    };
+    
+    window.deleteStudent = async function(studentName) {
+        if (!confirm(`Delete student "${studentName}" and all their results?`)) return;
+        
+        try {
+            await deleteDoc(doc(db, "students", studentName));
+            
+            const resultsSnapshot = await getDocs(collection(db, "results"));
+            resultsSnapshot.forEach(async (resultDoc) => {
+                if (resultDoc.id.startsWith(studentName + "_")) {
+                    await deleteDoc(resultDoc.ref);
+                }
+            });
+            
+            alert("Student deleted successfully!");
+            viewAllStudents();
+        } catch (e) {
+            alert("Error deleting student: " + e.message);
+        }
+    };
+    
     window.downloadTemplate = function() {
         const wb = XLSX.utils.book_new();
         const headers = ["StudentName", "Gender", ...subjects];
@@ -1631,7 +1626,7 @@ window.deleteStudent = async function(studentName) {
             
             const data = snap.data();
             console.log("Loaded Result:", data);
-            window.loadResults(studentName, data);
+            loadResults(studentName, data);
         
         } catch (e) {
             alert("Error loading report: " + e.message);
@@ -1922,17 +1917,16 @@ window.deleteStudent = async function(studentName) {
         if(!title || !message) return alert("Fill all fields");
         
         await addDoc(collection(db,"announcements"), {
-            title: title, 
-            message: message,
-            date: new Date(),
-            active: true
+            title:title, 
+            message:message,
+            date:new Date(),
+            active:true
         });
         
         alert("Notice saved");
-         manageNotices();
-        
-        };
-
+        manageNotices();
+    };
+    
     async function loadNoticesAdmin(){
         const box = document.getElementById("noticeList");
         box.innerHTML="Loading notices...";
@@ -2048,19 +2042,19 @@ window.deleteStudent = async function(studentName) {
         
         try{
             await addDoc(collection(db,"calendar"), {
-                date: date,
-                activity: activity,
-                active: true,
-                createdAt: new Date()
+                date:date,
+                activity:activity,
+                active:true,
+                createdAt:new Date()
             });
             
             alert("Calendar event saved");
             manageCalendar();
-         }
-         catch(e){
-             alert("Error: "+e.message);
-            }
-        };
+        }
+        catch(e){
+            alert("Error: "+e.message);
+        }
+    };
 
     async function loadCalendarAdmin(){
         const box = document.getElementById("calendarList");
@@ -2132,9 +2126,8 @@ window.deleteStudent = async function(studentName) {
         alert("Calendar event deleted");
         manageCalendar();
     };
-        
-    // ================= GET NEXT TERM DATE FROM CALENDAR =================
-window.getNextTermDate = async function() {
+        // ================= GET NEXT TERM DATE FROM CALENDAR =================
+async function getNextTermDate() {
     try {
         const snapshot = await getDocs(collection(db, "calendar"));
         let nextTermDate = "14 September 2026"; // Default fallback
@@ -2156,10 +2149,10 @@ window.getNextTermDate = async function() {
         console.error("Error fetching next term date:", e);
         document.getElementById("nextTermDate").innerText = "14 September 2026";
     }
-};
+}
 
 // ================= GET BOARDING FEE FROM NOTICES =================
-window.getBoardingFee = async function() {
+async function getBoardingFee() {
     try {
         const snapshot = await getDocs(collection(db, "announcements"));
         let boardingFee = "MWK 45,000"; // Default fallback
@@ -2189,6 +2182,51 @@ window.getBoardingFee = async function() {
         console.error("Error fetching boarding fee:", e);
         document.getElementById("boardingFee").innerText = "MWK 45,000";
     }
+}
+
+// ================= UPDATE CALENDAR FUNCTION =================
+// Update this function to include a "term opening" event
+window.saveCalendarEvent = async function(){
+    const date = document.getElementById("calendarDate").value.trim();
+    const activity = document.getElementById("calendarEvent").value.trim();
+    
+    if(!date || !activity){
+        return alert("Please fill all fields");
+    }
+    
+    try{
+        await addDoc(collection(db,"calendar"), {
+            date: date,
+            activity: activity,
+            active: true,
+            createdAt: new Date()
+        });
+        
+        alert("Calendar event saved");
+        manageCalendar();
+    }
+    catch(e){
+        alert("Error: "+e.message);
+    }
+};
+
+// ================= UPDATE NOTICE FUNCTION =================
+// Update this to include boarding fee announcements
+window.saveNotice = async function(){
+    const title = document.getElementById("noticeTitle").value.trim();
+    const message = document.getElementById("noticeMessage").value.trim();
+    
+    if(!title || !message) return alert("Fill all fields");
+    
+    await addDoc(collection(db,"announcements"), {
+        title: title, 
+        message: message,
+        date: new Date(),
+        active: true
+    });
+    
+    alert("Notice saved");
+    manageNotices();
 };
 
 // ================= PRINT FUNCTION =================
@@ -2801,6 +2839,7 @@ window.printReport = function() {
                 text-align: center !important;
             }
         }
+        }
         /* Report Header */
         .report-header {
             text-align: center;
@@ -3256,59 +3295,75 @@ window.printReport = function() {
 
     </div>
         
-       <!-- SIMPLE TWO-ROW FOOTER -->
-<div class="school-footer" style="
-    margin-top: 35px;
-    background: linear-gradient(135deg, #003366, #001a33);
-    color: white;
-    padding: 20px;
-    border-radius: 18px;
-    text-align: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-">
-    <!-- Row 1: Contact Icons -->
-    <div style="
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 20px;
-        flex-wrap: wrap;
-        margin-bottom: 12px;
-        font-size: 14px;
-    ">
-        <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
-            <i class="fa-regular fa-envelope" style="color: #ffd700;"></i> 
-            bandawedeafschool2@gmail.com
-        </span>
-        
-        <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
-            <i class="fa-solid fa-phone" style="color: #ffd700;"></i>
-            <span>+265 999 191 279</span>
-            <span style="margin:0 4px;">|</span>
-            <span>+265 993 819 599</span>
-        </span>
-        
-        <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
-            <i class="fa-solid fa-location-dot" style="color: #ffd700;"></i> 
-            Bandawe Mission Station, Chintheche, Nkhata Bay.
-        </span>
-        
-        <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
-            <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
-            <span>+265 999 191 279</span>
-            <span style="margin:0 4px;">|</span>
-            <span>+265 993 819 599</span>
-        </span>
-        
+       
+         <!-- SIMPLE TWO-ROW FOOTER -->
+        <div class="school-footer" style="
+            margin-top: 35px;
+            background: linear-gradient(135deg, #003366, #001a33);
+            color: white;
+            padding: 20px;
+            border-radius: 18px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            ">
+        <!-- Row 1: Contact Icons -->
+            <div style="
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 20px;
+                flex-wrap: wrap;
+                margin-bottom: 12px;
+                font-size: 14px;
+                ">
+                <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;"><i class="fa-regular fa-envelope" style="color: #ffd700;"></i> 
+                    bandawedeafschool2@gmail.com</span>
+                <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;"><i class="fa-solid fa-phone" style="color: #ffd700;"></i>
+                <span>+265 999 191 279</span>
+                <span>+265 993 819 599</span></span>
+                <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;"><i class="fa-solid fa-location-dot" style="color: #ffd700;"></i> 
+                    Bandawe, Nkhata Bay.
+                </span>
+                <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;"><i class="fa-brands fa-facebook" style="color: #1877f2;"></i>
+                    <a href="https://facebook.com/bandawedeafschool" target="_blank" 
+                        style="color: white; text-decoration: none;"
+                        onmouseover="this.style.color='#1877f2'" 
+                        onmouseout="this.style.color='white'">
+                        bandawedeafschool
+                    </a>
+                </span>
+            </div>
+            <!-- WhatsApp -->
+            <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;"><i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
+                <span>+265 999 191 279</span><span>+265 993 819 599</span></span>
+            
+            <!-- Instagram -->
+            <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;"><i class="fa-brands fa-instagram" style="color: #E4405F;"></i>
+                <a href="https://instagram.com/bandawedeafschool" target="_blank" 
+                    style="color: white; text-decoration: none;"
+                    onmouseover="this.style.color='#E4405F'" 
+                    onmouseout="this.style.color='white'">
+                    bandawedeafschool
+                </a>
+            </span>
+            <!-- YouTube -->
+            <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
+                <i class="fa-brands fa-youtube" style="color: #FF0000;"></i>
+                <a href="https://youtube.com/bandaweschool" target="_blank" 
+                    style="color: white; text-decoration: none;"
+                    onmouseover="this.style.color='#FF0000'" 
+                    onmouseout="this.style.color='white'">
+                    Bandawe School for the Deaf
+                </a>
+            </span>
+            <!-- Row 2: Copyright -->
+            <div style="font-size: 13px; opacity: 0.5; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
+                <i class="fa-regular fa-copyright"></i> 2026 Bandawe School for the Deaf. All Rights Reserved.
+            </div>
+        </div>
     </div>
-    
-    <!-- Row 2: Copyright -->
-    <div style="font-size: 13px; opacity: 0.5; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
-        <i class="fa-regular fa-copyright"></i> 2026 Bandawe School for the Deaf. All Rights Reserved.
-    </div>
-</div>
-   
-<div id="searchPortal" class="hidden">
+
+   <div id="searchPortal" class="hidden">
     <div class="report-card">
         <h2 style="text-align:center; color:#003366;">
             <i class="fa-solid fa-magnifying-glass"></i>
