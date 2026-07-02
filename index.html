@@ -48,22 +48,7 @@
         "Standard 5", "Standard 6", "Standard 7", "Standard 8"
     ];
 
-    function getGradeAndRemark(score) {
-        if (score >= 80) return { grade: 4, remark: "Excellent" };
-        if (score >= 60) return { grade: 3, remark: "Good" };
-        if (score >= 40) return { grade: 2, remark: "Average" };
-        return { grade: 1, remark: "Need Support" };
-    }
-
-    function getOverallRemark(total, maxTotal) {
-        const percentage = (total / maxTotal) * 100;
-        if (percentage >= 80) return "Outstanding performance! Keep it up.";
-        if (percentage >= 70) return "Very good work. Continue improving.";
-        if (percentage >= 60) return "Good performance. Aim higher next term.";
-        if (percentage >= 40) return "Satisfactory. More effort needed in weak areas.";
-        return "Needs significant improvement. Extra support recommended.";
-    }
-        // ================= AUTHENTICATION + ROLES =================
+     // ================= AUTHENTICATION + ROLES =================
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
@@ -641,7 +626,7 @@ window.search = async function() {
         document.getElementById("searchPortal").classList.add("hidden");
         document.getElementById("results").classList.remove("hidden");
        
-        loadResults(found, resultSnap.data());
+        window.loadResults(found, resultSnap.data());
     } catch (e) {
         alert("Error: " + e.message);
     }
@@ -800,10 +785,10 @@ window.search = async function() {
     document.getElementById("headRemark").innerHTML = headteacherRemark;
     
     // Get dynamic next term date from calendar
-    getNextTermDate();
+    window.getNextTermDate();
     
     // Get dynamic boarding fee from notices
-    getBoardingFee();
+    window.getBoardingFee();
 };
 
 function getGradeAndRemark(score) {
@@ -823,11 +808,7 @@ function getOverallRemark(total, maxTotal) {
     if (percentage >= 40) return "Satisfactory. More effort needed in weak areas.";
     return "Needs significant improvement. Extra support recommended.";
 }
-        // ================= PRINT REPORT =================
-window.printReport = function() {
-    window.print();
-};
-
+    
  window.downloadPDF = function() { 
     const element = document.getElementById("reportCard");
     document.body.classList.add("pdf-mode");
@@ -1089,7 +1070,7 @@ window.viewStudentResults = async function(studentName) {
             document.getElementById("adminViewStudentsPage").classList.add("hidden");
             document.getElementById("adminPanel").classList.add("hidden");
             document.getElementById("results").classList.remove("hidden");
-            loadResults(studentName, resultSnap.data());
+            window.loadResults(studentName, resultSnap.data());
         } else {
             alert("No results found for this student in the selected term/year.");
         } 
@@ -1215,7 +1196,7 @@ window.deleteStudent = async function(studentName) {
 };
 
     
-        // ================= BULK UPLOAD =================
+     // ================= BULK UPLOAD =================
     window.showBulkUpload = function() {
         openAdminPage();
         const user = window.currentUser;
@@ -1354,76 +1335,6 @@ window.deleteStudent = async function(studentName) {
         }
     };
 
-    // ================= STUDENT EDIT & DELETE =================
-    window.editStudent = async function(studentName) {
-        try {
-            const docSnap = await getDoc(doc(db, "students", studentName));
-            if (!docSnap.exists()) return alert("Student not found");
-            
-            const data = docSnap.data();
-            let classOptions = classes.map(cls => 
-                `<option value="${cls}" ${cls === data.class ? 'selected' : ''}>${cls}</option>`
-            ).join('');
-            
-            document.getElementById("adminArea").innerHTML = `
-                <h3>Edit Student: ${studentName}</h3>
-                <input id="editName" value="${studentName}" placeholder="Full Name" style="margin-bottom:10px;">
-                <select id="editClass" style="margin-bottom:10px;">${classOptions}</select>
-                <input id="editDob" value="${data.dob || ''}" placeholder="DOB dd/mm/yyyy">
-                <select id="editGender" style="margin-bottom:10px;">
-                    <option value="Male" ${data.gender === "Male" ? "selected" : ""}>Male</option>
-                    <option value="Female" ${data.gender === "Female" ? "selected" : ""}>Female</option>
-                </select>           
-                <button onclick="saveEditedStudent('${studentName}')" style="background:#28a745;">Save Changes</button>
-                <button onclick="viewAllStudents()">Cancel</button>
-            `;
-        } catch (e) {
-            alert("Error: " + e.message);
-        }
-    };
-    
-    window.saveEditedStudent = async function(oldName) {
-        const newName = document.getElementById("editName").value.trim();
-        const sclass = document.getElementById("editClass").value;
-        const sdob = document.getElementById("editDob").value.trim();
-        const sgender = document.getElementById("editGender").value;
-        
-        if (!newName || !sclass || !sdob) return alert("All fields are required!");
-        
-        try {
-            if (newName !== oldName) {
-                await setDoc(doc(db, "students", newName), { class: sclass, dob: sdob, gender: sgender });
-            } else {
-                await setDoc(doc(db, "students", oldName), { class: sclass, dob: sdob, gender: sgender });
-            }
-            
-            alert("Student updated successfully!");
-            viewAllStudents();
-        } catch (e) {
-            alert("Error: " + e.message);
-        }
-    };
-    
-    window.deleteStudent = async function(studentName) {
-        if (!confirm(`Delete student "${studentName}" and all their results?`)) return;
-        
-        try {
-            await deleteDoc(doc(db, "students", studentName));
-            
-            const resultsSnapshot = await getDocs(collection(db, "results"));
-            resultsSnapshot.forEach(async (resultDoc) => {
-                if (resultDoc.id.startsWith(studentName + "_")) {
-                    await deleteDoc(resultDoc.ref);
-                }
-            });
-            
-            alert("Student deleted successfully!");
-            viewAllStudents();
-        } catch (e) {
-            alert("Error deleting student: " + e.message);
-        }
-    };
-    
     window.downloadTemplate = function() {
         const wb = XLSX.utils.book_new();
         const headers = ["StudentName", "Gender", ...subjects];
@@ -1720,7 +1631,7 @@ window.deleteStudent = async function(studentName) {
             
             const data = snap.data();
             console.log("Loaded Result:", data);
-            loadResults(studentName, data);
+            window.loadResults(studentName, data);
         
         } catch (e) {
             alert("Error loading report: " + e.message);
@@ -2011,16 +1922,17 @@ window.deleteStudent = async function(studentName) {
         if(!title || !message) return alert("Fill all fields");
         
         await addDoc(collection(db,"announcements"), {
-            title:title, 
-            message:message,
-            date:new Date(),
-            active:true
+            title: title, 
+            message: message,
+            date: new Date(),
+            active: true
         });
         
         alert("Notice saved");
-        manageNotices();
-    };
-    
+         manageNotices();
+        
+        };
+
     async function loadNoticesAdmin(){
         const box = document.getElementById("noticeList");
         box.innerHTML="Loading notices...";
@@ -2136,19 +2048,19 @@ window.deleteStudent = async function(studentName) {
         
         try{
             await addDoc(collection(db,"calendar"), {
-                date:date,
-                activity:activity,
-                active:true,
-                createdAt:new Date()
+                date: date,
+                activity: activity,
+                active: true,
+                createdAt: new Date()
             });
             
             alert("Calendar event saved");
             manageCalendar();
-        }
-        catch(e){
-            alert("Error: "+e.message);
-        }
-    };
+         }
+         catch(e){
+             alert("Error: "+e.message);
+            }
+        };
 
     async function loadCalendarAdmin(){
         const box = document.getElementById("calendarList");
@@ -2220,8 +2132,9 @@ window.deleteStudent = async function(studentName) {
         alert("Calendar event deleted");
         manageCalendar();
     };
-        // ================= GET NEXT TERM DATE FROM CALENDAR =================
-async function getNextTermDate() {
+        
+    // ================= GET NEXT TERM DATE FROM CALENDAR =================
+window.getNextTermDate = async function() {
     try {
         const snapshot = await getDocs(collection(db, "calendar"));
         let nextTermDate = "14 September 2026"; // Default fallback
@@ -2243,10 +2156,10 @@ async function getNextTermDate() {
         console.error("Error fetching next term date:", e);
         document.getElementById("nextTermDate").innerText = "14 September 2026";
     }
-}
+};
 
 // ================= GET BOARDING FEE FROM NOTICES =================
-async function getBoardingFee() {
+window.getBoardingFee = async function() {
     try {
         const snapshot = await getDocs(collection(db, "announcements"));
         let boardingFee = "MWK 45,000"; // Default fallback
@@ -2276,51 +2189,6 @@ async function getBoardingFee() {
         console.error("Error fetching boarding fee:", e);
         document.getElementById("boardingFee").innerText = "MWK 45,000";
     }
-}
-
-// ================= UPDATE CALENDAR FUNCTION =================
-// Update this function to include a "term opening" event
-window.saveCalendarEvent = async function(){
-    const date = document.getElementById("calendarDate").value.trim();
-    const activity = document.getElementById("calendarEvent").value.trim();
-    
-    if(!date || !activity){
-        return alert("Please fill all fields");
-    }
-    
-    try{
-        await addDoc(collection(db,"calendar"), {
-            date: date,
-            activity: activity,
-            active: true,
-            createdAt: new Date()
-        });
-        
-        alert("Calendar event saved");
-        manageCalendar();
-    }
-    catch(e){
-        alert("Error: "+e.message);
-    }
-};
-
-// ================= UPDATE NOTICE FUNCTION =================
-// Update this to include boarding fee announcements
-window.saveNotice = async function(){
-    const title = document.getElementById("noticeTitle").value.trim();
-    const message = document.getElementById("noticeMessage").value.trim();
-    
-    if(!title || !message) return alert("Fill all fields");
-    
-    await addDoc(collection(db,"announcements"), {
-        title: title, 
-        message: message,
-        date: new Date(),
-        active: true
-    });
-    
-    alert("Notice saved");
-    manageNotices();
 };
 
 // ================= PRINT FUNCTION =================
@@ -3388,75 +3256,59 @@ window.printReport = function() {
 
     </div>
         
-       
-         <!-- SIMPLE TWO-ROW FOOTER -->
-        <div class="school-footer" style="
-            margin-top: 35px;
-            background: linear-gradient(135deg, #003366, #001a33);
-            color: white;
-            padding: 20px;
-            border-radius: 18px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            ">
-        <!-- Row 1: Contact Icons -->
-            <div style="
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                gap: 20px;
-                flex-wrap: wrap;
-                margin-bottom: 12px;
-                font-size: 14px;
-                ">
-                <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;"><i class="fa-regular fa-envelope" style="color: #ffd700;"></i> 
-                    bandawedeafschool2@gmail.com</span>
-                <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;"><i class="fa-solid fa-phone" style="color: #ffd700;"></i>
-                <span>+265 999 191 279</span>
-                <span>+265 993 819 599</span></span>
-                <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;"><i class="fa-solid fa-location-dot" style="color: #ffd700;"></i> 
-                    Bandawe, Nkhata Bay.
-                </span>
-                <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;"><i class="fa-brands fa-facebook" style="color: #1877f2;"></i>
-                    <a href="https://facebook.com/bandawedeafschool" target="_blank" 
-                        style="color: white; text-decoration: none;"
-                        onmouseover="this.style.color='#1877f2'" 
-                        onmouseout="this.style.color='white'">
-                        bandawedeafschool
-                    </a>
-                </span>
-            </div>
-            <!-- WhatsApp -->
-            <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;"><i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
-                <span>+265 999 191 279</span><span>+265 993 819 599</span></span>
-            
-            <!-- Instagram -->
-            <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;"><i class="fa-brands fa-instagram" style="color: #E4405F;"></i>
-                <a href="https://instagram.com/bandawedeafschool" target="_blank" 
-                    style="color: white; text-decoration: none;"
-                    onmouseover="this.style.color='#E4405F'" 
-                    onmouseout="this.style.color='white'">
-                    bandawedeafschool
-                </a>
-            </span>
-            <!-- YouTube -->
-            <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
-                <i class="fa-brands fa-youtube" style="color: #FF0000;"></i>
-                <a href="https://youtube.com/bandaweschool" target="_blank" 
-                    style="color: white; text-decoration: none;"
-                    onmouseover="this.style.color='#FF0000'" 
-                    onmouseout="this.style.color='white'">
-                    Bandawe School for the Deaf
-                </a>
-            </span>
-            <!-- Row 2: Copyright -->
-            <div style="font-size: 13px; opacity: 0.5; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
-                <i class="fa-regular fa-copyright"></i> 2026 Bandawe School for the Deaf. All Rights Reserved.
-            </div>
-        </div>
+       <!-- SIMPLE TWO-ROW FOOTER -->
+<div class="school-footer" style="
+    margin-top: 35px;
+    background: linear-gradient(135deg, #003366, #001a33);
+    color: white;
+    padding: 20px;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+">
+    <!-- Row 1: Contact Icons -->
+    <div style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+        font-size: 14px;
+    ">
+        <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
+            <i class="fa-regular fa-envelope" style="color: #ffd700;"></i> 
+            bandawedeafschool2@gmail.com
+        </span>
+        
+        <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
+            <i class="fa-solid fa-phone" style="color: #ffd700;"></i>
+            <span>+265 999 191 279</span>
+            <span style="margin:0 4px;">|</span>
+            <span>+265 993 819 599</span>
+        </span>
+        
+        <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
+            <i class="fa-solid fa-location-dot" style="color: #ffd700;"></i> 
+            Bandawe Mission Station, Chintheche, Nkhata Bay.
+        </span>
+        
+        <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
+            <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
+            <span>+265 999 191 279</span>
+            <span style="margin:0 4px;">|</span>
+            <span>+265 993 819 599</span>
+        </span>
+        
     </div>
-
-   <div id="searchPortal" class="hidden">
+    
+    <!-- Row 2: Copyright -->
+    <div style="font-size: 13px; opacity: 0.5; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
+        <i class="fa-regular fa-copyright"></i> 2026 Bandawe School for the Deaf. All Rights Reserved.
+    </div>
+</div>
+   
+<div id="searchPortal" class="hidden">
     <div class="report-card">
         <h2 style="text-align:center; color:#003366;">
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -3707,13 +3559,6 @@ window.printReport = function() {
         <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
     </div>
     
-    <!-- ADMIN STUDENT PAGE -->
-    <div id="adminStudentPage" class="hidden">
-        <h2>Student Management</h2>
-        <div id="adminStudentContent"></div>
-        <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
-    </div>
-   
     <!-- ADMIN VIEW ALL STUDENTS PAGE -->
     <div id="adminViewStudentsPage" class="hidden">
         <h2><i class="fa-solid fa-users"></i> All Students</h2>
