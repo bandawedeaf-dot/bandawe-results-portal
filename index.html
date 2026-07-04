@@ -660,6 +660,20 @@ function getOverallRemark(total, maxTotal) {
     return "Needs significant improvement. Extra support recommended.";
 }
 
+// Create a student registration Excel template
+function downloadStudentTemplate() {
+    const wb = XLSX.utils.book_new();
+    const data = [
+        ["StudentName", "Gender", "DOB"],
+        ["John Banda", "Male", "01/01/2010"],
+        ["Mary Phiri", "Female", "15/06/2011"],
+        // Add more students
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, "Students");
+    XLSX.writeFile(wb, "Student_Registration_Template.xlsx");
+}
+
 // ================= AUTHENTICATION =================
 onAuthStateChanged(auth, async (user) => {
     if (user) {
