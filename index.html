@@ -393,6 +393,12 @@
             <h3>About Us</h3>
             <p>School history, mission, and vision</p>
         </div>
+        <div class="dashboard-card card-about" onclick="showGalleryPage()" 
+            style="background: linear-gradient(135deg, #ff7e5f, #feb47b);">
+            <i class="fa-solid fa-images"></i>
+            <h3>Gallery</h3>
+            <p>School photos and memorable moments</p>
+        </div>
     </div>
     
   <div class="school-footer">
@@ -510,6 +516,59 @@
             </div>
         </div>
     </div>
+    
+    <!-- GALLERY PAGE -->
+<div id="galleryPage" class="hidden">
+    <button onclick="backToPublicDashboard()" 
+            style="margin-bottom:15px; padding:8px 20px; background:#6c757d; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">
+        <i class="fa-solid fa-arrow-left"></i> Back
+    </button>
+    
+    <h2 style="color:#003366; text-align:center;">
+        <i class="fa-solid fa-images"></i> Bandawe School Gallery
+    </h2>
+    
+    <div style="background:white; border-radius:18px; padding:25px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin-top:20px;">
+        
+        <p style="text-align:center; color:#555; margin-bottom:25px;">
+            Capturing moments of learning, joy, and achievement at Bandawe School for the Deaf
+        </p>
+
+        <div class="gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+            
+            <!-- Add more images here as needed -->
+            <div class="gallery-item">
+                <img src="school-campus.jpg" alt="School Campus" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                <p style="text-align:center; margin-top:8px; color:#333;">School Campus</p>
+            </div>
+            
+            <div class="gallery-item">
+                <img src="https://via.placeholder.com/600x400/003366/ffffff?text=Classroom+Activity" alt="Classroom" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                <p style="text-align:center; margin-top:8px; color:#333;">Interactive Classroom</p>
+            </div>
+            
+            <div class="gallery-item">
+                <img src="https://via.placeholder.com/600x400/667eea/ffffff?text=Vocational+Training" alt="Vocational" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                <p style="text-align:center; margin-top:8px; color:#333;">Tailoring & Carpentry Training</p>
+            </div>
+            
+            <div class="gallery-item">
+                <img src="https://via.placeholder.com/600x400/11998e/ffffff?text=Sports+Day" alt="Sports" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                <p style="text-align:center; margin-top:8px; color:#333;">Sports & Games</p>
+            </div>
+            
+            <div class="gallery-item">
+                <img src="https://via.placeholder.com/600x400/f7971e/ffffff?text=Graduation" alt="Graduation" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                <p style="text-align:center; margin-top:8px; color:#333;">Graduation Day</p>
+            </div>
+            
+            <div class="gallery-item">
+                <img src="logo.png" alt="School Logo" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                <p style="text-align:center; margin-top:8px; color:#333;">School Community</p>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- SEARCH PORTAL -->
 <div id="searchPortal" class="hidden">
@@ -978,11 +1037,29 @@ window.showAboutPage = function() {
     const about = document.getElementById("aboutPage");
     about.classList.remove("hidden");
 };
+window.showGalleryPage = function() {
+    console.log("showGalleryPage called");
+    
+    // Hide all main sections
+    document.getElementById("public").classList.add("hidden");
+    document.getElementById("searchPortal").classList.add("hidden");
+    document.getElementById("results").classList.add("hidden");
+    document.getElementById("adminLogin").classList.add("hidden");
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("aboutPage").classList.add("hidden");
+    document.getElementById("noticesPage").classList.add("hidden");
+    document.getElementById("calendarPage").classList.add("hidden");
+    
+    // Show Gallery
+    const gallery = document.getElementById("galleryPage");
+    gallery.classList.remove("hidden");
+};
 
 window.backToPublicDashboard = function(){
     document.getElementById("noticesPage").classList.add("hidden");
     document.getElementById("calendarPage").classList.add("hidden");
     document.getElementById("aboutPage").classList.add("hidden");
+    document.getElementById("galleryPage").classList.add("hidden");   // ← Added
     document.getElementById("public").classList.remove("hidden");
 };
 
