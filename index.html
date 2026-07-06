@@ -190,8 +190,7 @@
         .calendar-item { padding: 12px 0; border-bottom: 1px solid #ddd; }
         .calendar-item:last-child { border-bottom: none; }
         .calendar-date { font-weight: bold; color: #0055aa; }
-
-        /* About Card */
+        
         .card-about {
             background: linear-gradient(135deg, #667eea, #764ba2) !important;
             color: white;
@@ -205,6 +204,20 @@
         .card-about p {
             color: rgba(255,255,255,0.9) !important;
         }
+        /* Force About Page to display properly */
+        #aboutPage {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 10px 0 !important;
+            background: transparent !important;
+        }
+        #aboutPage.hidden {
+             display: none !important;
+            }
+        #aboutPage:not(.hidden) {
+             display: block !important;
+            }
         
         .school-footer {
             margin-top: 35px;
