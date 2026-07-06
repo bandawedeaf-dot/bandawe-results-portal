@@ -393,13 +393,7 @@
             <h3>About Us</h3>
             <p>School history, mission, and vision</p>
         </div>
-        <div class="dashboard-card card-about" onclick="showGalleryPage()" 
-            style="background: linear-gradient(135deg, #ff7e5f, #feb47b);">
-            <i class="fa-solid fa-images"></i>
-            <h3>Gallery</h3>
-            <p>School photos and memorable moments</p>
-        </div>
-    </div>
+     </div>
     
   <div class="school-footer">
         <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 12px; font-size: 14px;">
@@ -762,6 +756,18 @@
 
 
 <script type="module">
+    // Expose all important functions to window
+window.manageStudents = manageStudents;
+window.enterResults = enterResults;
+window.showBulkUpload = showBulkUpload;
+window.showClassDashboard = showClassDashboard;
+window.manageNotices = manageNotices;
+window.manageCalendar = manageCalendar;
+window.manageGallery = manageGallery;
+window.manageUsers = manageUsers;
+window.logout = logout;
+window.viewAllStudents = viewAllStudents;
+window.backToDashboard = backToDashboard;
 // ================= FIREBASE IMPORTS =================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, addDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
@@ -868,40 +874,78 @@ onAuthStateChanged(auth, async (user) => {
 window.loadRoleBasedDashboard = function() {
     const user = window.currentUser;
     if (!user) return;
+    
     const dashboardMenu = document.getElementById("dashboardMenu");
     if (!dashboardMenu) return;
     
     if (user.role === "admin") {
         dashboardMenu.innerHTML = `
             <div class="admin-grid">
-                <div class="admin-card" onclick="manageStudents()"><i class="fa-solid fa-user-graduate"></i><h3>Students</h3><p>Add, edit and manage learners</p></div>
-                <div class="admin-card" onclick="enterResults()"><i class="fa-solid fa-pen-to-square"></i><h3>Results</h3><p>Enter learner results</p></div>
-                <div class="admin-card" onclick="showBulkUpload()"><i class="fa-solid fa-file-excel"></i><h3>Bulk Upload</h3><p>Upload class results</p></div>
-                <div class="admin-card" onclick="showClassDashboard()"><i class="fa-solid fa-chart-line"></i><h3>Performance</h3><p>Class analysis</p></div>
-                <div class="admin-card" onclick="manageNotices()"><i class="fa-solid fa-bullhorn"></i><h3>Notices</h3><p>Announcements</p></div>
-                <div class="admin-card" onclick="manageCalendar()"><i class="fa-solid fa-calendar-days"></i><h3>Calendar</h3><p>Opening dates</p></div>
-                <div class="admin-card" onclick="manageUsers()"><i class="fa-solid fa-users"></i><h3>Users</h3><p>Manage teachers</p></div>
-                <div class="admin-card" onclick="manageGallery()"><i class="fa-solid fa-images"></i><h3>Gallery</h3><p>Manage photos</p></div>
-                <div class="admin-card" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i><h3>Logout</h3><p>Exit system</p></div>
+                <div class="admin-card" onclick="manageStudents()">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <h3>Students</h3>
+                    <p>Add, edit and manage learners</p>
+                </div>
+                <div class="admin-card" onclick="enterResults()">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <h3>Enter Results</h3>
+                    <p>Enter learner results</p>
+                </div>
+                <div class="admin-card" onclick="showBulkUpload()">
+                    <i class="fa-solid fa-file-excel"></i>
+                    <h3>Bulk Upload</h3>
+                    <p>Upload class results</p>
+                </div>
+                <div class="admin-card" onclick="showClassDashboard()">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <h3>Performance</h3>
+                    <p>Class analysis</p>
+                </div>
+                <div class="admin-card" onclick="manageNotices()">
+                    <i class="fa-solid fa-bullhorn"></i>
+                    <h3>Notices</h3>
+                    <p>Announcements</p>
+                </div>
+                <div class="admin-card" onclick="manageCalendar()">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <h3>Calendar</h3>
+                    <p>Opening dates</p>
+                </div>
+                <div class="admin-card" onclick="manageGallery()">
+                    <i class="fa-solid fa-images"></i>
+                    <h3>Gallery</h3>
+                    <p>Manage school photos</p>
+                </div>
+                <div class="admin-card" onclick="manageUsers()">
+                    <i class="fa-solid fa-users"></i>
+                    <h3>Users</h3>
+                    <p>Manage teachers</p>
+                </div>
+                <div class="admin-card" onclick="logout()">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <h3>Logout</h3>
+                    <p>Exit system</p>
+                </div>
             </div>
         `;
-    } else if (user.role === "teacher") {
+    } 
+    else if (user.role === "teacher") {
+        // Teacher version (keep as before or simplify)
         dashboardMenu.innerHTML = `
             <div style="background:#e8f0fe; padding:15px; border-radius:10px; margin-bottom:20px;">
                 <h3 style="margin:0; color:#003366;"><i class="fa-solid fa-chalkboard-user"></i> Welcome, ${user.fullName}</h3>
-                <p style="margin:5px 0 0; color:#555;">Class: <strong>${user.class || 'Not assigned'}</strong></p>
             </div>
             <div class="admin-grid">
-                <div class="admin-card" onclick="viewAllStudents()"><i class="fa-solid fa-users"></i><h3>My Students</h3><p>View students in your class</p></div>
-                <div class="admin-card" onclick="enterResults()"><i class="fa-solid fa-pen-to-square"></i><h3>Enter Results</h3><p>Enter results for your class</p></div>
-                <div class="admin-card" onclick="showBulkUpload()"><i class="fa-solid fa-file-excel"></i><h3>Bulk Upload</h3><p>Upload class results</p></div>
-                <div class="admin-card" onclick="showClassDashboard()"><i class="fa-solid fa-chart-line"></i><h3>Class Performance</h3><p>View your class performance</p></div>
-                <div class="admin-card" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i><h3>Logout</h3><p>Exit system</p></div>
+                <div class="admin-card" onclick="viewAllStudents()"><i class="fa-solid fa-users"></i><h3>My Students</h3></div>
+                <div class="admin-card" onclick="enterResults()"><i class="fa-solid fa-pen-to-square"></i><h3>Enter Results</h3></div>
+                <div class="admin-card" onclick="showBulkUpload()"><i class="fa-solid fa-file-excel"></i><h3>Bulk Upload</h3></div>
+                <div class="admin-card" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i><h3>Logout</h3></div>
             </div>
         `;
     }
+    
+    console.log("✅ Admin dashboard loaded with all buttons");
 };
-
 window.updateAdminHeader = function() {
     const user = window.currentUser;
     if (!user) return;
