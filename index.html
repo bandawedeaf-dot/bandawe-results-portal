@@ -1156,13 +1156,51 @@ window.backToAdminResults = function() {
     if(menu) menu.style.display = "flex";
     document.getElementById("adminArea").innerHTML = "";
 };
-
+// ================= IMPROVED ADMIN NAVIGATION =================
 window.openAdminPage = function() {
-    const menu = document.getElementById("dashboardMenu");
-    if(menu) menu.style.display = "none";
-    document.getElementById("adminArea").innerHTML = "";
+    // Hide ALL public and other pages
+    document.getElementById("public").classList.add("hidden");
+    document.getElementById("searchPortal").classList.add("hidden");
+    document.getElementById("results").classList.add("hidden");
+    document.getElementById("adminLogin").classList.add("hidden");
+    document.getElementById("aboutPage").classList.add("hidden");
+    document.getElementById("noticesPage").classList.add("hidden");
+    document.getElementById("calendarPage").classList.add("hidden");
+    document.getElementById("galleryPage").classList.add("hidden");
+
+    // Show Admin Panel
+    document.getElementById("adminPanel").classList.remove("hidden");
+    
+    // Make sure admin area is visible
+    const adminArea = document.getElementById("adminArea");
+    if (adminArea) adminArea.style.display = "block";
+    
+    console.log("✅ Admin area opened properly");
 };
 
+window.backToDashboard = function(){
+    console.log("backToDashboard called");
+    
+    // Hide all sub-pages
+    const pages = ["adminStudentPage", "adminCalendarPage", "adminNoticesPage", 
+                   "adminViewStudentsPage", "results"];
+    pages.forEach(pageId => {
+        const el = document.getElementById(pageId);
+        if (el) el.classList.add("hidden");
+    });
+
+    // Show main admin panel
+    document.getElementById("adminPanel").classList.remove("hidden");
+    
+    const menu = document.getElementById("dashboardMenu");
+    if (menu) menu.style.display = "block";
+    
+    const area = document.getElementById("adminArea");
+    if (area) {
+        area.innerHTML = "";
+        area.style.display = "block";
+    }
+};
 // ================= MANAGE STUDENTS =================
 window.manageStudents = function(){
     console.log("manageStudents called");
@@ -2012,26 +2050,33 @@ window.deleteCalendar = async function(id){
 console.log("✅ All functions loaded successfully!");
 
 window.manageGallery = function() {
-    window.openAdminPage();
+    window.openAdminPage();           // ← Use this instead of anything else
+    
     document.getElementById("adminArea").innerHTML = `
-        <button onclick="backToDashboard()">← Back to Dashboard</button>
-        <h3>Manage Gallery</h3>
-        <input id="newImageUrl" placeholder="Image URL" style="width:100%; padding:10px; margin:10px 0;">
-        <input id="newImageCaption" placeholder="Caption" style="width:100%; padding:10px; margin:10px 0;">
-        <select id="newImageCategory" style="width:100%; padding:10px; margin:10px 0;">
-            <option value="campus">Campus</option>
-            <option value="academic">Academics</option>
-            <option value="vocational">Vocational</option>
-            <option value="events">Events</option>
-            <option value="sports">Sports</option>
-        </select>
-        <button onclick="addGalleryImage()" style="background:#28a745;">Add Image</button>
-        <hr>
-        <h4>Current Images</h4>
-        <div id="adminGalleryList"></div>
+        <button onclick="backToDashboard()" style="margin-bottom:15px;">← Back to Dashboard</button>
+        <h3><i class="fa-solid fa-images"></i> Manage Gallery</h3>
+        
+        <div style="background:#f8f9ff; padding:20px; border-radius:12px; margin:15px 0;">
+            <h4>Add New Image</h4>
+            <input id="newImageUrl" placeholder="Image URL (direct link)" style="width:100%; padding:12px; margin:8px 0;">
+            <input id="newImageCaption" placeholder="Caption / Description" style="width:100%; padding:12px; margin:8px 0;">
+            <select id="newImageCategory" style="width:100%; padding:12px; margin:8px 0;">
+                <option value="campus">Campus</option>
+                <option value="academic">Academics</option>
+                <option value="vocational">Vocational</option>
+                <option value="events">Events</option>
+                <option value="sports">Sports</option>
+            </select>
+            <button onclick="addGalleryImage()" style="background:#28a745; padding:12px 20px;">Add Image</button>
+        </div>
+        
+        <h4>Current Gallery Images</h4>
+        <div id="adminGalleryList" style="max-height:500px; overflow-y:auto;"></div>
     `;
+    
     renderAdminGalleryList();
 };
+
 
 window.addGalleryImage = function() {
     const url = document.getElementById("newImageUrl").value.trim();
