@@ -410,6 +410,32 @@
         </div>
     </div>
     
+  <div class="school-footer">
+        <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 12px; font-size: 14px;">
+            <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
+                <i class="fa-regular fa-envelope" style="color: #ffd700;"></i> bandawedeafschool2@gmail.com
+            </span>
+            <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
+                <i class="fa-solid fa-phone" style="color: #ffd700;"></i>
+                <span>+265 999 191 279</span>
+                <span style="margin:0 4px;">|</span>
+                <span>+265 993 819 599</span>
+            </span>
+            <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
+                <i class="fa-solid fa-location-dot" style="color: #ffd700;"></i> Bandawe Mission Station, Chintheche, Nkhata Bay.
+            </span>
+            <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
+                <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
+                <span>+265 999 191 279</span>
+                <span style="margin:0 4px;">|</span>
+                <span>+265 993 819 599</span>
+            </span>
+        </div>
+        <div style="font-size: 13px; opacity: 0.5; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
+            <i class="fa-regular fa-copyright"></i> 2026 Bandawe School for the Deaf. All Rights Reserved.
+        </div>
+    </div>
+</div>
     <!-- ABOUT PAGE -->
     <div id="aboutPage" class="hidden">
         <button onclick="backToPublicDashboard()" style="margin-bottom:15px; padding:8px 20px; background:#6c757d; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">
@@ -499,33 +525,6 @@
             </div>
         </div>
     </div>
-    
-    <div class="school-footer">
-        <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 12px; font-size: 14px;">
-            <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
-                <i class="fa-regular fa-envelope" style="color: #ffd700;"></i> bandawedeafschool2@gmail.com
-            </span>
-            <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
-                <i class="fa-solid fa-phone" style="color: #ffd700;"></i>
-                <span>+265 999 191 279</span>
-                <span style="margin:0 4px;">|</span>
-                <span>+265 993 819 599</span>
-            </span>
-            <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
-                <i class="fa-solid fa-location-dot" style="color: #ffd700;"></i> Bandawe Mission Station, Chintheche, Nkhata Bay.
-            </span>
-            <span style="display: flex; align-items: center; gap: 8px; opacity: 0.9;">
-                <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
-                <span>+265 999 191 279</span>
-                <span style="margin:0 4px;">|</span>
-                <span>+265 993 819 599</span>
-            </span>
-        </div>
-        <div style="font-size: 13px; opacity: 0.5; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
-            <i class="fa-regular fa-copyright"></i> 2026 Bandawe School for the Deaf. All Rights Reserved.
-        </div>
-    </div>
-</div>
 
 <!-- SEARCH PORTAL -->
 <div id="searchPortal" class="hidden">
@@ -982,22 +981,23 @@ window.showCalendarPage = async function(){
 
 window.showAboutPage = function() {
     console.log("showAboutPage called");
-     document.getElementById("public").classList.add("hidden");
-     document.getElementById("public").style.display = "none";
-     
-     const aboutPage = document.getElementById("aboutPage");
-     aboutPage.classList.remove("hidden");
-     aboutPage.style.display = "block";
-     aboutPage.style.visibility = "visible";
-     aboutPage.style.opacity = "1";
+    
+    // Hide all main sections
+    document.getElementById("public").classList.add("hidden");
+    document.getElementById("searchPortal").classList.add("hidden");
+    document.getElementById("results").classList.add("hidden");
+    document.getElementById("adminLogin").classList.add("hidden");
+    document.getElementById("adminPanel").classList.add("hidden");
+    
+    // Show About
+    const about = document.getElementById("aboutPage");
+    about.classList.remove("hidden");
 };
 
 window.backToPublicDashboard = function(){
     document.getElementById("noticesPage").classList.add("hidden");
     document.getElementById("calendarPage").classList.add("hidden");
-    const aboutPage = document.getElementById("aboutPage");
-    aboutPage.classList.add("hidden");
-    aboutPage.style.display = "none";
+    document.getElementById("aboutPage").classList.add("hidden");
     document.getElementById("public").classList.remove("hidden");
 };
 
