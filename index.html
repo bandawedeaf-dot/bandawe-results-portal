@@ -308,6 +308,7 @@
             position: absolute;
             left: -14px;
         }
+        
         .footer-info {
             display: flex;
             justify-content: space-between;
@@ -339,6 +340,130 @@
         }
         .no-print { display: inline-block; }
         .pdf-mode .no-print { display: none !important; }
+        /* Lightbox styles */
+.lightbox {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.9);
+  z-index: 9999;
+  text-align: center;
+  padding: 20px;
+}
+.lightbox.open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lightbox img {
+  max-width: 90%;
+  max-height: 85%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+.lightbox .close-lb {
+  position: absolute;
+  top: 20px;
+  right: 40px;
+  color: white;
+  font-size: 40px;
+  cursor: pointer;
+}
+.lightbox #lightboxCaption {
+  position: absolute;
+  bottom: 30px;
+  color: white;
+  font-size: 18px;
+  background: rgba(0,0,0,0.6);
+  padding: 8px 20px;
+  border-radius: 20px;
+}
+.gallery-item {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.gallery-item:hover {
+  transform: scale(1.03);
+        }
+        .gallery-categories {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 15px 0;
+}
+.category-btn {
+  padding: 8px 20px;
+  border: 2px solid #003366;
+  background: transparent;
+  color: #003366;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+.category-btn:hover {
+  background: #003366;
+  color: white;
+  transform: translateY(-2px);
+}
+.category-btn.active {
+  background: #003366;
+  color: white;
+        }
+        .gallery-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.gallery-item:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(0,51,102,0.3);
+}
+.gallery-item img {
+  transition: transform 0.5s ease;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.gallery-item:hover img {
+  transform: scale(1.05);
+}
+.gallery-item::after {
+  content: '🔍';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  font-size: 40px;
+  color: white;
+  background: rgba(0,0,0,0.5);
+  padding: 10px 15px;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+.gallery-item:hover::after {
+  transform: translate(-50%, -50%) scale(1);
+        }
+        .upload-area {
+  border: 2px dashed #003366;
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+  background: #f0f5ff;
+  margin-top: 20px;
+  opacity: 0.7;
+  transition: all 0.3s;
+}
+.upload-area:hover {
+  opacity: 1;
+  background: #e8f0fe;
+  border-color: #ffb347;
+        }
     </style>
 </head>
 <body>
@@ -533,42 +658,27 @@
         <p style="text-align:center; color:#555; margin-bottom:25px;">
             Capturing moments of learning, joy, and achievement at Bandawe School for the Deaf
         </p>
+        <div class="gallery-categories">
+            <button class="category-btn active" data-category="all">All</button>
+            <button class="category-btn" data-category="campus">Campus</button>
+            <button class="category-btn" data-category="academics">Academics</button>
+            <button class="category-btn" data-category="vocational">Vocational</button>
+            <button class="category-btn" data-category="events">Events</button>
+        </div>
 
         <div class="gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
             
             <!-- Add more images here as needed -->
-            <div class="gallery-item">
-                <img src="school-campus.jpg" alt="School Campus" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-                <p style="text-align:center; margin-top:8px; color:#333;">School Campus</p>
-            </div>
-            
-            <div class="gallery-item">
-                <img src="https://via.placeholder.com/600x400/003366/ffffff?text=Classroom+Activity" alt="Classroom" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-                <p style="text-align:center; margin-top:8px; color:#333;">Interactive Classroom</p>
-            </div>
-            
-            <div class="gallery-item">
-                <img src="https://via.placeholder.com/600x400/667eea/ffffff?text=Vocational+Training" alt="Vocational" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-                <p style="text-align:center; margin-top:8px; color:#333;">Tailoring & Carpentry Training</p>
-            </div>
-            
-            <div class="gallery-item">
-                <img src="https://via.placeholder.com/600x400/11998e/ffffff?text=Sports+Day" alt="Sports" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-                <p style="text-align:center; margin-top:8px; color:#333;">Sports & Games</p>
-            </div>
-            
-            <div class="gallery-item">
-                <img src="https://via.placeholder.com/600x400/f7971e/ffffff?text=Graduation" alt="Graduation" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-                <p style="text-align:center; margin-top:8px; color:#333;">Graduation Day</p>
-            </div>
-            
-            <div class="gallery-item">
-                <img src="logo.png" alt="School Logo" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-                <p style="text-align:center; margin-top:8px; color:#333;">School Community</p>
-            </div>
+            <!-- LIGHTBOX -->
+        <div class="lightbox" id="lightbox">
+            <span class="close-lb" id="closeLightbox">&times;</span>
+            <img id="lightboxImg" src="" alt="enlarged image">
+            <div id="lightboxCaption"></div>
+        </div>
         </div>
     </div>
 </div>
+    
 
 <!-- SEARCH PORTAL -->
 <div id="searchPortal" class="hidden">
@@ -782,6 +892,17 @@
         <button onclick="prevImage()" style="position:absolute; left:-60px; top:50%; background:#fff; color:#333; border:none; width:50px; height:50px; border-radius:50%; font-size:24px;">‹</button>
         <button onclick="nextImage()" style="position:absolute; right:-60px; top:50%; background:#fff; color:#333; border:none; width:50px; height:50px; border-radius:50%; font-size:24px;">›</button>
     </div>
+</div>
+<div class="gallery-item" data-category="campus">
+  <img src="image.jpg" alt="Campus image">
+</div>
+<div class="upload-area">
+  <i class="fas fa-cloud-upload-alt" style="font-size: 40px; color: #003366;"></i>
+  <h4>Admin Upload (Coming Soon)</h4>
+  <p style="color: #666;">Upload images to the gallery</p>
+  <button disabled style="background: #ccc; cursor: not-allowed; padding: 10px 30px; border: none; border-radius: 25px;">
+    <i class="fas fa-lock"></i> Admin Only
+  </button>
 </div>
 
 <script type="module">
@@ -2130,6 +2251,28 @@ window.deleteGalleryImage = function(index) {
         renderAdminGalleryList();
     }
 };
+// Category filtering
+const categoryBtns = document.querySelectorAll('.category-btn');
+const galleryItems = document.querySelectorAll('.gallery-item');
+
+categoryBtns.forEach(btn => {
+  btn.addEventListener('click', function() {
+    // Remove active class from all buttons
+    categoryBtns.forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    
+    const category = this.dataset.category;
+    
+    galleryItems.forEach(item => {
+      if (category === 'all' || item.dataset.category === category) {
+        item.style.display = 'block';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  });
+});
+    
 </script>
 </body>
 </html>
