@@ -388,7 +388,7 @@
             <h3>Staff Login</h3>
             <p>Teachers and Administrators</p>
         </div>
-        <div class="dashboard-card card-about" onclick="showAboutPage()" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+        <div class="dashboard-card card-about" onclick="showAboutPage()" style="background: linear-gradient(135deg, #ff7e5f, #feb47b);">
             <i class="fa-solid fa-building-columns"></i>
             <h3>About Us</h3>
             <p>School history, mission, and vision</p>
@@ -530,42 +530,18 @@
     
     <div style="background:white; border-radius:18px; padding:25px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin-top:20px;">
         
-        <p style="text-align:center; color:#555; margin-bottom:25px;">
-            Capturing moments of learning, joy, and achievement at Bandawe School for the Deaf
-        </p>
+        <!-- Category Filters -->
+        <div style="text-align:center; margin-bottom:25px;">
+            <button onclick="filterGallery('all')" class="gallery-filter active" data-filter="all">All</button>
+            <button onclick="filterGallery('campus')" class="gallery-filter" data-filter="campus">Campus</button>
+            <button onclick="filterGallery('academic')" class="gallery-filter" data-filter="academic">Academics</button>
+            <button onclick="filterGallery('vocational')" class="gallery-filter" data-filter="vocational">Vocational</button>
+            <button onclick="filterGallery('events')" class="gallery-filter" data-filter="events">Events</button>
+            <button onclick="filterGallery('sports')" class="gallery-filter" data-filter="sports">Sports</button>
+        </div>
 
-        <div class="gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
-            
-            <!-- Add more images here as needed -->
-            <div class="gallery-item">
-                <img src="school-campus.jpg" alt="School Campus" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-                <p style="text-align:center; margin-top:8px; color:#333;">School Campus</p>
-            </div>
-            
-            <div class="gallery-item">
-                <img src="https://via.placeholder.com/600x400/003366/ffffff?text=Classroom+Activity" alt="Classroom" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-                <p style="text-align:center; margin-top:8px; color:#333;">Interactive Classroom</p>
-            </div>
-            
-            <div class="gallery-item">
-                <img src="https://via.placeholder.com/600x400/667eea/ffffff?text=Vocational+Training" alt="Vocational" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-                <p style="text-align:center; margin-top:8px; color:#333;">Tailoring & Carpentry Training</p>
-            </div>
-            
-            <div class="gallery-item">
-                <img src="https://via.placeholder.com/600x400/11998e/ffffff?text=Sports+Day" alt="Sports" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-                <p style="text-align:center; margin-top:8px; color:#333;">Sports & Games</p>
-            </div>
-            
-            <div class="gallery-item">
-                <img src="https://via.placeholder.com/600x400/f7971e/ffffff?text=Graduation" alt="Graduation" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-                <p style="text-align:center; margin-top:8px; color:#333;">Graduation Day</p>
-            </div>
-            
-            <div class="gallery-item">
-                <img src="logo.png" alt="School Logo" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
-                <p style="text-align:center; margin-top:8px; color:#333;">School Community</p>
-            </div>
+        <div id="galleryContainer" class="gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px;">
+            <!-- Images populated by JavaScript -->
         </div>
     </div>
 </div>
@@ -774,6 +750,17 @@
     <button onclick="backToDashboard()" style="margin-top:20px;"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
 </div>
 
+        <!-- Lightbox -->
+<div id="lightbox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center;">
+    <div style="position:relative; max-width:90%; max-height:90%;">
+        <img id="lightboxImage" src="" style="max-width:100%; max-height:85vh; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+        <button onclick="closeLightbox()" style="position:absolute; top:-15px; right:-15px; background:#fff; color:#333; border:none; width:40px; height:40px; border-radius:50%; font-size:20px; cursor:pointer;">×</button>
+        <button onclick="prevImage()" style="position:absolute; left:-60px; top:50%; background:#fff; color:#333; border:none; width:50px; height:50px; border-radius:50%; font-size:24px;">‹</button>
+        <button onclick="nextImage()" style="position:absolute; right:-60px; top:50%; background:#fff; color:#333; border:none; width:50px; height:50px; border-radius:50%; font-size:24px;">›</button>
+    </div>
+</div>
+
+
 <script type="module">
 // ================= FIREBASE IMPORTS =================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -894,6 +881,7 @@ window.loadRoleBasedDashboard = function() {
                 <div class="admin-card" onclick="manageNotices()"><i class="fa-solid fa-bullhorn"></i><h3>Notices</h3><p>Announcements</p></div>
                 <div class="admin-card" onclick="manageCalendar()"><i class="fa-solid fa-calendar-days"></i><h3>Calendar</h3><p>Opening dates</p></div>
                 <div class="admin-card" onclick="manageUsers()"><i class="fa-solid fa-users"></i><h3>Users</h3><p>Manage teachers</p></div>
+                <div class="admin-card" onclick="manageGallery()"><i class="fa-solid fa-images"></i><h3>Gallery</h3><p>Manage photos</p></div>
                 <div class="admin-card" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i><h3>Logout</h3><p>Exit system</p></div>
             </div>
         `;
@@ -1037,11 +1025,21 @@ window.showAboutPage = function() {
     const about = document.getElementById("aboutPage");
     about.classList.remove("hidden");
 };
+// Gallery Data (you can expand this)
+let galleryImages = [
+    { id: 1, url: "school-campus.jpg", category: "campus", caption: "Main School Campus" },
+    { id: 2, url: "https://via.placeholder.com/800x600/003366/ffffff?text=Classroom", category: "academic", caption: "Interactive Learning Session" },
+    { id: 3, url: "https://via.placeholder.com/800x600/667eea/ffffff?text=Tailoring", category: "vocational", caption: "Tailoring Vocational Training" },
+    { id: 4, url: "https://via.placeholder.com/800x600/f7971e/ffffff?text=Graduation", category: "events", caption: "Graduation Ceremony 2025" },
+    { id: 5, url: "https://via.placeholder.com/800x600/11998e/ffffff?text=Sports", category: "sports", caption: "Sports Day" },
+    { id: 6, url: "logo.png", category: "campus", caption: "School Community" }
+];
+
+let currentImageIndex = 0;
+
 window.showGalleryPage = function() {
-    console.log("showGalleryPage called");
-    
-    // Hide all main sections
     document.getElementById("public").classList.add("hidden");
+    // Hide other pages...
     document.getElementById("searchPortal").classList.add("hidden");
     document.getElementById("results").classList.add("hidden");
     document.getElementById("adminLogin").classList.add("hidden");
@@ -1049,11 +1047,62 @@ window.showGalleryPage = function() {
     document.getElementById("aboutPage").classList.add("hidden");
     document.getElementById("noticesPage").classList.add("hidden");
     document.getElementById("calendarPage").classList.add("hidden");
+    document.getElementById("galleryPage").classList.remove("hidden");
     
-    // Show Gallery
-    const gallery = document.getElementById("galleryPage");
-    gallery.classList.remove("hidden");
+    renderGallery();
 };
+    function renderGallery(filter = 'all') {
+    const container = document.getElementById("galleryContainer");
+    container.innerHTML = "";
+    
+    const filtered = filter === 'all' ? galleryImages : galleryImages.filter(img => img.category === filter);
+    
+    filtered.forEach((img, index) => {
+        const div = document.createElement('div');
+        div.className = "gallery-item";
+        div.style.cursor = "pointer";
+        div.innerHTML = `
+            <img src="${img.url}" alt="${img.caption}" style="width:100%; border-radius:12px; transition:0.3s; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+            <p style="text-align:center; margin-top:10px; color:#333; font-weight:500;">${img.caption}</p>
+        `;
+        div.onclick = () => openLightbox(index);
+        container.appendChild(div);
+    });
+}
+
+window.filterGallery = function(filter) {
+    document.querySelectorAll('.gallery-filter').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-filter') === filter) btn.classList.add('active');
+    });
+    renderGallery(filter);
+};
+
+// Lightbox Functions
+window.openLightbox = function(globalIndex) {
+    currentImageIndex = globalIndex;
+    document.getElementById("lightbox").style.display = "flex";
+    document.getElementById("lightboxImage").src = galleryImages[globalIndex].url;
+};
+
+window.closeLightbox = function() {
+    document.getElementById("lightbox").style.display = "none";
+};
+
+window.nextImage = function() {
+    currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+    document.getElementById("lightboxImage").src = galleryImages[currentImageIndex].url;
+};
+
+window.prevImage = function() {
+    currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+    document.getElementById("lightboxImage").src = galleryImages[currentImageIndex].url;
+};
+
+// Close lightbox when clicking outside image
+document.getElementById("lightbox").addEventListener('click', function(e) {
+    if (e.target.id === "lightbox") closeLightbox();
+});
 
 window.backToPublicDashboard = function(){
     document.getElementById("noticesPage").classList.add("hidden");
@@ -1961,6 +2010,69 @@ window.deleteCalendar = async function(id){
 };
 
 console.log("✅ All functions loaded successfully!");
+
+window.manageGallery = function() {
+    window.openAdminPage();
+    document.getElementById("adminArea").innerHTML = `
+        <button onclick="backToDashboard()">← Back to Dashboard</button>
+        <h3>Manage Gallery</h3>
+        <input id="newImageUrl" placeholder="Image URL" style="width:100%; padding:10px; margin:10px 0;">
+        <input id="newImageCaption" placeholder="Caption" style="width:100%; padding:10px; margin:10px 0;">
+        <select id="newImageCategory" style="width:100%; padding:10px; margin:10px 0;">
+            <option value="campus">Campus</option>
+            <option value="academic">Academics</option>
+            <option value="vocational">Vocational</option>
+            <option value="events">Events</option>
+            <option value="sports">Sports</option>
+        </select>
+        <button onclick="addGalleryImage()" style="background:#28a745;">Add Image</button>
+        <hr>
+        <h4>Current Images</h4>
+        <div id="adminGalleryList"></div>
+    `;
+    renderAdminGalleryList();
+};
+
+window.addGalleryImage = function() {
+    const url = document.getElementById("newImageUrl").value.trim();
+    const caption = document.getElementById("newImageCaption").value.trim();
+    const category = document.getElementById("newImageCategory").value;
+    
+    if (!url || !caption) return alert("URL and Caption required!");
+    
+    galleryImages.push({
+        id: Date.now(),
+        url: url,
+        category: category,
+        caption: caption
+    });
+    
+    alert("Image added to gallery!");
+    renderAdminGalleryList();
+};
+
+function renderAdminGalleryList() {
+    const container = document.getElementById("adminGalleryList");
+    let html = "";
+    galleryImages.forEach((img, i) => {
+        html += `
+            <div style="border:1px solid #ddd; padding:10px; margin:8px 0; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <img src="${img.url}" style="height:60px; border-radius:6px;"> 
+                    <strong>${img.caption}</strong> (${img.category})
+                </div>
+                <button onclick="deleteGalleryImage(${i})" style="background:#dc3545; color:white; border:none; padding:6px 12px;">Delete</button>
+            </div>`;
+    });
+    container.innerHTML = html || "<p>No images yet.</p>";
+}
+
+window.deleteGalleryImage = function(index) {
+    if (confirm("Delete this image?")) {
+        galleryImages.splice(index, 1);
+        renderAdminGalleryList();
+    }
+};
 </script>
 </body>
 </html>
