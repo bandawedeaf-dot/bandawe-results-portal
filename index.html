@@ -980,10 +980,24 @@ window.showCalendarPage = async function(){
     box.innerHTML = html || "No academic calendar available.";
 };
 
+window.showAboutPage = function() {
+    console.log("showAboutPage called");
+     document.getElementById("public").classList.add("hidden");
+     document.getElementById("public").style.display = "none";
+     
+     const aboutPage = document.getElementById("aboutPage");
+     aboutPage.classList.remove("hidden");
+     aboutPage.style.display = "block";
+     aboutPage.style.visibility = "visible";
+     aboutPage.style.opacity = "1";
+};
+
 window.backToPublicDashboard = function(){
     document.getElementById("noticesPage").classList.add("hidden");
     document.getElementById("calendarPage").classList.add("hidden");
-    document.getElementById("aboutPage").classList.add("hidden");
+    const aboutPage = document.getElementById("aboutPage");
+    aboutPage.classList.add("hidden");
+    aboutPage.style.display = "none";
     document.getElementById("public").classList.remove("hidden");
 };
 
@@ -993,12 +1007,6 @@ window.showAdmin = function() {
     document.getElementById("adminLogin").classList.remove("hidden");
     document.getElementById("results").classList.add("hidden");
     document.getElementById("searchPortal").classList.add("hidden");
-};
-
-window.showAboutPage = function() {
-    console.log("showAboutPage called");
-    document.getElementById("public").classList.add("hidden");
-    document.getElementById("aboutPage").classList.remove("hidden");
 };
 
 // ================= BACK FUNCTIONS ================
