@@ -641,11 +641,9 @@
             </div>
         </div>
     </div>
-
 <!-- GALLERY PAGE -->
 <div id="galleryPage" class="hidden">
-    <button onclick="backToPublicDashboard()" 
-            style="margin-bottom:15px; padding:8px 20px; background:#6c757d; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">
+    <button onclick="backToPublicDashboard()" style="margin-bottom:15px; padding:8px 20px; background:#6c757d; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">
         <i class="fa-solid fa-arrow-left"></i> Back
     </button>
     
@@ -654,32 +652,25 @@
     </h2>
     
     <div style="background:white; border-radius:18px; padding:25px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin-top:20px;">
-        
         <p style="text-align:center; color:#555; margin-bottom:25px;">
             Capturing moments of learning, joy, and achievement at Bandawe School for the Deaf
         </p>
+
         <div class="gallery-categories">
             <button class="category-btn active" data-category="all">All</button>
             <button class="category-btn" data-category="campus">Campus</button>
-            <button class="category-btn" data-category="academics">Academics</button>
+            <button class="category-btn" data-category="academic">Academics</button>
             <button class="category-btn" data-category="vocational">Vocational</button>
             <button class="category-btn" data-category="events">Events</button>
+            <button class="category-btn" data-category="sports">Sports</button>
         </div>
 
-        <div class="gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
-            
-            <!-- Add more images here as needed -->
-            <!-- LIGHTBOX -->
-        <div class="lightbox" id="lightbox">
-            <span class="close-lb" id="closeLightbox">&times;</span>
-            <img id="lightboxImg" src="" alt="enlarged image">
-            <div id="lightboxCaption"></div>
-        </div>
+        <div id="galleryContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+            <!-- Populated by JS -->
         </div>
     </div>
 </div>
     
-
 <!-- SEARCH PORTAL -->
 <div id="searchPortal" class="hidden">
     <div class="report-card">
@@ -884,27 +875,6 @@
     <button onclick="backToDashboard()" style="margin-top:20px;"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
 </div>
 
-        <!-- Lightbox -->
-<div id="lightbox" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center;">
-    <div style="position:relative; max-width:90%; max-height:90%;">
-        <img id="lightboxImage" src="" style="max-width:100%; max-height:85vh; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
-        <button onclick="closeLightbox()" style="position:absolute; top:-15px; right:-15px; background:#fff; color:#333; border:none; width:40px; height:40px; border-radius:50%; font-size:20px; cursor:pointer;">×</button>
-        <button onclick="prevImage()" style="position:absolute; left:-60px; top:50%; background:#fff; color:#333; border:none; width:50px; height:50px; border-radius:50%; font-size:24px;">‹</button>
-        <button onclick="nextImage()" style="position:absolute; right:-60px; top:50%; background:#fff; color:#333; border:none; width:50px; height:50px; border-radius:50%; font-size:24px;">›</button>
-    </div>
-</div>
-<div class="gallery-item" data-category="campus">
-  <img src="image.jpg" alt="Campus image">
-</div>
-<div class="upload-area">
-  <i class="fas fa-cloud-upload-alt" style="font-size: 40px; color: #003366;"></i>
-  <h4>Admin Upload (Coming Soon)</h4>
-  <p style="color: #666;">Upload images to the gallery</p>
-  <button disabled style="background: #ccc; cursor: not-allowed; padding: 10px 30px; border: none; border-radius: 25px;">
-    <i class="fas fa-lock"></i> Admin Only
-  </button>
-</div>
-
 <script type="module">
 // ================= FIREBASE IMPORTS =================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -939,6 +909,70 @@ const classes = [
     "Standard 1", "Standard 2", "Standard 3", "Standard 4",
     "Standard 5", "Standard 6", "Standard 7", "Standard 8"
 ];
+    // ================= GALLERY DATA & FUNCTIONS =================
+let galleryImages = [
+    { id: 1, url: "school-campus.jpg", category: "campus", caption: "Main School Campus" },
+    { id: 2, url: "https://via.placeholder.com/800x600/003366/ffffff?text=Classroom", category: "academic", caption: "Interactive Learning" },
+    { id: 3, url: "https://via.placeholder.com/800x600/667eea/ffffff?text=Tailoring", category: "vocational", caption: "Tailoring Training" },
+    { id: 4, url: "https://via.placeholder.com/800x600/f7971e/ffffff?text=Graduation", category: "events", caption: "Graduation Day" },
+    { id: 5, url: "https://via.placeholder.com/800x600/11998e/ffffff?text=Sports", category: "sports", caption: "Sports Day" }
+];
+
+let currentImageIndex = 0;
+
+window.showGalleryPage = function() {
+    console.log("showGalleryPage called");
+    document.getElementById("public").classList.add("hidden");
+    document.getElementById("searchPortal").classList.add("hidden");
+    document.getElementById("results").classList.add("hidden");
+    document.getElementById("adminLogin").classList.add("hidden");
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("aboutPage").classList.add("hidden");
+    document.getElementById("noticesPage").classList.add("hidden");
+    document.getElementById("calendarPage").classList.add("hidden");
+    
+    document.getElementById("galleryPage").classList.remove("hidden");
+    renderGallery('all');
+};
+
+function renderGallery(filter = 'all') {
+    const container = document.getElementById("galleryContainer");
+    if (!container) return;
+    container.innerHTML = "";
+    
+    const filtered = filter === 'all' ? galleryImages : galleryImages.filter(img => img.category === filter);
+    
+    filtered.forEach((img, index) => {
+        const div = document.createElement('div');
+        div.className = "gallery-item";
+        div.innerHTML = `
+            <img src="\( {img.url}" alt=" \){img.caption}" style="width:100%; border-radius:12px;">
+            <p style="text-align:center; margin-top:8px; color:#333;">${img.caption}</p>
+        `;
+        div.onclick = () => openLightbox(index);
+        container.appendChild(div);
+    });
+}
+
+window.openLightbox = function(index) {
+    currentImageIndex = index;
+    document.getElementById("lightbox").style.display = "flex";
+    document.getElementById("lightboxImage").src = galleryImages[index].url;
+};
+
+window.closeLightbox = function() {
+    document.getElementById("lightbox").style.display = "none";
+};
+
+window.nextImage = function() {
+    currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+    document.getElementById("lightboxImage").src = galleryImages[currentImageIndex].url;
+};
+
+window.prevImage = function() {
+    currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+    document.getElementById("lightboxImage").src = galleryImages[currentImageIndex].url;
+};
 
 // ================= HELPER FUNCTIONS =================
 function getGradeAndRemark(score) {
@@ -1207,36 +1241,7 @@ window.showAboutPage = function() {
     const about = document.getElementById("aboutPage");
     about.classList.remove("hidden");
 };
-// Gallery Data (you can expand this)
-let galleryImages = [
-    { id: 1, url: "school-campus.jpg", category: "campus", caption: "Main School Campus" },
-    { id: 2, url: "https://via.placeholder.com/800x600/003366/ffffff?text=Classroom", category: "academic", caption: "Interactive Learning Session" },
-    { id: 3, url: "https://via.placeholder.com/800x600/667eea/ffffff?text=Tailoring", category: "vocational", caption: "Tailoring Vocational Training" },
-    { id: 4, url: "https://via.placeholder.com/800x600/f7971e/ffffff?text=Graduation", category: "events", caption: "Graduation Ceremony 2025" },
-    { id: 5, url: "https://via.placeholder.com/800x600/11998e/ffffff?text=Sports", category: "sports", caption: "Sports Day" },
-    { id: 6, url: "logo.png", category: "campus", caption: "School Community" }
-];
 
-let currentImageIndex = 0;
-
-window.showGalleryPage = function() {
-    console.log("showGalleryPage called");
-    
-    // Hide all main sections
-    document.getElementById("public").classList.add("hidden");
-    document.getElementById("searchPortal").classList.add("hidden");
-    document.getElementById("results").classList.add("hidden");
-    document.getElementById("adminLogin").classList.add("hidden");
-    document.getElementById("adminPanel").classList.add("hidden");
-    document.getElementById("aboutPage").classList.add("hidden");
-    document.getElementById("noticesPage").classList.add("hidden");
-    document.getElementById("calendarPage").classList.add("hidden");
-    
-    // Show Gallery
-    const gallery = document.getElementById("galleryPage");
-    gallery.classList.remove("hidden");
-};
-    
 window.backToPublicDashboard = function(){
     document.getElementById("noticesPage").classList.add("hidden");
     document.getElementById("calendarPage").classList.add("hidden");
@@ -2251,28 +2256,7 @@ window.deleteGalleryImage = function(index) {
         renderAdminGalleryList();
     }
 };
-// Category filtering
-const categoryBtns = document.querySelectorAll('.category-btn');
-const galleryItems = document.querySelectorAll('.gallery-item');
 
-categoryBtns.forEach(btn => {
-  btn.addEventListener('click', function() {
-    // Remove active class from all buttons
-    categoryBtns.forEach(b => b.classList.remove('active'));
-    this.classList.add('active');
-    
-    const category = this.dataset.category;
-    
-    galleryItems.forEach(item => {
-      if (category === 'all' || item.dataset.category === category) {
-        item.style.display = 'block';
-      } else {
-        item.style.display = 'none';
-      }
-    });
-  });
-});
-    
 </script>
 </body>
 </html>
