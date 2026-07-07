@@ -1331,7 +1331,7 @@ window.backToDashboard = function(){
     
     // Hide all sub-pages
     const pages = ["adminStudentPage", "adminCalendarPage", "adminNoticesPage", 
-                   "adminViewStudentsPage", "results"];
+                   "adminViewStudentsPage", "adminBulkPage", "results"];
     pages.forEach(pageId => {
         const el = document.getElementById(pageId);
         if (el) el.classList.add("hidden");
@@ -1780,33 +1780,79 @@ window.deleteStudent = async function(studentName) {
 
 // ================= BULK UPLOAD =================
 window.showBulkUpload = function() {
-    window.openAdminPage();
-    const user = window.currentUser;
-    if (!user) return;
-    let classOptions = "";
-    if (user.role === "teacher") {
-        classOptions = `<option value="${user.class}" selected>${user.class}</option>`;
-    } else {
-        classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
+    console.log("showBulkUpload called - opening as separate page");
+    // Hide admin panel
+    document.getElementById("adminPanel").classList.add("hidden");
+    
+    // Hide any other open pages
+    const pages = ["adminStudentPage", "adminCalendarPage", "adminNoticesPage", "adminViewStudentsPage"];
+    pages.forEach(pageId => {
+        const el = document.getElementById(pageId);
+        if (el) el.classList.add("hidden");
+    });
+    
+    // Create a new container for bulk upload if it doesn't exist
+    let bulkPage = document.getElementById("adminBulkPage");
+    if (!bulkPage) {
+        bulkPage = document.createElement("div");
+        bulkPage.id = "adminBulkPage";
+        document.body.appendChild(bulkPage);
     }
-    document.getElementById("adminArea").innerHTML = `
-        <button onclick="backToDashboard()" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
-        <h3>Bulk Results Upload</h3>
-        <p style="color:#555;">Upload results for an entire class</p>
-        <div style="margin:15px 0;">
-            <select id="bulkClass" style="padding:12px; width:100%; margin-bottom:10px;"><option value="">—— Select Class ——</option>${classOptions}</select>
-            <select id="bulkTerm" style="padding:12px; width:100%; margin-bottom:10px;"><option value="Term 3" selected>Term 3</option><option value="Term 1">Term 1</option><option value="Term 2">Term 2</option></select>
-            <input id="bulkYear" type="number" value="2026" style="padding:12px; width:100%; margin-bottom:15px;">
+    bulkPage.classList.remove("hidden");
+    bulkPage.innerHTML = `
+        <div style="max-width:900px;margin:20px auto;padding:20px;">
+            <button onclick="backToDashboard()" style="margin-bottom:15px;padding:10px 20px;background:#6c757d;color:white;border:none;border-radius:8px;cursor:pointer;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+            </button>
+            <h3>Bulk Results Upload</h3>
+            <p style="color:#555;">Upload results for an entire class</p>
+            <div style="margin:15px 0;">
+                <select id="bulkClass" style="padding:12px; width:100%; margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
+                    <option value="">—— Select Class ——</option>
+                    ${classes.map(cls => `<option value="${cls}">${cls}</option>`).join('')}
+                </select>
+                <select id="bulkTerm" style="padding:12px; width:100%; margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
+                    <option value="Term 3" selected>Term 3</option>
+                    <option value="Term 1">Term 1</option>
+                    <option value="Term 2">Term 2</option>
+                </select>
+                <input id="bulkYear" type="number" value="2026" style="padding:12px; width:100%; margin-bottom:15px;border-radius:8px;border:1px solid #ccc;">
+            </div>
+            <div style="margin:20px 0; padding:20px; border:2px dashed #003366; border-radius:12px; text-align:center; background:#f8f9ff;">
+                <button onclick="downloadTemplate()" style="background:#28a745; padding:12px 20px; margin-bottom:15px;border:none;border-radius:8px;color:white;cursor:pointer;">
+                    <i class="fa-solid fa-download"></i> Download Excel Template
+                </button>
+                <input type="file" id="excelFile" accept=".xlsx,.csv" style="margin:10px auto; display:block;">
+                <small style="color:#666;">First column must be <strong>StudentName</strong></small>
+            </div>
+            <button onclick="processBulkUpload()" style="background:#003366; padding:12px 25px;border:none;border-radius:8px;color:white;cursor:pointer;">
+                Process & Save Results
+            </button>
+            <button onclick="backToDashboard()" style="margin-top:10px;padding:12px 25px;background:#6c757d;color:white;border:none;border-radius:8px;cursor:pointer;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+            </button>
+            <div id="uploadStatus" style="margin-top:20px;"></div>
         </div>
-        <div style="margin:20px 0; padding:20px; border:2px dashed #003366; border-radius:12px; text-align:center; background:#f8f9ff;">
-            <button onclick="downloadTemplate()" style="background:#28a745; padding:12px 20px; margin-bottom:15px;"><i class="fa-solid fa-download"></i> Download Excel Template</button>
-            <input type="file" id="excelFile" accept=".xlsx,.csv" style="margin:10px auto; display:block;">
-            <small style="color:#666;">First column must be <strong>StudentName</strong></small>
-        </div>
-        <button onclick="processBulkUpload()" style="background:#003366; padding:12px 25px;">Process & Save Results</button>
-        <button onclick="backToDashboard()" style="margin-top:10px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
-        <div id="uploadStatus" style="margin-top:20px;"></div>
     `;
+    
+    // Make sure backToDashboard also hides this page
+    const originalBackToDashboard = window.backToDashboard;
+    window.backToDashboard = function() {
+        console.log("backToDashboard called");
+        const pages = ["adminStudentPage", "adminCalendarPage", "adminNoticesPage", "adminViewStudentsPage", "adminBulkPage"];
+        pages.forEach(pageId => {
+            const el = document.getElementById(pageId);
+            if (el) el.classList.add("hidden");
+        });
+        document.getElementById("adminPanel").classList.remove("hidden");
+        const menu = document.getElementById("dashboardMenu");
+        if (menu) menu.style.display = "block";
+        const area = document.getElementById("adminArea");
+        if (area) {
+            area.innerHTML = "";
+            area.style.display = "block";
+        }
+    };
 };
 
 window.processBulkUpload = async function() {
