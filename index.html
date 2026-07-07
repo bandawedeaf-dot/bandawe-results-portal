@@ -1331,7 +1331,7 @@ window.backToDashboard = function(){
     
     // Hide all sub-pages
     const pages = ["adminStudentPage", "adminCalendarPage", "adminNoticesPage", 
-                   "adminViewStudentsPage", "adminBulkPage", "results"];
+                   "adminViewStudentsPage", "adminBulkPage", "adminResultsPage", "results"];
     pages.forEach(pageId => {
         const el = document.getElementById(pageId);
         if (el) el.classList.add("hidden");
@@ -1392,7 +1392,27 @@ window.saveStudent = async function() {
 
 // ================= ENTER RESULTS =================
 window.enterResults = function() {
-    window.openAdminPage();
+    console.log("enterResults called - opening as separate page");
+    
+    // Hide admin panel
+    document.getElementById("adminPanel").classList.add("hidden");
+    
+    // Hide any other open pages
+    const pages = ["adminStudentPage", "adminCalendarPage", "adminNoticesPage", "adminViewStudentsPage", "adminBulkPage"];
+    pages.forEach(pageId => {
+        const el = document.getElementById(pageId);
+        if (el) el.classList.add("hidden");
+    });
+    
+    // Create a new container for enter results if it doesn't exist
+    let resultsPage = document.getElementById("adminResultsPage");
+    if (!resultsPage) {
+        resultsPage = document.createElement("div");
+        resultsPage.id = "adminResultsPage";
+        document.body.appendChild(resultsPage);
+    }
+    resultsPage.classList.remove("hidden");
+    
     const user = window.currentUser;
     let classOptions = '';
     if (user && user.role === "teacher") {
@@ -1400,28 +1420,50 @@ window.enterResults = function() {
     } else {
         classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
     }
+    
     let html = `
-        <button onclick="backToDashboard()" style="margin-bottom:15px;">← Back to Dashboard</button>
-        <h3>Enter Results</h3>
-        <div style="background:#e8f0fe; padding:12px; border-radius:8px; margin-bottom:15px; font-size:13px; color:#555;">
-            <i class="fa-solid fa-info-circle" style="color:#003366;"></i>
-            <strong>Note:</strong> Only enter scores for subjects the student took. Leave blank or 0 for subjects not taken.
-        </div>
-        <input id="rstudent" placeholder="Student Name">
-        <select id="rclass"><option value="">—— Select Class ——</option>${classOptions}</select>
-        <input id="classSize" type="number" placeholder="Number of Learners in Class" min="1">
-        <select id="term"><option value="">—— Select Term ——</option><option value="Term 1">Term 1</option><option value="Term 2">Term 2</option><option value="Term 3" selected>Term 3</option></select>
-        <input id="year" type="number" value="2026" placeholder="Year">
-        <div style="margin:15px 0; padding:15px; background:#f8f9ff; border-radius:10px;">
-            <p style="margin:0 0 10px; font-weight:bold; color:#003366;"><i class="fa-solid fa-pencil"></i> Subject Scores (leave 0 for subjects not taken)</p>`;
+        <div style="max-width:900px;margin:20px auto;padding:20px;">
+            <button onclick="backToDashboard()" style="margin-bottom:15px;padding:10px 20px;background:#6c757d;color:white;border:none;border-radius:8px;cursor:pointer;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+            </button>
+            <h3>Enter Results</h3>
+            <div style="background:#e8f0fe; padding:12px; border-radius:8px; margin-bottom:15px; font-size:13px; color:#555;">
+                <i class="fa-solid fa-info-circle" style="color:#003366;"></i>
+                <strong>Note:</strong> Only enter scores for subjects the student took. Leave blank or 0 for subjects not taken.
+            </div>
+            <input id="rstudent" placeholder="Student Name" style="width:100%;padding:12px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
+            <select id="rclass" style="width:100%;padding:12px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
+                <option value="">—— Select Class ——</option>${classOptions}
+            </select>
+            <input id="classSize" type="number" placeholder="Number of Learners in Class" min="1" style="width:100%;padding:12px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
+            <select id="term" style="width:100%;padding:12px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
+                <option value="">—— Select Term ——</option>
+                <option value="Term 1">Term 1</option>
+                <option value="Term 2">Term 2</option>
+                <option value="Term 3" selected>Term 3</option>
+            </select>
+            <input id="year" type="number" value="2026" placeholder="Year" style="width:100%;padding:12px;margin-bottom:15px;border-radius:8px;border:1px solid #ccc;">
+            <div style="margin:15px 0; padding:15px; background:#f8f9ff; border-radius:10px;">
+                <p style="margin:0 0 10px; font-weight:bold; color:#003366;"><i class="fa-solid fa-pencil"></i> Subject Scores (leave 0 for subjects not taken)</p>`;
+    
     subjects.forEach(sub => {
         html += `<div style="margin:8px 0; display:flex; align-items:center; gap:10px;">
             <label style="min-width:120px; font-weight:500;"><strong>${sub}:</strong></label>
-            <input class="score" data-subject="${sub}" type="number" min="0" max="100" style="flex:1; padding:8px;">
+            <input class="score" data-subject="${sub}" type="number" min="0" max="100" style="flex:1; padding:8px;border-radius:6px;border:1px solid #ccc;">
         </div>`;
     });
-    html += `</div><button onclick="saveResults()" style="background:#28a745; padding:12px 25px;"><i class="fa-solid fa-save"></i> Save Results</button>`;
-    document.getElementById("adminArea").innerHTML = html;
+    
+    html += `</div>
+            <button onclick="saveResults()" style="background:#28a745; padding:12px 25px;border:none;border-radius:8px;color:white;cursor:pointer;">
+                <i class="fa-solid fa-save"></i> Save Results
+            </button>
+            <button onclick="backToDashboard()" style="margin-left:10px;padding:12px 25px;background:#6c757d;color:white;border:none;border-radius:8px;cursor:pointer;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+            </button>
+        </div>
+    `;
+    
+    resultsPage.innerHTML = html;
 };
 
 window.saveResults = async function() {
