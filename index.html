@@ -1302,28 +1302,28 @@ window.backToAdminResults = function() {
 };
 // ================= IMPROVED ADMIN NAVIGATION =================
 window.openAdminPage = function() {
-    // Hide ALL public and other pages
-    document.getElementById("public").classList.add("hidden");
-    document.getElementById("searchPortal").classList.add("hidden");
-    document.getElementById("results").classList.add("hidden");
-    document.getElementById("adminLogin").classList.add("hidden");
-    document.getElementById("aboutPage").classList.add("hidden");
-    document.getElementById("noticesPage").classList.add("hidden");
-    document.getElementById("calendarPage").classList.add("hidden");
-    document.getElementById("galleryPage").classList.add("hidden");
-
-    // Show Admin Panel
-    document.getElementById("adminPanel").classList.remove("hidden");
+    // Hide everything except admin panel
+    const sectionsToHide = ["public", "searchPortal", "results", "adminLogin", "aboutPage", 
+                           "noticesPage", "calendarPage", "galleryPage", "adminStudentPage", 
+                           "adminViewStudentsPage", "adminNoticesPage", "adminCalendarPage"];
     
-    // Clear and prepare adminArea
+    sectionsToHide.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add("hidden");
+    });
+
+    // Show admin panel
+    document.getElementById("adminPanel").classList.remove("hidden");
+
+    // Clear admin area completely
     const adminArea = document.getElementById("adminArea");
     if (adminArea) {
-        adminArea.innerHTML = ""; 
+        adminArea.innerHTML = "";
         adminArea.style.display = "block";
-        adminArea.style.minHeight = "400px";
+        adminArea.style.minHeight = "500px";
     }
-    
-    console.log("Admin area cleared and ready");
+
+    console.log("✅ Admin area fully cleared and ready");
 };
 
 window.backToDashboard = function(){
