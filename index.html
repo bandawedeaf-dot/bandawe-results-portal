@@ -876,41 +876,6 @@
     <button onclick="backToDashboard()" style="margin-top:20px;"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
 </div>
 
-<!-- ADMIN ENTER RESULTS PAGE -->
-<div id="adminEnterResultsPage" class="hidden">
-    <h2>Enter Results</h2>
-    <div id="adminEnterResultsContent"></div>
-    <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
-</div>
-
-<!-- ADMIN BULK UPLOAD PAGE -->
-<div id="adminBulkUploadPage" class="hidden">
-    <h2>Bulk Results Upload</h2>
-    <div id="adminBulkUploadContent"></div>
-    <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
-</div>
-
-<!-- ADMIN PERFORMANCE PAGE -->
-<div id="adminPerformancePage" class="hidden">
-    <h2>Class Performance</h2>
-    <div id="adminPerformanceContent"></div>
-    <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
-</div>
-
-<!-- ADMIN USERS PAGE -->
-<div id="adminUsersPage" class="hidden">
-    <h2>Manage Users</h2>
-    <div id="adminUsersContent"></div>
-    <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
-</div>
-
-<!-- ADMIN GALLERY PAGE -->
-<div id="adminGalleryPage" class="hidden">
-    <h2>Manage Gallery</h2>
-    <div id="adminGalleryContent"></div>
-    <button onclick="backToDashboard()"><i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard</button>
-</div>
-
 <script type="module">
 // ================= FIREBASE IMPORTS =================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -1427,8 +1392,7 @@ window.saveStudent = async function() {
 
 // ================= ENTER RESULTS =================
 window.enterResults = function() {
-    document.getElementById("adminPanel").classList.add("hidden");
-    document.getElementById("adminEnterResultsPage").classList.remove("hidden");
+    window.openAdminPage();
     const user = window.currentUser;
     let classOptions = '';
     if (user && user.role === "teacher") {
@@ -1457,7 +1421,7 @@ window.enterResults = function() {
         </div>`;
     });
     html += `</div><button onclick="saveResults()" style="background:#28a745; padding:12px 25px;"><i class="fa-solid fa-save"></i> Save Results</button>`;
-    document.getElementById("adminEnterResultsContent").innerHTML = html;
+    document.getElementById("adminArea").innerHTML = html;
 };
 
 window.saveResults = async function() {
@@ -1816,8 +1780,7 @@ window.deleteStudent = async function(studentName) {
 
 // ================= BULK UPLOAD =================
 window.showBulkUpload = function() {
-    document.getElementById("adminPanel").classList.add("hidden");
-    document.getElementById("adminBulkUploadPage").classList.remove("hidden");
+    window.openAdminPage();
     const user = window.currentUser;
     if (!user) return;
     let classOptions = "";
@@ -1826,7 +1789,7 @@ window.showBulkUpload = function() {
     } else {
         classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
     }
-    document.getElementById("adminBulkUploadContent").innerHTML = `
+    document.getElementById("adminArea").innerHTML = `
         <button onclick="backToDashboard()" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
         <h3>Bulk Results Upload</h3>
         <p style="color:#555;">Upload results for an entire class</p>
@@ -1912,9 +1875,8 @@ window.downloadTemplate = function() {
 
 // ================= CLASS PERFORMANCE DASHBOARD =================
 window.showClassDashboard = async function(selectedTerm = "Term 3", selectedYear = "2026") {
-    document.getElementById("adminPanel").classList.add("hidden");
-    document.getElementById("adminPerformancePage").classList.remove("hidden");
-    document.getElementById("adminPerformanceContent").innerHTML = `<p>Loading Class Performance...</p>`;
+    window.openAdminPage();
+    document.getElementById("adminArea").innerHTML = `<p>Loading Class Performance...</p>`;
     try {
         const snapshot = await getDocs(collection(db, "results"));
         let classData = {};
@@ -1956,7 +1918,7 @@ window.showClassDashboard = async function(selectedTerm = "Term 3", selectedYear
             html += `</table></div>`;
         });
         if (Object.keys(classData).length === 0) html += `<p>No results found for ${selectedTerm} ${selectedYear}.</p>`;
-        document.getElementById("adminPerformanceContent").innerHTML = html;
+        document.getElementById("adminArea").innerHTML = html;
         setTimeout(() => {
             Object.keys(classData).forEach(cls => {
                 const students = classData[cls].slice(0, 8);
@@ -1968,7 +1930,7 @@ window.showClassDashboard = async function(selectedTerm = "Term 3", selectedYear
                 });
             });
         }, 300);
-    } catch (e) { document.getElementById("adminPerfomanceContent").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
+    } catch (e) { document.getElementById("adminArea").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
 };
 
 window.showGradeSummary = async function() {
@@ -2051,11 +2013,10 @@ window.loadSingleResult = async function(studentName, term, year) {
 
 // ================= MANAGE USERS =================
 window.manageUsers = function() {
-    document.getElementById("adminPanel").classList.add("hidden");
-    document.getElementById("adminUsersPage").classList.remove("hidden");
+    window.openAdminPage();
     const user = window.currentUser;
     if (user.role !== "admin") return alert("Only Administrators can manage users.");
-    document.getElementById("adminUsersContent").innerHTML = `
+    document.getElementById("adminArea").innerHTML = `
         <button onclick="backToDashboard()" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
         <h3>Manage Users (Admin Only)</h3>
         <div style="background:#f8f9ff; padding:20px; border-radius:12px;">
@@ -2305,7 +2266,6 @@ window.deleteGalleryImage = function(index) {
         renderAdminGalleryList();
     }
 };
-
 </script>
 </body>
 </html>
