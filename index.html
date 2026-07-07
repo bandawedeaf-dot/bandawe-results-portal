@@ -1315,12 +1315,15 @@ window.openAdminPage = function() {
     // Show Admin Panel
     document.getElementById("adminPanel").classList.remove("hidden");
     
-    // Make sure admin area is visible
+    // Clear and prepare adminArea
     const adminArea = document.getElementById("adminArea");
-    if (adminArea) adminArea.style.display = "block";
+    if (adminArea) {
+        adminArea.innerHTML = ""; 
+        adminArea.style.display = "block";
+        adminArea.style.minHeight = "400px";
+    }
     
-    console.log("✅ Admin area opened properly");
-    document.getElementById("adminArea").innerHTML = "";
+    console.log("Admin area cleared and ready");
 };
 
 window.backToDashboard = function(){
