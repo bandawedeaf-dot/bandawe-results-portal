@@ -641,7 +641,8 @@
             </div>
         </div>
     </div>
-<!-- GALLERY PAGE -->
+
+    <!-- GALLERY PAGE -->
 <div id="galleryPage" class="hidden">
     <button onclick="backToPublicDashboard()" style="margin-bottom:15px; padding:8px 20px; background:#6c757d; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">
         <i class="fa-solid fa-arrow-left"></i> Back
@@ -656,21 +657,21 @@
             Capturing moments of learning, joy, and achievement at Bandawe School for the Deaf
         </p>
 
-        <div class="gallery-categories">
-            <button class="category-btn active" data-category="all">All</button>
-            <button class="category-btn" data-category="campus">Campus</button>
-            <button class="category-btn" data-category="academic">Academics</button>
-            <button class="category-btn" data-category="vocational">Vocational</button>
-            <button class="category-btn" data-category="events">Events</button>
-            <button class="category-btn" data-category="sports">Sports</button>
+        <div class="gallery-categories" style="text-align:center; margin-bottom:20px;">
+            <button class="category-btn active" onclick="filterGallery('all')">All</button>
+            <button class="category-btn" onclick="filterGallery('campus')">Campus</button>
+            <button class="category-btn" onclick="filterGallery('academic')">Academics</button>
+            <button class="category-btn" onclick="filterGallery('vocational')">Vocational</button>
+            <button class="category-btn" onclick="filterGallery('events')">Events</button>
+            <button class="category-btn" onclick="filterGallery('sports')">Sports</button>
         </div>
 
-        <div id="galleryContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
-            <!-- Populated by JS -->
+        <div id="galleryContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px;">
+            <!-- Filled by JavaScript -->
         </div>
     </div>
 </div>
-    
+
 <!-- SEARCH PORTAL -->
 <div id="searchPortal" class="hidden">
     <div class="report-card">
@@ -909,12 +910,12 @@ const classes = [
     "Standard 1", "Standard 2", "Standard 3", "Standard 4",
     "Standard 5", "Standard 6", "Standard 7", "Standard 8"
 ];
-    // ================= GALLERY DATA & FUNCTIONS =================
+   // ================= GALLERY DATA & FUNCTIONS =================
 let galleryImages = [
     { id: 1, url: "school-campus.jpg", category: "campus", caption: "Main School Campus" },
-    { id: 2, url: "https://via.placeholder.com/800x600/003366/ffffff?text=Classroom", category: "academic", caption: "Interactive Learning" },
-    { id: 3, url: "https://via.placeholder.com/800x600/667eea/ffffff?text=Tailoring", category: "vocational", caption: "Tailoring Training" },
-    { id: 4, url: "https://via.placeholder.com/800x600/f7971e/ffffff?text=Graduation", category: "events", caption: "Graduation Day" },
+    { id: 2, url: "https://via.placeholder.com/800x600/003366/ffffff?text=Classroom", category: "academic", caption: "Interactive Learning Session" },
+    { id: 3, url: "https://via.placeholder.com/800x600/667eea/ffffff?text=Tailoring", category: "vocational", caption: "Tailoring Vocational Training" },
+    { id: 4, url: "https://via.placeholder.com/800x600/f7971e/ffffff?text=Graduation", category: "events", caption: "Graduation Ceremony" },
     { id: 5, url: "https://via.placeholder.com/800x600/11998e/ffffff?text=Sports", category: "sports", caption: "Sports Day" }
 ];
 
@@ -922,22 +923,20 @@ let currentImageIndex = 0;
 
 window.showGalleryPage = function() {
     console.log("showGalleryPage called");
+    // Hide others
     document.getElementById("public").classList.add("hidden");
-    document.getElementById("searchPortal").classList.add("hidden");
-    document.getElementById("results").classList.add("hidden");
-    document.getElementById("adminLogin").classList.add("hidden");
-    document.getElementById("adminPanel").classList.add("hidden");
     document.getElementById("aboutPage").classList.add("hidden");
     document.getElementById("noticesPage").classList.add("hidden");
     document.getElementById("calendarPage").classList.add("hidden");
-    
     document.getElementById("galleryPage").classList.remove("hidden");
+    
     renderGallery('all');
 };
 
 function renderGallery(filter = 'all') {
     const container = document.getElementById("galleryContainer");
-    if (!container) return;
+    if (!container) return console.error("Gallery container missing");
+    
     container.innerHTML = "";
     
     const filtered = filter === 'all' ? galleryImages : galleryImages.filter(img => img.category === filter);
@@ -946,13 +945,20 @@ function renderGallery(filter = 'all') {
         const div = document.createElement('div');
         div.className = "gallery-item";
         div.innerHTML = `
-            <img src="\( {img.url}" alt=" \){img.caption}" style="width:100%; border-radius:12px;">
-            <p style="text-align:center; margin-top:8px; color:#333;">${img.caption}</p>
+            <img src="${img.url}" alt="${img.caption}" style="width:100%; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.15);">
+            <p style="text-align:center; margin-top:10px; color:#333;">${img.caption}</p>
         `;
-        div.onclick = () => openLightbox(index);
+        div.onclick = () => window.openLightbox(index);
         container.appendChild(div);
     });
 }
+
+window.filterGallery = function(filter) {
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${filter}'`));
+    });
+    renderGallery(filter);
+};
 
 window.openLightbox = function(index) {
     currentImageIndex = index;
@@ -1314,6 +1320,7 @@ window.openAdminPage = function() {
     if (adminArea) adminArea.style.display = "block";
     
     console.log("✅ Admin area opened properly");
+    document.getElementById("adminArea").innerHTML = "";
 };
 
 window.backToDashboard = function(){
