@@ -2073,6 +2073,7 @@ window.showClassDashboard = async function(selectedTerm = "Term 3", selectedYear
         perfPage.innerHTML = `<div style="max-width:1000px;margin:20px auto;padding:20px;"><p style="color:red;">Error: ${e.message}</p><button onclick="backToDashboard()" style="margin-top:15px;padding:10px 20px;background:#6c757d;color:white;border:none;border-radius:8px;cursor:pointer;">Back to Dashboard</button></div>`;
     }
 };
+
 window.showGradeSummary = async function() {
     window.openAdminPage();
     document.getElementById("adminArea").innerHTML = `<p>Loading Grade Summary...</p>`;
