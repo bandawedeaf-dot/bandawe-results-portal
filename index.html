@@ -1314,7 +1314,7 @@ window.backToDashboard = function(){
     // Hide all sub-pages
     const pages = ["adminStudentPage", "adminCalendarPage", "adminNoticesPage", 
                    "adminViewStudentsPage", "adminBulkPage", "adminResultsPage",
-                   "adminPerformancePage", "adminUsersPage", "results"];
+                   "adminPerformancePage", "adminUsersPage", "adminGalleryPage", "results"];
     pages.forEach(pageId => {
         const el = document.getElementById(pageId);
         if (el) el.classList.add("hidden");
@@ -2363,33 +2363,65 @@ window.deleteCalendar = async function(id){
 console.log("✅ All functions loaded successfully!");
 
 window.manageGallery = function() {
-    window.openAdminPage();           // ← Use this instead of anything else
+    console.log("manageGallery called - opening as separate page");
     
-    document.getElementById("adminArea").innerHTML = `
-        <button onclick="backToDashboard()" style="margin-bottom:15px;">← Back to Dashboard</button>
-        <h3><i class="fa-solid fa-images"></i> Manage Gallery</h3>
-        
-        <div style="background:#f8f9ff; padding:20px; border-radius:12px; margin:15px 0;">
-            <h4>Add New Image</h4>
-            <input id="newImageUrl" placeholder="Image URL (direct link)" style="width:100%; padding:12px; margin:8px 0;">
-            <input id="newImageCaption" placeholder="Caption / Description" style="width:100%; padding:12px; margin:8px 0;">
-            <select id="newImageCategory" style="width:100%; padding:12px; margin:8px 0;">
-                <option value="campus">Campus</option>
-                <option value="academic">Academics</option>
-                <option value="vocational">Vocational</option>
-                <option value="events">Events</option>
-                <option value="sports">Sports</option>
-            </select>
-            <button onclick="addGalleryImage()" style="background:#28a745; padding:12px 20px;">Add Image</button>
+    // Hide admin panel
+    document.getElementById("adminPanel").classList.add("hidden");
+    
+    // Hide any other open pages
+    const pages = ["adminStudentPage", "adminCalendarPage", "adminNoticesPage", 
+                   "adminViewStudentsPage", "adminBulkPage", "adminResultsPage", 
+                   "adminPerformancePage", "adminUsersPage"];
+    pages.forEach(pageId => {
+        const el = document.getElementById(pageId);
+        if (el) el.classList.add("hidden");
+    });
+    
+    // Create a new container for gallery if it doesn't exist
+    let galleryPage = document.getElementById("adminGalleryPage");
+    if (!galleryPage) {
+        galleryPage = document.createElement("div");
+        galleryPage.id = "adminGalleryPage";
+        document.body.appendChild(galleryPage);
+    }
+    galleryPage.classList.remove("hidden");
+    
+    galleryPage.innerHTML = `
+        <div style="max-width:900px;margin:20px auto;padding:20px;">
+            <button onclick="backToDashboard()" style="margin-bottom:15px;padding:10px 20px;background:#6c757d;color:white;border:none;border-radius:8px;cursor:pointer;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+            </button>
+            <h3 style="color:#003366;"><i class="fa-solid fa-images"></i> Manage Gallery</h3>
+            
+            <div style="background:#f8f9ff; padding:20px; border-radius:12px; margin:15px 0;">
+                <h4 style="color:#003366;">Add New Image</h4>
+                <input id="newImageUrl" placeholder="Image URL (direct link)" style="width:100%; padding:12px; margin:8px 0;border-radius:8px;border:1px solid #ccc;">
+                <input id="newImageCaption" placeholder="Caption / Description" style="width:100%; padding:12px; margin:8px 0;border-radius:8px;border:1px solid #ccc;">
+                <select id="newImageCategory" style="width:100%; padding:12px; margin:8px 0;border-radius:8px;border:1px solid #ccc;">
+                    <option value="campus">Campus</option>
+                    <option value="academic">Academics</option>
+                    <option value="vocational">Vocational</option>
+                    <option value="events">Events</option>
+                    <option value="sports">Sports</option>
+                </select>
+                <button onclick="addGalleryImage()" style="background:#28a745;color:white;padding:12px 25px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;margin-top:10px;">
+                    <i class="fa-solid fa-plus"></i> Add Image
+                </button>
+            </div>
+            
+            <h4 style="color:#003366;margin-top:20px;">Current Gallery Images</h4>
+            <div id="adminGalleryList" style="max-height:500px; overflow-y:auto;"></div>
+            
+            <div style="margin-top:20px;">
+                <button onclick="backToDashboard()" style="padding:12px 25px;background:#6c757d;color:white;border:none;border-radius:8px;cursor:pointer;">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+                </button>
+            </div>
         </div>
-        
-        <h4>Current Gallery Images</h4>
-        <div id="adminGalleryList" style="max-height:500px; overflow-y:auto;"></div>
     `;
     
     renderAdminGalleryList();
 };
-
 
 window.addGalleryImage = function() {
     const url = document.getElementById("newImageUrl").value.trim();
