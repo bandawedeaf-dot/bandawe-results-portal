@@ -1264,24 +1264,6 @@ window.showAdmin = function() {
     document.getElementById("searchPortal").classList.add("hidden");
 };
 
-// ================= BACK FUNCTIONS ================
-window.backToDashboard = function(){
-    console.log("backToDashboard called");
-    const pages = ["adminStudentPage", "adminCalendarPage", "adminNoticesPage", "adminViewStudentsPage"];
-    pages.forEach(page=>{
-        const el=document.getElementById(page);
-        if(el) el.classList.add("hidden");
-    });
-    const results = document.getElementById("results");
-    if(results) results.classList.add("hidden");
-    const admin = document.getElementById("adminPanel");
-    if(admin) admin.classList.remove("hidden");
-    const menu = document.getElementById("dashboardMenu");
-    if(menu) menu.style.display = "flex";
-    const area = document.getElementById("adminArea");
-    if(area) area.innerHTML = "";
-};
-
 window.backToSearch = function() {
     console.log("backToSearch called");
     document.getElementById("results").classList.add("hidden");
@@ -1332,7 +1314,7 @@ window.backToDashboard = function(){
     // Hide all sub-pages
     const pages = ["adminStudentPage", "adminCalendarPage", "adminNoticesPage", 
                    "adminViewStudentsPage", "adminBulkPage", "adminResultsPage",
-                   "adminPerformancePage", "results"];
+                   "adminPerformancePage", "adminUsersPage", "results"];
     pages.forEach(pageId => {
         const el = document.getElementById(pageId);
         if (el) el.classList.add("hidden");
@@ -2154,19 +2136,61 @@ window.loadSingleResult = async function(studentName, term, year) {
 
 // ================= MANAGE USERS =================
 window.manageUsers = function() {
-    window.openAdminPage();
+    console.log("manageUsers called - opening as separate page");
+    
     const user = window.currentUser;
-    if (user.role !== "admin") return alert("Only Administrators can manage users.");
-    document.getElementById("adminArea").innerHTML = `
-        <button onclick="backToDashboard()" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
-        <h3>Manage Users (Admin Only)</h3>
-        <div style="background:#f8f9ff; padding:20px; border-radius:12px;">
-            <h4>Create New Teacher Account</h4>
-            <input id="teacherEmail" type="email" placeholder="Teacher Email" style="margin-bottom:10px;">
-            <input id="teacherName" placeholder="Full Name" style="margin-bottom:10px;">
-            <select id="teacherClass" style="margin-bottom:15px;"><option value="">—— Assign Class ——</option>${classes.map(cls => `<option value="${cls}">${cls}</option>`).join('')}</select>
-            <input id="teacherPassword" type="password" placeholder="Password (min 6 chars)" style="margin-bottom:15px;">
-            <button onclick="createTeacherAccount()" style="background:#28a745;">Create Teacher Account</button>
+    if (user.role !== "admin") {
+        alert("Only Administrators can manage users.");
+        return;
+    }
+    
+    // Hide admin panel
+    document.getElementById("adminPanel").classList.add("hidden");
+    
+    // Hide any other open pages
+    const pages = ["adminStudentPage", "adminCalendarPage", "adminNoticesPage", 
+                   "adminViewStudentsPage", "adminBulkPage", "adminResultsPage", 
+                   "adminPerformancePage"];
+    pages.forEach(pageId => {
+        const el = document.getElementById(pageId);
+        if (el) el.classList.add("hidden");
+    });
+    
+    // Create a new container for users if it doesn't exist
+    let usersPage = document.getElementById("adminUsersPage");
+    if (!usersPage) {
+        usersPage = document.createElement("div");
+        usersPage.id = "adminUsersPage";
+        document.body.appendChild(usersPage);
+    }
+    usersPage.classList.remove("hidden");
+    
+    let classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
+    
+    usersPage.innerHTML = `
+        <div style="max-width:800px;margin:20px auto;padding:20px;">
+            <button onclick="backToDashboard()" style="margin-bottom:15px;padding:10px 20px;background:#6c757d;color:white;border:none;border-radius:8px;cursor:pointer;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+            </button>
+            <h3>Manage Users (Admin Only)</h3>
+            <div style="background:#f8f9ff; padding:20px; border-radius:12px;">
+                <h4>Create New Teacher Account</h4>
+                <input id="teacherEmail" type="email" placeholder="Teacher Email" style="width:100%;padding:12px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
+                <input id="teacherName" placeholder="Full Name" style="width:100%;padding:12px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
+                <select id="teacherClass" style="width:100%;padding:12px;margin-bottom:10px;border-radius:8px;border:1px solid #ccc;">
+                    <option value="">—— Assign Class ——</option>
+                    ${classOptions}
+                </select>
+                <input id="teacherPassword" type="password" placeholder="Password (min 6 chars)" style="width:100%;padding:12px;margin-bottom:15px;border-radius:8px;border:1px solid #ccc;">
+                <button onclick="createTeacherAccount()" style="background:#28a745;padding:12px 25px;border:none;border-radius:8px;color:white;cursor:pointer;">
+                    <i class="fa-solid fa-user-plus"></i> Create Teacher Account
+                </button>
+            </div>
+            <div style="margin-top:20px;">
+                <button onclick="backToDashboard()" style="padding:12px 25px;background:#6c757d;color:white;border:none;border-radius:8px;cursor:pointer;">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+                </button>
+            </div>
         </div>
     `;
 };
