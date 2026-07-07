@@ -910,7 +910,8 @@ const classes = [
     "Standard 1", "Standard 2", "Standard 3", "Standard 4",
     "Standard 5", "Standard 6", "Standard 7", "Standard 8"
 ];
-   // ================= GALLERY DATA & FUNCTIONS =================
+
+// ================= GALLERY DATA & FUNCTIONS =================
 let galleryImages = [
     { id: 1, url: "school-campus.jpg", category: "campus", caption: "Main School Campus" },
     { id: 2, url: "https://via.placeholder.com/800x600/003366/ffffff?text=Classroom", category: "academic", caption: "Interactive Learning Session" },
@@ -997,20 +998,6 @@ function getOverallRemark(total, maxTotal) {
     return "Needs significant improvement. Extra support recommended.";
 }
 
-// Create a student registration Excel template
-function downloadStudentTemplate() {
-    const wb = XLSX.utils.book_new();
-    const data = [
-        ["StudentName", "Gender", "DOB"],
-        ["John Banda", "Male", "01/01/2010"],
-        ["Mary Phiri", "Female", "15/06/2011"],
-        // Add more students
-    ];
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, ws, "Students");
-    XLSX.writeFile(wb, "Student_Registration_Template.xlsx");
-}
-
 // ================= AUTHENTICATION =================
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -1064,17 +1051,17 @@ window.loadRoleBasedDashboard = function() {
                     <h3>Students</h3>
                     <p>Add, edit and manage learners</p>
                 </div>
-                <div class="admin-card" onclick="enterResults()">
+                <div class="admin-card" onclick="showEnterResultsPage()">
                     <i class="fa-solid fa-pen-to-square"></i>
                     <h3>Enter Results</h3>
                     <p>Enter learner results</p>
                 </div>
-                <div class="admin-card" onclick="showBulkUpload()">
+                <div class="admin-card" onclick="showBulkUploadPage()">
                     <i class="fa-solid fa-file-excel"></i>
                     <h3>Bulk Upload</h3>
                     <p>Upload class results</p>
                 </div>
-                <div class="admin-card" onclick="showClassDashboard()">
+                <div class="admin-card" onclick="showClassDashboardPage()">
                     <i class="fa-solid fa-chart-line"></i>
                     <h3>Performance</h3>
                     <p>Class analysis</p>
@@ -1089,7 +1076,7 @@ window.loadRoleBasedDashboard = function() {
                     <h3>Calendar</h3>
                     <p>Opening dates</p>
                 </div>
-                <div class="admin-card" onclick="manageGallery()">
+                <div class="admin-card" onclick="showManageGalleryPage()">
                     <i class="fa-solid fa-images"></i>
                     <h3>Gallery</h3>
                     <p>Manage school photos</p>
@@ -1108,15 +1095,14 @@ window.loadRoleBasedDashboard = function() {
         `;
     } 
     else if (user.role === "teacher") {
-        // Teacher version (keep as before or simplify)
         dashboardMenu.innerHTML = `
             <div style="background:#e8f0fe; padding:15px; border-radius:10px; margin-bottom:20px;">
                 <h3 style="margin:0; color:#003366;"><i class="fa-solid fa-chalkboard-user"></i> Welcome, ${user.fullName}</h3>
             </div>
             <div class="admin-grid">
                 <div class="admin-card" onclick="viewAllStudents()"><i class="fa-solid fa-users"></i><h3>My Students</h3></div>
-                <div class="admin-card" onclick="enterResults()"><i class="fa-solid fa-pen-to-square"></i><h3>Enter Results</h3></div>
-                <div class="admin-card" onclick="showBulkUpload()"><i class="fa-solid fa-file-excel"></i><h3>Bulk Upload</h3></div>
+                <div class="admin-card" onclick="showEnterResultsPage()"><i class="fa-solid fa-pen-to-square"></i><h3>Enter Results</h3></div>
+                <div class="admin-card" onclick="showBulkUploadPage()"><i class="fa-solid fa-file-excel"></i><h3>Bulk Upload</h3></div>
                 <div class="admin-card" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i><h3>Logout</h3></div>
             </div>
         `;
@@ -1124,6 +1110,7 @@ window.loadRoleBasedDashboard = function() {
     
     console.log("✅ Admin dashboard loaded with all buttons");
 };
+
 window.updateAdminHeader = function() {
     const user = window.currentUser;
     if (!user) return;
@@ -1252,7 +1239,7 @@ window.backToPublicDashboard = function(){
     document.getElementById("noticesPage").classList.add("hidden");
     document.getElementById("calendarPage").classList.add("hidden");
     document.getElementById("aboutPage").classList.add("hidden");
-    document.getElementById("galleryPage").classList.add("hidden");   // ← Added
+    document.getElementById("galleryPage").classList.add("hidden");
     document.getElementById("public").classList.remove("hidden");
 };
 
@@ -1267,19 +1254,29 @@ window.showAdmin = function() {
 // ================= BACK FUNCTIONS ================
 window.backToDashboard = function(){
     console.log("backToDashboard called");
-    const pages = ["adminStudentPage", "adminCalendarPage", "adminNoticesPage", "adminViewStudentsPage"];
-    pages.forEach(page=>{
-        const el=document.getElementById(page);
-        if(el) el.classList.add("hidden");
+    // Hide all sub-pages
+    const pages = ["adminStudentPage", "adminCalendarPage", "adminNoticesPage", 
+                   "adminViewStudentsPage", "adminEnterResultsPage", "adminBulkUploadPage",
+                   "adminClassDashboardPage", "adminManageGalleryPage", "adminUsersPage", "results"];
+    pages.forEach(pageId => {
+        const el = document.getElementById(pageId);
+        if (el) el.classList.add("hidden");
     });
-    const results = document.getElementById("results");
-    if(results) results.classList.add("hidden");
-    const admin = document.getElementById("adminPanel");
-    if(admin) admin.classList.remove("hidden");
+
+    // Show main admin panel
+    document.getElementById("adminPanel").classList.remove("hidden");
+    
     const menu = document.getElementById("dashboardMenu");
-    if(menu) menu.style.display = "flex";
+    if (menu) menu.style.display = "block";
+    
     const area = document.getElementById("adminArea");
-    if(area) area.innerHTML = "";
+    if (area) {
+        area.innerHTML = "";
+        area.style.display = "block";
+    }
+    
+    // Restore dashboard
+    window.loadRoleBasedDashboard();
 };
 
 window.backToSearch = function() {
@@ -1297,61 +1294,14 @@ window.backToAdminResults = function() {
     document.getElementById("results").classList.add("hidden");
     document.getElementById("adminPanel").classList.remove("hidden");
     const menu = document.getElementById("dashboardMenu");
-    if(menu) menu.style.display = "flex";
+    if(menu) menu.style.display = "block";
     document.getElementById("adminArea").innerHTML = "";
 };
-// ================= IMPROVED ADMIN NAVIGATION =================
-window.openAdminPage = function() {
-    // Hide everything except admin panel
-    const sectionsToHide = ["public", "searchPortal", "results", "adminLogin", "aboutPage", 
-                           "noticesPage", "calendarPage", "galleryPage", "adminStudentPage", 
-                           "adminViewStudentsPage", "adminNoticesPage", "adminCalendarPage"];
-    
-    sectionsToHide.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.add("hidden");
-    });
 
-    // Show admin panel
-    document.getElementById("adminPanel").classList.remove("hidden");
-
-    // Clear admin area completely
-    const adminArea = document.getElementById("adminArea");
-    if (adminArea) {
-        adminArea.innerHTML = "";
-        adminArea.style.display = "block";
-        adminArea.style.minHeight = "500px";
-    }
-
-    console.log("✅ Admin area fully cleared and ready");
-};
-
-window.backToDashboard = function(){
-    console.log("backToDashboard called");
-    
-    // Hide all sub-pages
-    const pages = ["adminStudentPage", "adminCalendarPage", "adminNoticesPage", 
-                   "adminViewStudentsPage", "results"];
-    pages.forEach(pageId => {
-        const el = document.getElementById(pageId);
-        if (el) el.classList.add("hidden");
-    });
-
-    // Show main admin panel
-    document.getElementById("adminPanel").classList.remove("hidden");
-    
-    const menu = document.getElementById("dashboardMenu");
-    if (menu) menu.style.display = "block";
-    
-    const area = document.getElementById("adminArea");
-    if (area) {
-        area.innerHTML = "";
-        area.style.display = "block";
-    }
-};
 // ================= MANAGE STUDENTS =================
 window.manageStudents = function(){
     console.log("manageStudents called");
+    // Hide admin panel and show student page
     document.getElementById("adminPanel").classList.add("hidden");
     document.getElementById("adminViewStudentsPage").classList.add("hidden");
     document.getElementById("adminStudentPage").classList.remove("hidden");
@@ -1390,9 +1340,10 @@ window.saveStudent = async function() {
     } catch (e) { alert("Error: " + e.message); }
 };
 
-// ================= ENTER RESULTS =================
-window.enterResults = function() {
-    window.openAdminPage();
+// ================= ENTER RESULTS PAGE =================
+window.showEnterResultsPage = function() {
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("adminEnterResultsPage").classList.remove("hidden");
     const user = window.currentUser;
     let classOptions = '';
     if (user && user.role === "teacher") {
@@ -1400,7 +1351,7 @@ window.enterResults = function() {
     } else {
         classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
     }
-    let html = `
+    document.getElementById("adminEnterResultsContent").innerHTML = `
         <button onclick="backToDashboard()" style="margin-bottom:15px;">← Back to Dashboard</button>
         <h3>Enter Results</h3>
         <div style="background:#e8f0fe; padding:12px; border-radius:8px; margin-bottom:15px; font-size:13px; color:#555;">
@@ -1415,13 +1366,16 @@ window.enterResults = function() {
         <div style="margin:15px 0; padding:15px; background:#f8f9ff; border-radius:10px;">
             <p style="margin:0 0 10px; font-weight:bold; color:#003366;"><i class="fa-solid fa-pencil"></i> Subject Scores (leave 0 for subjects not taken)</p>`;
     subjects.forEach(sub => {
-        html += `<div style="margin:8px 0; display:flex; align-items:center; gap:10px;">
+        document.getElementById("adminEnterResultsContent").innerHTML += `<div style="margin:8px 0; display:flex; align-items:center; gap:10px;">
             <label style="min-width:120px; font-weight:500;"><strong>${sub}:</strong></label>
             <input class="score" data-subject="${sub}" type="number" min="0" max="100" style="flex:1; padding:8px;">
         </div>`;
     });
-    html += `</div><button onclick="saveResults()" style="background:#28a745; padding:12px 25px;"><i class="fa-solid fa-save"></i> Save Results</button>`;
-    document.getElementById("adminArea").innerHTML = html;
+    document.getElementById("adminEnterResultsContent").innerHTML += `
+        </div>
+        <button onclick="saveResults()" style="background:#28a745; padding:12px 25px;"><i class="fa-solid fa-save"></i> Save Results</button>
+        <button onclick="backToDashboard()" style="margin-top:10px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
+    `;
 };
 
 window.saveResults = async function() {
@@ -1454,6 +1408,248 @@ window.saveResults = async function() {
         alert(`Results saved successfully! (${subjectCount} subjects entered)`);
         window.backToDashboard();
     } catch (e) { alert("Error: " + e.message); }
+};
+
+// ================= BULK UPLOAD PAGE =================
+window.showBulkUploadPage = function() {
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("adminBulkUploadPage").classList.remove("hidden");
+    const user = window.currentUser;
+    let classOptions = "";
+    if (user && user.role === "teacher") {
+        classOptions = `<option value="${user.class}" selected>${user.class}</option>`;
+    } else {
+        classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
+    }
+    document.getElementById("adminBulkUploadContent").innerHTML = `
+        <button onclick="backToDashboard()" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
+        <h3>Bulk Results Upload</h3>
+        <p style="color:#555;">Upload results for an entire class</p>
+        <div style="margin:15px 0;">
+            <select id="bulkClass" style="padding:12px; width:100%; margin-bottom:10px;"><option value="">—— Select Class ——</option>${classOptions}</select>
+            <select id="bulkTerm" style="padding:12px; width:100%; margin-bottom:10px;"><option value="Term 3" selected>Term 3</option><option value="Term 1">Term 1</option><option value="Term 2">Term 2</option></select>
+            <input id="bulkYear" type="number" value="2026" style="padding:12px; width:100%; margin-bottom:15px;">
+        </div>
+        <div style="margin:20px 0; padding:20px; border:2px dashed #003366; border-radius:12px; text-align:center; background:#f8f9ff;">
+            <button onclick="downloadTemplate()" style="background:#28a745; padding:12px 20px; margin-bottom:15px;"><i class="fa-solid fa-download"></i> Download Excel Template</button>
+            <input type="file" id="excelFile" accept=".xlsx,.csv" style="margin:10px auto; display:block;">
+            <small style="color:#666;">First column must be <strong>StudentName</strong></small>
+        </div>
+        <button onclick="processBulkUpload()" style="background:#003366; padding:12px 25px;">Process & Save Results</button>
+        <button onclick="backToDashboard()" style="margin-top:10px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
+        <div id="uploadStatus" style="margin-top:20px;"></div>
+    `;
+};
+
+window.processBulkUpload = async function() {
+    const fileInput = document.getElementById("excelFile");
+    const className = document.getElementById("bulkClass").value;
+    const term = document.getElementById("bulkTerm").value;
+    const year = document.getElementById("bulkYear").value;
+    const statusDiv = document.getElementById("uploadStatus");
+    if (!fileInput.files[0] || !className || !term || !year) return alert("Please select class, term, year and upload a file.");
+    statusDiv.innerHTML = `<p style="color:blue;">Processing file...</p>`;
+    const file = fileInput.files[0];
+    try {
+        let data;
+        if (file.name.endsWith('.xlsx')) {
+            const arrayBuffer = await file.arrayBuffer();
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        } else {
+            const text = await file.text();
+            const rows = text.trim().split('\n');
+            data = rows.map(row => row.split(',').map(cell => cell.trim()));
+        }
+        let successCount = 0, errorCount = 0;
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            if (!row || row.length < 1) continue;
+            const studentName = String(row[0]).trim();
+            if (!studentName) continue;
+            let scores = {}, total = 0;
+            const gender = row[1] || "";
+            subjects.forEach((subject, index) => {
+                const score = parseInt(row[index + 2]) || 0;
+                scores[subject] = score;
+                total += score;
+            });
+            try {
+                const resultId = `${studentName}_${term}_${year}`;
+                const existing = await getDoc(doc(db, "results", resultId));
+                if (existing.exists()) {
+                    const overwrite = confirm(`${studentName} already has results for ${term} ${year}.\nOverwrite?`);
+                    if (!overwrite) continue;
+                }
+                const studentRef = doc(db, "students", studentName);
+                await setDoc(studentRef, { class: className, gender: gender }, { merge: true });
+                await setDoc(doc(db, "results", resultId), {
+                    scores: scores, total: total, class: className, classSize: 40, term: term, year: parseInt(year)
+                });
+                successCount++;
+            } catch (err) { errorCount++; }
+        }
+        statusDiv.innerHTML = `<p style="color:green; font-weight:bold;">✅ Upload Complete!<br>Success: ${successCount} students<br>Failed: ${errorCount}</p>`;
+        setTimeout(() => window.viewAllStudents(), 2500);
+    } catch (e) { statusDiv.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
+};
+
+window.downloadTemplate = function() {
+    const wb = XLSX.utils.book_new();
+    const headers = ["StudentName", "Gender", ...subjects];
+    const sampleData = [headers, ["John Banda", "Male", 85, 78, 92, 88, 76, 94, 82, 89, 85], ["Mary Phiri", "Female", 65, 70, 75, 68, 80, 72, 68, 75, 70], ["Peter Mwale", "Male", 92, 88, 95, 90, 85, 96, 89, 91, 87], ["Grace Manda", "Female", 45, 55, 60, 50, 65, 48, 52, 58, 55], ["James Chawinga", "Male", 78, 82, 80, 85, 75, 88, 79, 83, 81]];
+    const ws = XLSX.utils.aoa_to_sheet(sampleData);
+    ws['!cols'] = headers.map(() => ({ wch: 18 }));
+    XLSX.utils.book_append_sheet(wb, ws, "Term 3 Results");
+    XLSX.writeFile(wb, "Bandawe_Bulk_Results_Template.xlsx");
+};
+
+// ================= CLASS PERFORMANCE DASHBOARD PAGE =================
+window.showClassDashboardPage = async function(selectedTerm = "Term 3", selectedYear = "2026") {
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("adminClassDashboardPage").classList.remove("hidden");
+    document.getElementById("adminClassDashboardContent").innerHTML = `<p>Loading Class Performance...</p>`;
+    try {
+        const snapshot = await getDocs(collection(db, "results"));
+        let classData = {};
+        snapshot.forEach(docSnap => {
+            const d = docSnap.data();
+            if (d.term === selectedTerm && d.year == selectedYear) {
+                if (!classData[d.class]) classData[d.class] = [];
+                classData[d.class].push({ name: docSnap.id.split('_')[0], total: d.total || 0, scores: d.scores || {} });
+            }
+        });
+        let html = `<button onclick="backToDashboard()" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard </button>
+            <h3>Class Performance Dashboard</h3>
+            <div style="margin:15px 0; padding:15px; background:#f8f9ff; border-radius:10px;">
+            <select id="dashTerm" onchange="refreshDashboardPage()" style="padding:10px; margin-right:10px;">
+                <option value="Term 1" ${selectedTerm === "Term 1" ? "selected" : ""}>Term 1</option>
+                <option value="Term 2" ${selectedTerm === "Term 2" ? "selected" : ""}>Term 2</option>
+                <option value="Term 3" ${selectedTerm === "Term 3" ? "selected" : ""}>Term 3</option>
+            </select>
+            <select id="dashYear" onchange="refreshDashboardPage()" style="padding:10px;">
+                <option value="2025" ${selectedYear === "2025" ? "selected" : ""}>2025</option>
+                <option value="2026" ${selectedYear === "2026" ? "selected" : ""}>2026</option>
+                <option value="2027" ${selectedYear === "2027" ? "selected" : ""}>2027</option>
+            </select>
+            <button onclick="showGradeSummaryPage()" style="width:auto; padding:10px 20px; background:#28a745;">Grade Summary</button>
+            </div>`;
+        Object.keys(classData).sort().forEach(cls => {
+            const students = classData[cls];
+            const totalStudents = students.length;
+            if (totalStudents === 0) return;
+            let totalScoreSum = 0;
+            students.forEach(s => totalScoreSum += s.total);
+            const classAverage = (totalScoreSum / totalStudents).toFixed(1);
+            students.sort((a, b) => b.total - a.total);
+            html += `<div style="background:white; padding:20px; margin:15px 0; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+                <h4>${cls} (${totalStudents} students) — Class Average: <strong>${classAverage}</strong></h4>
+                <canvas id="chart-${cls.replace(/\s+/g,'')}" style="margin:15px 0; max-height:280px;"></canvas>
+                <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+                <tr style="background:#003366; color:white;"><th style="padding:10px;">Position</th><th style="padding:10px;">Student Name</th><th style="padding:10px; text-align:center;">Total</th><th style="padding:10px;">Action</th></tr>`;
+            students.slice(0, 8).forEach((student, index) => {
+                html += `<tr style="border-bottom:1px solid #eee;"><td style="padding:10px;">${index + 1}</td><td style="padding:10px;">${student.name}</td><td style="padding:10px; text-align:center; font-weight:bold;">${student.total}</td><td style="padding:10px;"><button onclick="viewStudentHistoryPage('${student.name}')" style="padding:6px 12px; font-size:13px;">History</button></td></tr>`;
+            });
+            html += `</table></div>`;
+        });
+        if (Object.keys(classData).length === 0) html += `<p>No results found for ${selectedTerm} ${selectedYear}.</p>`;
+        document.getElementById("adminClassDashboardContent").innerHTML = html;
+        setTimeout(() => {
+            Object.keys(classData).forEach(cls => {
+                const students = classData[cls].slice(0, 8);
+                const names = students.map(s => s.name.length > 12 ? s.name.substring(0,12)+'...' : s.name);
+                const totals = students.map(s => s.total);
+                new Chart(document.getElementById(`chart-${cls.replace(/\s+/g,'')}`), {
+                    type: 'bar', data: { labels: names, datasets: [{ label: 'Total Score', data: totals, backgroundColor: '#0055aa', borderColor: '#003366', borderWidth: 1 }] },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: subjects.length * 100 } } }
+                });
+            });
+        }, 300);
+    } catch (e) { document.getElementById("adminClassDashboardContent").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
+};
+
+window.refreshDashboardPage = function() {
+    const term = document.getElementById("dashTerm").value;
+    const year = document.getElementById("dashYear").value;
+    window.showClassDashboardPage(term, year);
+};
+
+window.showGradeSummaryPage = async function() {
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("adminClassDashboardPage").classList.remove("hidden");
+    document.getElementById("adminClassDashboardContent").innerHTML = `<p>Loading Grade Summary...</p>`;
+    try {
+        const resultsSnapshot = await getDocs(collection(db, "results"));
+        const studentsSnapshot = await getDocs(collection(db, "students"));
+        let studentGender = {};
+        studentsSnapshot.forEach(docSnap => { studentGender[docSnap.id] = docSnap.data().gender || "Unknown"; });
+        let summary = {};
+        resultsSnapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const className = data.class || "Unknown";
+            if (!summary[className]) { summary[className] = { boysSat: 0, girlsSat: 0, boysPassed: 0, girlsPassed: 0, boysFailed: 0, girlsFailed: 0 }; }
+            const studentName = docSnap.id.split("_")[0];
+            const gender = studentGender[studentName];
+            const passed = ((data.total || 0) / (subjects.length * 100)) >= 0.4;
+            if (gender === "Male") { summary[className].boysSat++; if (passed) summary[className].boysPassed++; else summary[className].boysFailed++; } 
+            else if (gender === "Female") { summary[className].girlsSat++; if (passed) summary[className].girlsPassed++; else summary[className].girlsFailed++; }
+        });
+        let html = `<button onclick="showClassDashboardPage()" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> Back to Class Dashboard</button>
+            <h3>Grade Summary Dashboard</h3>
+            <table style="width:100%; border-collapse:collapse; margin-top:20px;">
+            <tr style="background:#003366; color:white;"><th>Class</th><th>Boys Sat</th><th>Girls Sat</th><th>Total Sat</th><th>Boys Passed</th><th>Girls Passed</th><th>Total Passed</th><th>Pass Rate</th></tr>`;
+        Object.keys(summary).sort().forEach(cls => {
+            const s = summary[cls];
+            const totalSat = s.boysSat + s.girlsSat;
+            const totalPassed = s.boysPassed + s.girlsPassed;
+            const passRate = totalSat > 0 ? ((totalPassed / totalSat) * 100).toFixed(1) : 0;
+            html += `<tr style="border-bottom:1px solid #ddd;"><td style="padding:10px;"><strong>${cls}</strong></td><td style="padding:10px; text-align:center;">${s.boysSat}</td><td style="padding:10px; text-align:center;">${s.girlsSat}</td><td style="padding:10px; text-align:center; font-weight:bold;">${totalSat}</td><td style="padding:10px; text-align:center; color:green;">${s.boysPassed}</td><td style="padding:10px; text-align:center; color:green;">${s.girlsPassed}</td><td style="padding:10px; text-align:center; font-weight:bold;">${totalPassed}</td><td style="padding:10px; text-align:center; font-weight:bold; color:#003366;">${passRate}%</td></tr>`;
+        });
+        html += `</table>`;
+        document.getElementById("adminClassDashboardContent").innerHTML = html;
+    } catch (e) { document.getElementById("adminClassDashboardContent").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
+};
+
+window.viewStudentHistoryPage = async function(studentName) {
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("adminClassDashboardPage").classList.remove("hidden");
+    document.getElementById("adminClassDashboardContent").innerHTML = `<p>Loading ${studentName}'s history...</p>`;
+    try {
+        const snapshot = await getDocs(collection(db, "results"));
+        let history = [];
+        snapshot.forEach(docSnap => {
+            if (docSnap.id.startsWith(studentName + "_")) {
+                const d = docSnap.data();
+                history.push({ term: d.term, year: d.year, total: d.total, class: d.class, scores: d.scores || {} });
+            }
+        });
+        history.sort((a, b) => b.year - a.year || b.term.localeCompare(a.term));
+        let html = `<button onclick="showClassDashboardPage()" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
+            <h3>Academic History - ${studentName}</h3>
+            <button onclick="viewAllStudents()" style="margin-bottom:15px;">← Back to Students</button>`;
+        if (history.length === 0) { html += `<p>No results found yet.</p>`; } else {
+            history.forEach(record => {
+                html += `<div style="background:white; padding:18px; margin:12px 0; border-radius:10px; border-left:5px solid #003366;">
+                    <strong>${record.term} ${record.year} • ${record.class}</strong><br>
+                    <strong>Total: ${record.total} / ${subjects.length * 100}</strong>
+                    <button onclick="loadSingleResultPage('${studentName}', '${record.term}', '${record.year}')" style="margin-left:15px; padding:6px 12px;">View Full Report</button>
+                </div>`;
+            });
+        }
+        document.getElementById("adminClassDashboardContent").innerHTML = html;
+    } catch (e) { alert("Error loading history: " + e.message); }
+};
+
+window.loadSingleResultPage = async function(studentName, term, year) {
+    try {
+        const resultId = `${studentName}_${term}_${year}`;
+        const snap = await getDoc(doc(db, "results", resultId));
+        if (!snap.exists()) return alert("Result not found");
+        document.getElementById("adminPanel").classList.add("hidden");
+        document.getElementById("results").classList.remove("hidden");
+        window.loadResults(studentName, snap.data());
+    } catch (e) { alert("Error loading report: " + e.message); }
 };
 
 // ================= SEARCH & RESULTS =================
@@ -1778,245 +1974,16 @@ window.deleteStudent = async function(studentName) {
     } catch (e) { alert("Error deleting student: " + e.message); }
 };
 
-// ================= BULK UPLOAD =================
-window.showBulkUpload = function() {
-    window.openAdminPage();
-    const user = window.currentUser;
-    if (!user) return;
-    let classOptions = "";
-    if (user.role === "teacher") {
-        classOptions = `<option value="${user.class}" selected>${user.class}</option>`;
-    } else {
-        classOptions = classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
-    }
-    document.getElementById("adminArea").innerHTML = `
-        <button onclick="backToDashboard()" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
-        <h3>Bulk Results Upload</h3>
-        <p style="color:#555;">Upload results for an entire class</p>
-        <div style="margin:15px 0;">
-            <select id="bulkClass" style="padding:12px; width:100%; margin-bottom:10px;"><option value="">—— Select Class ——</option>${classOptions}</select>
-            <select id="bulkTerm" style="padding:12px; width:100%; margin-bottom:10px;"><option value="Term 3" selected>Term 3</option><option value="Term 1">Term 1</option><option value="Term 2">Term 2</option></select>
-            <input id="bulkYear" type="number" value="2026" style="padding:12px; width:100%; margin-bottom:15px;">
-        </div>
-        <div style="margin:20px 0; padding:20px; border:2px dashed #003366; border-radius:12px; text-align:center; background:#f8f9ff;">
-            <button onclick="downloadTemplate()" style="background:#28a745; padding:12px 20px; margin-bottom:15px;"><i class="fa-solid fa-download"></i> Download Excel Template</button>
-            <input type="file" id="excelFile" accept=".xlsx,.csv" style="margin:10px auto; display:block;">
-            <small style="color:#666;">First column must be <strong>StudentName</strong></small>
-        </div>
-        <button onclick="processBulkUpload()" style="background:#003366; padding:12px 25px;">Process & Save Results</button>
-        <button onclick="backToDashboard()" style="margin-top:10px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
-        <div id="uploadStatus" style="margin-top:20px;"></div>
-    `;
-};
-
-window.processBulkUpload = async function() {
-    const fileInput = document.getElementById("excelFile");
-    const className = document.getElementById("bulkClass").value;
-    const term = document.getElementById("bulkTerm").value;
-    const year = document.getElementById("bulkYear").value;
-    const statusDiv = document.getElementById("uploadStatus");
-    if (!fileInput.files[0] || !className || !term || !year) return alert("Please select class, term, year and upload a file.");
-    statusDiv.innerHTML = `<p style="color:blue;">Processing file...</p>`;
-    const file = fileInput.files[0];
-    try {
-        let data;
-        if (file.name.endsWith('.xlsx')) {
-            const arrayBuffer = await file.arrayBuffer();
-            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-        } else {
-            const text = await file.text();
-            const rows = text.trim().split('\n');
-            data = rows.map(row => row.split(',').map(cell => cell.trim()));
-        }
-        let successCount = 0, errorCount = 0;
-        for (let i = 1; i < data.length; i++) {
-            const row = data[i];
-            if (!row || row.length < 1) continue;
-            const studentName = String(row[0]).trim();
-            if (!studentName) continue;
-            let scores = {}, total = 0;
-            const gender = row[1] || "";
-            subjects.forEach((subject, index) => {
-                const score = parseInt(row[index + 2]) || 0;
-                scores[subject] = score;
-                total += score;
-            });
-            try {
-                const resultId = `${studentName}_${term}_${year}`;
-                const existing = await getDoc(doc(db, "results", resultId));
-                if (existing.exists()) {
-                    const overwrite = confirm(`${studentName} already has results for ${term} ${year}.\nOverwrite?`);
-                    if (!overwrite) continue;
-                }
-                const studentRef = doc(db, "students", studentName);
-                await setDoc(studentRef, { class: className, gender: gender }, { merge: true });
-                await setDoc(doc(db, "results", resultId), {
-                    scores: scores, total: total, class: className, classSize: 40, term: term, year: parseInt(year)
-                });
-                successCount++;
-            } catch (err) { errorCount++; }
-        }
-        statusDiv.innerHTML = `<p style="color:green; font-weight:bold;">✅ Upload Complete!<br>Success: ${successCount} students<br>Failed: ${errorCount}</p>`;
-        setTimeout(() => window.viewAllStudents(), 2500);
-    } catch (e) { statusDiv.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
-};
-
-window.downloadTemplate = function() {
-    const wb = XLSX.utils.book_new();
-    const headers = ["StudentName", "Gender", ...subjects];
-    const sampleData = [headers, ["John Banda", "Male", 85, 78, 92, 88, 76, 94, 82, 89, 85], ["Mary Phiri", "Female", 65, 70, 75, 68, 80, 72, 68, 75, 70], ["Peter Mwale", "Male", 92, 88, 95, 90, 85, 96, 89, 91, 87], ["Grace Manda", "Female", 45, 55, 60, 50, 65, 48, 52, 58, 55], ["James Chawinga", "Male", 78, 82, 80, 85, 75, 88, 79, 83, 81]];
-    const ws = XLSX.utils.aoa_to_sheet(sampleData);
-    ws['!cols'] = headers.map(() => ({ wch: 18 }));
-    XLSX.utils.book_append_sheet(wb, ws, "Term 3 Results");
-    XLSX.writeFile(wb, "Bandawe_Bulk_Results_Template.xlsx");
-};
-
-// ================= CLASS PERFORMANCE DASHBOARD =================
-window.showClassDashboard = async function(selectedTerm = "Term 3", selectedYear = "2026") {
-    window.openAdminPage();
-    document.getElementById("adminArea").innerHTML = `<p>Loading Class Performance...</p>`;
-    try {
-        const snapshot = await getDocs(collection(db, "results"));
-        let classData = {};
-        snapshot.forEach(docSnap => {
-            const d = docSnap.data();
-            if (d.term === selectedTerm && d.year == selectedYear) {
-                if (!classData[d.class]) classData[d.class] = [];
-                classData[d.class].push({ name: docSnap.id.split('_')[0], total: d.total || 0, scores: d.scores || {} });
-            }
-        });
-        let html = `<button onclick="backToDashboard()" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard </button><h3>Class Performance Dashboard</h3>
-            <div style="margin:15px 0; padding:15px; background:#f8f9ff; border-radius:10px;">
-            <select id="dashTerm" onchange="refreshDashboard()" style="padding:10px; margin-right:10px;">
-                <option value="Term 1" ${selectedTerm === "Term 1" ? "selected" : ""}>Term 1</option>
-                <option value="Term 2" ${selectedTerm === "Term 2" ? "selected" : ""}>Term 2</option>
-                <option value="Term 3" ${selectedTerm === "Term 3" ? "selected" : ""}>Term 3</option>
-            </select>
-            <select id="dashYear" onchange="refreshDashboard()" style="padding:10px;">
-                <option value="2025" ${selectedYear === "2025" ? "selected" : ""}>2025</option>
-                <option value="2026" ${selectedYear === "2026" ? "selected" : ""}>2026</option>
-                <option value="2027" ${selectedYear === "2027" ? "selected" : ""}>2027</option>
-            </select></div>`;
-        Object.keys(classData).sort().forEach(cls => {
-            const students = classData[cls];
-            const totalStudents = students.length;
-            if (totalStudents === 0) return;
-            let totalScoreSum = 0;
-            students.forEach(s => totalScoreSum += s.total);
-            const classAverage = (totalScoreSum / totalStudents).toFixed(1);
-            students.sort((a, b) => b.total - a.total);
-            html += `<div style="background:white; padding:20px; margin:15px 0; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
-                <h4>${cls} (${totalStudents} students) — Class Average: <strong>${classAverage}</strong></h4>
-                <canvas id="chart-${cls.replace(/\s+/g,'')}" style="margin:15px 0; max-height:280px;"></canvas>
-                <table style="width:100%; border-collapse:collapse; margin-top:10px;">
-                <tr style="background:#003366; color:white;"><th style="padding:10px;">Position</th><th style="padding:10px;">Student Name</th><th style="padding:10px; text-align:center;">Total</th><th style="padding:10px;">Action</th></tr>`;
-            students.slice(0, 8).forEach((student, index) => {
-                html += `<tr style="border-bottom:1px solid #eee;"><td style="padding:10px;">${index + 1}</td><td style="padding:10px;">${student.name}</td><td style="padding:10px; text-align:center; font-weight:bold;">${student.total}</td><td style="padding:10px;"><button onclick="viewStudentHistory('${student.name}')" style="padding:6px 12px; font-size:13px;">History</button></td></tr>`;
-            });
-            html += `</table></div>`;
-        });
-        if (Object.keys(classData).length === 0) html += `<p>No results found for ${selectedTerm} ${selectedYear}.</p>`;
-        document.getElementById("adminArea").innerHTML = html;
-        setTimeout(() => {
-            Object.keys(classData).forEach(cls => {
-                const students = classData[cls].slice(0, 8);
-                const names = students.map(s => s.name.length > 12 ? s.name.substring(0,12)+'...' : s.name);
-                const totals = students.map(s => s.total);
-                new Chart(document.getElementById(`chart-${cls.replace(/\s+/g,'')}`), {
-                    type: 'bar', data: { labels: names, datasets: [{ label: 'Total Score', data: totals, backgroundColor: '#0055aa', borderColor: '#003366', borderWidth: 1 }] },
-                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: subjects.length * 100 } } }
-                });
-            });
-        }, 300);
-    } catch (e) { document.getElementById("adminArea").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
-};
-
-window.showGradeSummary = async function() {
-    window.openAdminPage();
-    document.getElementById("adminArea").innerHTML = `<p>Loading Grade Summary...</p>`;
-    try {
-        const resultsSnapshot = await getDocs(collection(db, "results"));
-        const studentsSnapshot = await getDocs(collection(db, "students"));
-        let studentGender = {};
-        studentsSnapshot.forEach(docSnap => { studentGender[docSnap.id] = docSnap.data().gender || "Unknown"; });
-        let summary = {};
-        resultsSnapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            const className = data.class || "Unknown";
-            if (!summary[className]) { summary[className] = { boysSat: 0, girlsSat: 0, boysPassed: 0, girlsPassed: 0, boysFailed: 0, girlsFailed: 0 }; }
-            const studentName = docSnap.id.split("_")[0];
-            const gender = studentGender[studentName];
-            const passed = ((data.total || 0) / (subjects.length * 100)) >= 0.4;
-            if (gender === "Male") { summary[className].boysSat++; if (passed) summary[className].boysPassed++; else summary[className].boysFailed++; } 
-            else if (gender === "Female") { summary[className].girlsSat++; if (passed) summary[className].girlsPassed++; else summary[className].girlsFailed++; }
-        });
-        let html = `<button onclick="backToDashboard()" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button><h3>Grade Summary Dashboard</h3>
-            <table style="width:100%; border-collapse:collapse; margin-top:20px;">
-            <tr style="background:#003366; color:white;"><th>Class</th><th>Boys Sat</th><th>Girls Sat</th><th>Total Sat</th><th>Boys Passed</th><th>Girls Passed</th><th>Total Passed</th><th>Pass Rate</th></tr>`;
-        Object.keys(summary).sort().forEach(cls => {
-            const s = summary[cls];
-            const totalSat = s.boysSat + s.girlsSat;
-            const totalPassed = s.boysPassed + s.girlsPassed;
-            const passRate = totalSat > 0 ? ((totalPassed / totalSat) * 100).toFixed(1) : 0;
-            html += `<tr style="border-bottom:1px solid #ddd;"><td style="padding:10px;"><strong>${cls}</strong></td><td style="padding:10px; text-align:center;">${s.boysSat}</td><td style="padding:10px; text-align:center;">${s.girlsSat}</td><td style="padding:10px; text-align:center; font-weight:bold;">${totalSat}</td><td style="padding:10px; text-align:center; color:green;">${s.boysPassed}</td><td style="padding:10px; text-align:center; color:green;">${s.girlsPassed}</td><td style="padding:10px; text-align:center; font-weight:bold;">${totalPassed}</td><td style="padding:10px; text-align:center; font-weight:bold; color:#003366;">${passRate}%</td></tr>`;
-        });
-        html += `</table>`;
-        document.getElementById("adminArea").innerHTML = html;
-    } catch (e) { document.getElementById("adminArea").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
-};
-
-window.refreshDashboard = function() {
-    const term = document.getElementById("dashTerm").value;
-    const year = document.getElementById("dashYear").value;
-    window.showClassDashboard(term, year);
-};
-
-window.viewStudentHistory = async function(studentName) {
-    window.openAdminPage();
-    document.getElementById("adminArea").innerHTML = `<p>Loading ${studentName}'s history...</p>`;
-    try {
-        const snapshot = await getDocs(collection(db, "results"));
-        let history = [];
-        snapshot.forEach(docSnap => {
-            if (docSnap.id.startsWith(studentName + "_")) {
-                const d = docSnap.data();
-                history.push({ term: d.term, year: d.year, total: d.total, class: d.class, scores: d.scores || {} });
-            }
-        });
-        history.sort((a, b) => b.year - a.year || b.term.localeCompare(a.term));
-        let html = `<button onclick="backToDashboard()" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button><h3>Academic History - ${studentName}</h3><button onclick="viewAllStudents()" style="margin-bottom:15px;">← Back to Students</button>`;
-        if (history.length === 0) { html += `<p>No results found yet.</p>`; } else {
-            history.forEach(record => {
-                html += `<div style="background:white; padding:18px; margin:12px 0; border-radius:10px; border-left:5px solid #003366;">
-                    <strong>${record.term} ${record.year} • ${record.class}</strong><br>
-                    <strong>Total: ${record.total} / ${subjects.length * 100}</strong>
-                    <button onclick="loadSingleResult('${studentName}', '${record.term}', '${record.year}')" style="margin-left:15px; padding:6px 12px;">View Full Report</button>
-                </div>`;
-            });
-        }
-        document.getElementById("adminArea").innerHTML = html;
-    } catch (e) { alert("Error loading history: " + e.message); }
-};
-
-window.loadSingleResult = async function(studentName, term, year) {
-    try {
-        const resultId = `${studentName}_${term}_${year}`;
-        const snap = await getDoc(doc(db, "results", resultId));
-        if (!snap.exists()) return alert("Result not found");
-        document.getElementById("adminPanel").classList.add("hidden");
-        document.getElementById("results").classList.remove("hidden");
-        window.loadResults(studentName, snap.data());
-    } catch (e) { alert("Error loading report: " + e.message); }
-};
-
 // ================= MANAGE USERS =================
 window.manageUsers = function() {
-    window.openAdminPage();
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("adminUsersPage").classList.remove("hidden");
     const user = window.currentUser;
-    if (user.role !== "admin") return alert("Only Administrators can manage users.");
-    document.getElementById("adminArea").innerHTML = `
+    if (user.role !== "admin") {
+        document.getElementById("adminUsersContent").innerHTML = `<p style="color:red;">Only Administrators can manage users.</p><button onclick="backToDashboard()">Back to Dashboard</button>`;
+        return;
+    }
+    document.getElementById("adminUsersContent").innerHTML = `
         <button onclick="backToDashboard()" style="margin-bottom:15px;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
         <h3>Manage Users (Admin Only)</h3>
         <div style="background:#f8f9ff; padding:20px; border-radius:12px;">
@@ -2093,8 +2060,10 @@ window.editNotice = async function(id){
     const snap = await getDoc(doc(db,"announcements",id));
     if(!snap.exists()) return alert("Notice not found");
     const data = snap.data();
-    document.getElementById("adminArea").innerHTML = `
-        <button onclick="backToDashboard()" style="margin-bottom:15px;">← Back to Dashboard</button>
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("adminNoticesPage").classList.remove("hidden");
+    document.getElementById("adminNoticeContent").innerHTML = `
+        <button onclick="manageNotices()" style="margin-bottom:15px;">← Back to Notices</button>
         <h3>Edit Notice</h3>
         <input id="editNoticeTitle" value="${data.title}" style="width:100%;margin-bottom:10px;">
         <textarea id="editNoticeMessage" style="width:100%;height:100px;margin-bottom:10px;">${data.message}</textarea>
@@ -2169,8 +2138,10 @@ window.editCalendar = async function(id){
     const snap = await getDoc(doc(db,"calendar",id));
     if(!snap.exists()) return alert("Calendar item not found");
     const data = snap.data();
-    document.getElementById("adminArea").innerHTML = `
-        <button onclick="backToDashboard()" style="margin-bottom:15px;">← Back to Dashboard</button>
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("adminCalendarPage").classList.remove("hidden");
+    document.getElementById("adminCalendarContent").innerHTML = `
+        <button onclick="manageCalendar()" style="margin-bottom:15px;">← Back to Calendar</button>
         <h3>Edit Calendar Event</h3>
         <input id="editCalendarDate" value="${data.date}" style="width:100%;margin-bottom:10px;">
         <input id="editCalendarActivity" value="${data.activity}" style="width:100%;margin-bottom:10px;">
@@ -2195,12 +2166,11 @@ window.deleteCalendar = async function(id){
     window.manageCalendar();
 };
 
-console.log("✅ All functions loaded successfully!");
-
-window.manageGallery = function() {
-    window.openAdminPage();           // ← Use this instead of anything else
-    
-    document.getElementById("adminArea").innerHTML = `
+// ================= MANAGE GALLERY PAGE =================
+window.showManageGalleryPage = function() {
+    document.getElementById("adminPanel").classList.add("hidden");
+    document.getElementById("adminManageGalleryPage").classList.remove("hidden");
+    document.getElementById("adminManageGalleryContent").innerHTML = `
         <button onclick="backToDashboard()" style="margin-bottom:15px;">← Back to Dashboard</button>
         <h3><i class="fa-solid fa-images"></i> Manage Gallery</h3>
         
@@ -2215,18 +2185,25 @@ window.manageGallery = function() {
                 <option value="events">Events</option>
                 <option value="sports">Sports</option>
             </select>
-            <button onclick="addGalleryImage()" style="background:#28a745; padding:12px 20px;">Add Image</button>
+            <button onclick="addGalleryImagePage()" style="background:#28a745; padding:12px 20px;">Add Image</button>
         </div>
         
-        <h4>Current Gallery Images</h4>
+        <div class="upload-area" style="border:2px dashed #003366; border-radius:20px; padding:30px; text-align:center; background:#f0f5ff; margin-top:20px; opacity:0.7; transition:all 0.3s;">
+            <i class="fas fa-cloud-upload-alt" style="font-size: 40px; color: #003366;"></i>
+            <h4>Admin Upload (Coming Soon)</h4>
+            <p style="color: #666;">Upload images to the gallery</p>
+            <button disabled style="background: #ccc; cursor: not-allowed; padding: 10px 30px; border: none; border-radius: 25px;">
+                <i class="fas fa-lock"></i> Admin Only
+            </button>
+        </div>
+        
+        <h4 style="margin-top:20px;">Current Gallery Images</h4>
         <div id="adminGalleryList" style="max-height:500px; overflow-y:auto;"></div>
     `;
-    
-    renderAdminGalleryList();
+    renderAdminGalleryListPage();
 };
 
-
-window.addGalleryImage = function() {
+window.addGalleryImagePage = function() {
     const url = document.getElementById("newImageUrl").value.trim();
     const caption = document.getElementById("newImageCaption").value.trim();
     const category = document.getElementById("newImageCategory").value;
@@ -2241,11 +2218,14 @@ window.addGalleryImage = function() {
     });
     
     alert("Image added to gallery!");
-    renderAdminGalleryList();
+    renderAdminGalleryListPage();
+    // Also update public gallery view
+    renderGallery('all');
 };
 
-function renderAdminGalleryList() {
+function renderAdminGalleryListPage() {
     const container = document.getElementById("adminGalleryList");
+    if (!container) return;
     let html = "";
     galleryImages.forEach((img, i) => {
         html += `
@@ -2254,19 +2234,21 @@ function renderAdminGalleryList() {
                     <img src="${img.url}" style="height:60px; border-radius:6px;"> 
                     <strong>${img.caption}</strong> (${img.category})
                 </div>
-                <button onclick="deleteGalleryImage(${i})" style="background:#dc3545; color:white; border:none; padding:6px 12px;">Delete</button>
+                <button onclick="deleteGalleryImagePage(${i})" style="background:#dc3545; color:white; border:none; padding:6px 12px;">Delete</button>
             </div>`;
     });
     container.innerHTML = html || "<p>No images yet.</p>";
 }
 
-window.deleteGalleryImage = function(index) {
+window.deleteGalleryImagePage = function(index) {
     if (confirm("Delete this image?")) {
         galleryImages.splice(index, 1);
-        renderAdminGalleryList();
+        renderAdminGalleryListPage();
+        renderGallery('all');
     }
 };
 
+console.log("✅ All functions loaded successfully!");
 </script>
 </body>
 </html>
