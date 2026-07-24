@@ -1305,7 +1305,48 @@ window.exportAllClassesResults = async function(selectedTerm = "Term 3", selecte
         alert("Export failed: " + error.message);
     }
 };
+window.showPerformancePage = function() {
+    // Hide all other pages
+    hideAllPages();
+    
+    // Show the admin performance page container
+    document.getElementById('adminPerformancePage').classList.remove('hidden');
+    
+    // Inject the HTML form & buttons into adminPerformanceContent
+    document.getElementById('adminPerformanceContent').innerHTML = `
+        <div style="max-width: 800px; margin: 20px auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            <h3 style="color:#003366; text-align:center;"><i class="fa-solid fa-chart-pie"></i> Class Performance Analysis</h3>
+            
+            <select id="perfClassSelect" style="padding:12px; margin-bottom:10px; width:100%;">
+                <option value="">Select Class</option>
+                <option value="Standard 1">Standard 1</option>
+                <option value="Standard 2">Standard 2</option>
+                <option value="Standard 3">Standard 3</option>
+                <option value="Standard 4">Standard 4</option>
+                <option value="Standard 5">Standard 5</option>
+                <option value="Standard 6">Standard 6</option>
+                <option value="Standard 7">Standard 7</option>
+                <option value="Standard 8">Standard 8</option>
+            </select>
 
+            <select id="perfTermSelect" style="padding:12px; margin-bottom:10px; width:100%;">
+                <option value="Term 1">Term 1</option>
+                <option value="Term 2">Term 2</option>
+                <option value="Term 3">Term 3</option>
+            </select>
+
+            <input type="number" id="perfYearInput" value="2026" placeholder="Year" style="padding:12px; margin-bottom:15px; width:100%;">
+
+            <button onclick="loadPerformanceData()" style="background:#003366; color:white; padding:12px; width:100%; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-bottom:10px;">
+                <i class="fa-solid fa-chart-line"></i> View Analysis
+            </button>
+
+            <button onclick="exportAllClassesResults()" style="background:#28a745; color:white; padding:12px; width:100%; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
+                <i class="fa-solid fa-file-excel"></i> Export Class Results (Excel)
+            </button>
+        </div>
+    `;
+};
 window.backToDashboardFromHistory = function() {
     // Remove history page
     const historyPage = document.getElementById("adminHistoryPage");
